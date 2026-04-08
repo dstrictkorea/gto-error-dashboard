@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#534AB7">
+<meta name="color-scheme" content="light dark">
+<!-- PWA -->
+<link rel="manifest" href="/form/manifest.json">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Error Report">
+<meta name="application-name" content="d'strict Error Report">
+<!-- Icons -->
+<link rel="icon" type="image/png" sizes="192x192" href="/fonts/icon-192.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/fonts/apple-touch-icon.png">
+<title>d'strict Error Report</title>
+<style>
+  *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+  :root{
+    --purple:#534AB7;--purple-d:#3d35a0;
+    --bg:#fafaf9;--card:#fff;--t0:#1a1a18;--t2:#73726c;--t3:#a3a29c;--border:#e8e7e3;
+    --safe-top:env(safe-area-inset-top,0px);
+    --safe-bottom:env(safe-area-inset-bottom,0px);
+  }
+  @media(prefers-color-scheme:dark){
+    :root{--bg:#0a0a0a;--card:#171717;--t0:#ededed;--t2:#a1a1a1;--t3:#737373;--border:#2e2e2e}
+  }
+  html,body{
+    height:100%;width:100%;
+    font-family:'Pretendard',-apple-system,'Segoe UI',sans-serif;
+    background:var(--bg);color:var(--t0);
+    overflow:hidden;
+    -webkit-text-size-adjust:100%;
+  }
+
+  /* ── App Shell ── */
+  .app-wrap{
+    display:flex;flex-direction:column;
+    height:100dvh;height:100vh;
+    padding-top:var(--safe-top);
+    padding-bottom:var(--safe-bottom);
+  }
+
+  /* ── Header ── */
+  .header{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:12px 16px;
+    background:var(--card);
+    border-bottom:1px solid var(--border);
+    flex-shrink:0;
+    backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+  }
+  .header-left{display:flex;align-items:center;gap:10px}
+  .header-logo{height:18px;opacity:.85}
+  .header-title{
+    font-size:15px;font-weight:800;
+    font-family:'Uniform','Montserrat','Pretendard',sans-serif;
+    letter-spacing:-0.02em;
+  }
+  .header-badge{
+    font-size:9px;font-weight:700;
+    background:var(--purple);color:#fff;
+    padding:2px 7px;border-radius:6px;
+    letter-spacing:0.02em;
+  }
+  .header-btn{
+    background:none;border:none;
+    font-size:20px;cursor:pointer;
+    color:var(--t2);padding:4px 8px;
+    border-radius:8px;
+    transition:background .15s;
+  }
+  .header-btn:active{background:rgba(83,74,183,.12)}
+
+  /* ── Form Container ── */
+  .form-frame{
+    flex:1;width:100%;
+    border:none;
+    background:var(--bg);
+  }
+
+  /* ── Loading ── */
+  .loading-overlay{
+    position:absolute;inset:0;
+    display:flex;flex-direction:column;
+    align-items:center;justify-content:center;
+    background:var(--bg);
+    z-index:10;
+    transition:opacity .4s;
+  }
+  .loading-overlay.hidden{opacity:0;pointer-events:none}
+  .spinner{
+    width:36px;height:36px;
+    border:3px solid var(--border);
+    border-top-color:var(--purple);
+    border-radius:50%;
+    animation:spin .8s linear infinite;
+  }
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .loading-text{
+    margin-top:14px;font-size:13px;font-weight:600;color:var(--t3);
+  }
+
+  /* ── Install Banner ── */
+  .install-banner{
+    display:none;
+    align-items:center;gap:12px;
+    padding:12px 16px;
+    background:linear-gradient(135deg,#534AB7 0%,#7c3aed 100%);
+    color:#fff;
+    flex-shrink:0;
+  }
+  .install-banner.show{display:flex}
+  .install-icon{font-size:24px}
+  .install-text{flex:1}
+  .install-text strong{font-size:13px;font-weight:700;display:block}
+  .install-text span{font-size:11px;opacity:.8}
+  .install-btn{
+    background:rgba(255,255,255,.2);color:#fff;
+    border:1px solid rgba(255,255,255,.3);
+    padding:8px 16px;border-radius:10px;
+    font-size:12px;font-weight:700;
+    cursor:pointer;white-space:nowrap;
+    transition:background .15s;
+  }
+  .install-btn:active{background:rgba(255,255,255,.35)}
+  .install-close{
+    background:none;border:none;color:rgba(255,255,255,.7);
+    font-size:18px;cursor:pointer;padding:4px;
+  }
+
+  /* ── iOS Install Guide ── */
+  .ios-guide{
+    display:none;
+    position:fixed;bottom:0;left:0;right:0;
+    background:var(--card);
+    border-top:1px solid var(--border);
+    padding:20px 16px calc(20px + var(--safe-bottom));
+    border-radius:20px 20px 0 0;
+    box-shadow:0 -8px 30px rgba(0,0,0,.15);
+    z-index:100;
+    animation:slideUp .3s ease;
+  }
+  .ios-guide.show{display:block}
+  @keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+  .ios-guide-title{font-size:16px;font-weight:800;margin-bottom:14px;text-align:center}
+  .ios-step{
+    display:flex;align-items:flex-start;gap:12px;
+    padding:10px 0;
+    border-bottom:1px solid var(--border);
+  }
+  .ios-step:last-child{border-bottom:none}
+  .ios-step-num{
+    width:24px;height:24px;
+    background:var(--purple);color:#fff;
+    border-radius:50%;
+    display:flex;align-items:center;justify-content:center;
+    font-size:12px;font-weight:800;flex-shrink:0;
+  }
+  .ios-step-text{font-size:13px;line-height:1.5;color:var(--t0)}
+  .ios-step-text strong{color:var(--purple)}
+  .ios-guide-close{
+    display:block;width:100%;margin-top:14px;
+    padding:12px;border-radius:12px;
+    background:var(--purple);color:#fff;
+    border:none;font-size:14px;font-weight:700;cursor:pointer;
+  }
+  .ios-backdrop{
+    display:none;position:fixed;inset:0;
+    background:rgba(0,0,0,.4);z-index:99;
+  }
+  .ios-backdrop.show{display:block}
+</style>
+</head>
+<body>
+<div class="app-wrap">
+  <!-- Install Banner (Android PWA) -->
+  <div class="install-banner" id="installBanner">
+    <div class="install-icon">📲</div>
+    <div class="install-text">
+      <strong>Install Error Report</strong>
+      <span>Add to home screen for quick access</span>
+    </div>
+    <button class="install-btn" id="installBtn" onclick="installApp()">Install</button>
+    <button class="install-close" onclick="dismissInstall()">×</button>
+  </div>
+
+  <!-- Header -->
+  <div class="header">
+    <div class="header-left">
+      <img src="/fonts/dstrict_CI_BLACK.png" alt="d'strict" class="header-logo"
+           id="headerLogo">
+      <span class="header-title">Error Report</span>
+      <span class="header-badge">LIVE</span>
+    </div>
+    <button class="header-btn" onclick="reloadForm()" aria-label="Reload">⟳</button>
+  </div>
+
+  <!-- Form iframe -->
+  <div style="position:relative;flex:1;overflow:hidden">
+    <div class="loading-overlay" id="loadingOverlay">
+      <div class="spinner"></div>
+      <div class="loading-text">Loading form...</div>
+    </div>
+    <iframe
+      id="formFrame"
+      class="form-frame"
+      src="https://forms.office.com/Pages/ResponsePage.aspx?id=Fux_6MqrLEq_640Ktdw0wCBEaDMiqdxBsQp4GE5st3tUNFg2MlJUSjBNUEoyUkM1VldaSTBLVUVPMyQlQCN0PWcu"
+      allow="geolocation"
+      loading="eager"
+      onload="hideLoading()"
+    ></iframe>
+  </div>
+</div>
+
+<!-- iOS Install Guide -->
+<div class="ios-backdrop" id="iosBackdrop" onclick="closeIosGuide()"></div>
+<div class="ios-guide" id="iosGuide">
+  <div class="ios-guide-title">홈 화면에 추가하기</div>
+  <div class="ios-step">
+    <div class="ios-step-num">1</div>
+    <div class="ios-step-text">하단 Safari 메뉴에서 <strong>공유 버튼 ⬆</strong> 을 탭하세요</div>
+  </div>
+  <div class="ios-step">
+    <div class="ios-step-num">2</div>
+    <div class="ios-step-text">스크롤하여 <strong>"홈 화면에 추가"</strong> 를 선택하세요</div>
+  </div>
+  <div class="ios-step">
+    <div class="ios-step-num">3</div>
+    <div class="ios-step-text"><strong>"추가"</strong> 버튼을 탭하면 앱 아이콘이 생성됩니다</div>
+  </div>
+  <button class="ios-guide-close" onclick="closeIosGuide()">확인</button>
+</div>
+
+<script>
+// ── Dark mode logo swap ──
+(function(){
+  var logo = document.getElementById('headerLogo');
+  function setLogo(){
+    var dark = window.matchMedia('(prefers-color-scheme:dark)').matches;
+    logo.src = dark ? '/fonts/dstrict_CI_WHITE.png' : '/fonts/dstrict_CI_BLACK.png';
+  }
+  setLogo();
+  window.matchMedia('(prefers-color-scheme:dark)').addEventListener('change', setLogo);
+})();
+
+// ── Loading ──
+function hideLoading(){
+  var el = document.getElementById('loadingOverlay');
+  if(el) el.classList.add('hidden');
+}
+// Fallback: hide after 5s even if iframe doesn't fire onload
+setTimeout(hideLoading, 5000);
+
+// ── Reload ──
+function reloadForm(){
+  var f = document.getElementById('formFrame');
+  document.getElementById('loadingOverlay').classList.remove('hidden');
+  f.src = f.src;
+}
+
+// ── PWA Install (Android) ──
+var _deferredPrompt = null;
+window.addEventListener('beforeinstallprompt', function(e){
+  e.preventDefault();
+  _deferredPrompt = e;
+  document.getElementById('installBanner').classList.add('show');
+});
+
+function installApp(){
+  if(!_deferredPrompt) return;
+  _deferredPrompt.prompt();
+  _deferredPrompt.userChoice.then(function(r){
+    if(r.outcome === 'accepted') {
+      document.getElementById('installBanner').classList.remove('show');
+    }
+    _deferredPrompt = null;
+  });
+}
+
+function dismissInstall(){
+  document.getElementById('installBanner').classList.remove('show');
+  sessionStorage.setItem('install-dismissed','1');
+}
+
+// ── iOS Install Guide ──
+function isIos(){
+  return /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+    (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+}
+function isStandalone(){
+  return window.matchMedia('(display-mode:standalone)').matches ||
+    window.navigator.standalone === true;
+}
+
+// Show iOS guide after 3 seconds if not installed
+if(isIos() && !isStandalone()){
+  setTimeout(function(){
+    if(!sessionStorage.getItem('ios-guide-shown')){
+      document.getElementById('iosGuide').classList.add('show');
+      document.getElementById('iosBackdrop').classList.add('show');
+      sessionStorage.setItem('ios-guide-shown','1');
+    }
+  }, 3000);
+}
+
+function closeIosGuide(){
+  document.getElementById('iosGuide').classList.remove('show');
+  document.getElementById('iosBackdrop').classList.remove('show');
+}
+
+// ── Register Service Worker ──
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.register('/form/sw.js').catch(function(e){
+    console.warn('[Form SW] Registration failed:', e);
+  });
+}
+</script>
+</body>
+</html>

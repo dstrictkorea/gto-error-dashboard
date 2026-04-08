@@ -1,0 +1,127 @@
+{
+  "id": "/kr",
+  "name": "d'strict GTO-KR — 에러 대시보드",
+  "short_name": "GTO-KR",
+  "description": "d'strict 글로벌운영본부 기술운영팀 에러 관리 대시보드 — 한국어 (국내 지점: 강남, 여수, 부산, 제주)",
+  "lang": "ko",
+  "dir": "ltr",
+  "start_url": "/kr?source=pwa",
+  "scope": "/kr",
+  "display": "standalone",
+  "display_override": ["window-controls-overlay", "tabbed", "standalone", "minimal-ui"],
+  "background_color": "#1a1a18",
+  "theme_color": "#534AB7",
+  "orientation": "any",
+  "categories": ["business", "productivity", "utilities"],
+  "iarc_rating_id": "e84b072d-71b3-4d3e-86ae-31a8ce4e53b7",
+  "launch_handler": {
+    "client_mode": "navigate-existing"
+  },
+  "handle_links": "preferred",
+  "edge_side_panel": {
+    "preferred_width": 480
+  },
+  "scope_extensions": [
+    { "origin": "https://dskr-gto.duckdns.org" },
+    { "origin": "https://*.duckdns.org" }
+  ],
+  "file_handlers": [
+    {
+      "action": "/kr#errorlog",
+      "accept": {
+        "text/csv": [".csv"],
+        "application/json": [".json"]
+      }
+    }
+  ],
+  "widgets": [
+    {
+      "name": "에러 요약 (국내)",
+      "description": "오늘의 국내 에러 현황 빠른 보기",
+      "tag": "error-summary-kr",
+      "ms_ac_template": "widgets/summary.json",
+      "screenshots": [
+        { "src": "/fonts/screenshot-narrow.png", "sizes": "390x844", "label": "에러 요약 위젯" }
+      ],
+      "icons": [
+        { "src": "/fonts/icon-192.png", "sizes": "192x192" }
+      ]
+    }
+  ],
+  "note_taking": {
+    "new_note_url": "/kr#errorlog"
+  },
+  "icons": [
+    { "src": "/fonts/icon-72.png", "sizes": "72x72", "type": "image/png", "purpose": "any" },
+    { "src": "/fonts/icon-96.png", "sizes": "96x96", "type": "image/png", "purpose": "any" },
+    { "src": "/fonts/icon-128.png", "sizes": "128x128", "type": "image/png", "purpose": "any" },
+    { "src": "/fonts/icon-144.png", "sizes": "144x144", "type": "image/png", "purpose": "any" },
+    { "src": "/fonts/icon-152.png", "sizes": "152x152", "type": "image/png", "purpose": "any" },
+    { "src": "/fonts/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/fonts/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable" },
+    { "src": "/fonts/icon-384.png", "sizes": "384x384", "type": "image/png", "purpose": "any" },
+    { "src": "/fonts/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/fonts/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "screenshots": [
+    {
+      "src": "/fonts/screenshot-wide.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "에러 대시보드 — 데스크톱 뷰"
+    },
+    {
+      "src": "/fonts/screenshot-narrow.png",
+      "sizes": "390x844",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "에러 대시보드 — 모바일 뷰"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "일일 현황",
+      "short_name": "일일",
+      "description": "오늘의 국내 지점 에러 현황 보기",
+      "url": "/kr#daily",
+      "icons": [{ "src": "/fonts/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "에러 로그",
+      "short_name": "로그",
+      "description": "전체 에러 기록 검색",
+      "url": "/kr#errorlog",
+      "icons": [{ "src": "/fonts/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "지점별 현황",
+      "short_name": "지점별",
+      "description": "지점별 에러 통계 보기",
+      "url": "/kr#branches",
+      "icons": [{ "src": "/fonts/icon-192.png", "sizes": "192x192" }]
+    }
+  ],
+  "share_target": {
+    "action": "/kr#errorlog",
+    "method": "GET",
+    "params": {
+      "title": "title",
+      "text": "text",
+      "url": "url"
+    }
+  },
+  "protocol_handlers": [
+    {
+      "protocol": "web+dstrict",
+      "url": "/kr?protocol=%s"
+    }
+  ],
+  "related_applications": [
+    {
+      "platform": "webapp",
+      "url": "https://dskr-gto.duckdns.org/kr/manifest.json"
+    }
+  ],
+  "prefer_related_applications": false
+}

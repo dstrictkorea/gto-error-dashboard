@@ -1,0 +1,27 @@
+{
+  "name": "d'strict Error Report",
+  "short_name": "Error Report",
+  "description": "d'strict Global Tech Ops - Daily Error Reporting Form",
+  "start_url": "/form/",
+  "scope": "/form/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "theme_color": "#534AB7",
+  "background_color": "#fafaf9",
+  "lang": "ko",
+  "categories": ["business", "utilities"],
+  "icons": [
+    {
+      "src": "/fonts/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/fonts/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

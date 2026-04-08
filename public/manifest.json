@@ -1,0 +1,127 @@
+{
+  "id": "dstrict-error-dashboard",
+  "name": "d'strict Error — Global Tech Ops",
+  "short_name": "d'strict",
+  "description": "Global Technical Operations Error Management Dashboard for d'strict branch offices worldwide.",
+  "lang": "en",
+  "dir": "ltr",
+  "start_url": "/?source=pwa",
+  "scope": "/",
+  "display": "standalone",
+  "display_override": ["window-controls-overlay", "tabbed", "standalone", "minimal-ui"],
+  "background_color": "#1a1a18",
+  "theme_color": "#534AB7",
+  "orientation": "any",
+  "categories": ["business", "productivity", "utilities"],
+  "iarc_rating_id": "e84b072d-71b3-4d3e-86ae-31a8ce4e53b7",
+  "launch_handler": {
+    "client_mode": "navigate-existing"
+  },
+  "handle_links": "preferred",
+  "edge_side_panel": {
+    "preferred_width": 480
+  },
+  "scope_extensions": [
+    { "origin": "https://dskr-gto.duckdns.org" },
+    { "origin": "https://*.duckdns.org" }
+  ],
+  "file_handlers": [
+    {
+      "action": "/#errorlog",
+      "accept": {
+        "text/csv": [".csv"],
+        "application/json": [".json"]
+      }
+    }
+  ],
+  "widgets": [
+    {
+      "name": "Error Summary",
+      "description": "Quick view of today's error count",
+      "tag": "error-summary",
+      "ms_ac_template": "widgets/summary.json",
+      "screenshots": [
+        { "src": "/fonts/screenshot-narrow.png", "sizes": "390x844", "label": "Error Summary Widget" }
+      ],
+      "icons": [
+        { "src": "/fonts/icon-192.png", "sizes": "192x192" }
+      ]
+    }
+  ],
+  "note_taking": {
+    "new_note_url": "/#errorlog"
+  },
+  "icons": [
+    { "src": "/fonts/icon-72.png", "sizes": "72x72", "type": "image/png", "purpose": "any" },
+    { "src": "/fonts/icon-96.png", "sizes": "96x96", "type": "image/png", "purpose": "any" },
+    { "src": "/fonts/icon-128.png", "sizes": "128x128", "type": "image/png", "purpose": "any" },
+    { "src": "/fonts/icon-144.png", "sizes": "144x144", "type": "image/png", "purpose": "any" },
+    { "src": "/fonts/icon-152.png", "sizes": "152x152", "type": "image/png", "purpose": "any" },
+    { "src": "/fonts/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/fonts/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable" },
+    { "src": "/fonts/icon-384.png", "sizes": "384x384", "type": "image/png", "purpose": "any" },
+    { "src": "/fonts/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/fonts/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "screenshots": [
+    {
+      "src": "/fonts/screenshot-wide.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Global Error Dashboard — Desktop View"
+    },
+    {
+      "src": "/fonts/screenshot-narrow.png",
+      "sizes": "390x844",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Error Dashboard — Mobile View"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Daily Overview",
+      "short_name": "Daily",
+      "description": "View today's error summary across all branches",
+      "url": "/#daily",
+      "icons": [{ "src": "/fonts/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Error Log",
+      "short_name": "Errors",
+      "description": "Browse and search all error records",
+      "url": "/#errorlog",
+      "icons": [{ "src": "/fonts/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Branch Details",
+      "short_name": "Branches",
+      "description": "View branch-specific error statistics",
+      "url": "/#branches",
+      "icons": [{ "src": "/fonts/icon-192.png", "sizes": "192x192" }]
+    }
+  ],
+  "share_target": {
+    "action": "/#errorlog",
+    "method": "GET",
+    "params": {
+      "title": "title",
+      "text": "text",
+      "url": "url"
+    }
+  },
+  "protocol_handlers": [
+    {
+      "protocol": "web+dstrict",
+      "url": "/?protocol=%s"
+    }
+  ],
+  "related_applications": [
+    {
+      "platform": "webapp",
+      "url": "https://dskr-gto.duckdns.org/manifest.json"
+    }
+  ],
+  "prefer_related_applications": false
+}

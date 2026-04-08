@@ -1,0 +1,733 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#534AB7">
+<meta name="theme-color" content="#1a1a18" media="(prefers-color-scheme: dark)">
+<meta name="color-scheme" content="light dark">
+<!-- PWA -->
+<link rel="manifest" href="/manifest.json">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="D'strict Error Dashboard">
+<meta name="application-name" content="D'strict Error Dashboard">
+<meta name="msapplication-TileColor" content="#534AB7">
+<meta name="msapplication-config" content="none">
+<meta name="description" content="d'strict Global Technical Operations Error Management Dashboard">
+<!-- Icons -->
+<link rel="icon" type="image/png" sizes="192x192" href="/fonts/icon-192.png">
+<link rel="icon" type="image/svg+xml" href="/fonts/icon-192.svg">
+<link rel="apple-touch-icon" sizes="180x180" href="/fonts/apple-touch-icon.png">
+<title>D'strict Error Dashboard | Global Tech Ops</title>
+<!-- Preconnect to CDN for faster DNS/TLS -->
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
+<!-- Critical CSS first -->
+<link rel="stylesheet" href="css/style.css?v=5.5.2">
+<link rel="stylesheet" href="css/mobile-app.css?v=5.5.2">
+<!-- Font: non-blocking load with swap -->
+<link rel="preload" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+<noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css"></noscript>
+<!-- Chart.js: local fallback (CDN blocked on server) -->
+<script defer src="/js/vendor/chart.umd.min.js?v=5.5.2"></script>
+<!-- Preload logo for topbar -->
+<link rel="preload" href="fonts/dstrict_CI_BLACK.png" as="image">
+</head>
+<body>
+<a href="#p0" class="skip-link" style="position:absolute;top:-40px;left:0;background:var(--purple);color:#fff;padding:8px 16px;z-index:999;font-size:13px;font-weight:700;transition:top .2s" onfocus="this.style.top='0'" onblur="this.style.top='-40px'">Skip to content</a>
+<div id="refresh-bar"></div>
+<div id="toast"></div>
+
+<!-- MOBILE NAVIGATION DRAWER -->
+<div class="mobile-nav-overlay" id="mobileOverlay" onclick="closeMobileNav()"></div>
+<div class="mobile-nav" id="mobileNav">
+  <div class="mobile-nav-header">
+    <div style="font-size:15px;font-weight:700;color:var(--t0);font-family:var(--f-display)">d'strict Error Dashboard</div>
+    <button class="mobile-nav-close" onclick="closeMobileNav()">×</button>
+  </div>
+  <button class="mobile-nav-item active" onclick="mobileGoPage(0)"><span class="nav-icon">📅</span>Daily</button>
+  <button class="mobile-nav-item" onclick="mobileGoPage(1)"><span class="nav-icon">📊</span>Monthly</button>
+  <button class="mobile-nav-item" onclick="mobileGoPage(2)"><span class="nav-icon">📋</span>Error Log</button>
+  <button class="mobile-nav-item" onclick="mobileGoPage(3)"><span class="nav-icon">🏢</span>Branches</button>
+  <button class="mobile-nav-item" onclick="mobileGoPage(4)"><span class="nav-icon">🔍</span>Search</button>
+  <div class="mobile-nav-actions">
+    <button class="btn btn-sm" style="width:100%;background:var(--purple);color:#fff;font-weight:600;border-radius:8px" onclick="reloadData();closeMobileNav()">⟳</button>
+    <div style="display:flex;gap:6px">
+      <button class="btn btn-sm btn-ghost" style="flex:1;border-radius:8px" onclick="toggleLang();closeMobileNav()" id="mobileLangToggle">EN</button>
+      <button class="btn btn-sm btn-ghost" style="flex:1;border-radius:8px" onclick="toggleTheme();closeMobileNav()">Theme</button>
+    </div>
+  </div>
+</div>
+
+<!-- LOADING SCREEN — Multi-step indicator -->
+<div id="loading">
+  <div style="width:48px;height:48px;background:var(--purple);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:900;color:#fff;font-family:var(--f-display);box-shadow:0 4px 12px rgba(0,0,0,0.08),0 0 0 2px rgba(83,74,183,0.1)">D</div>
+  <div style="font-size:17px;color:var(--t0);font-weight:800;font-family:var(--f-display);margin-top:4px">D'strict Error Dashboard</div>
+  <div style="font-size:12px;color:var(--t3);margin-top:2px;animation:pulse 1.5s ease-in-out infinite" id="load-s">Connecting → Authenticating → Loading data</div>
+  <div class="spinner" style="margin-top:12px"></div>
+  <!-- Progress bar animation -->
+  <div style="width:120px;height:3px;background:var(--sub);border-radius:2px;margin-top:8px;overflow:hidden">
+    <div style="height:100%;background:linear-gradient(90deg,var(--purple),var(--purple-light));animation:slideLoadBar 1.5s ease-in-out infinite;width:30%"></div>
+  </div>
+</div>
+
+<style>
+@keyframes slideLoadBar {
+  0% { transform: translateX(-100%); }
+  50% { transform: translateX(300%); }
+  100% { transform: translateX(-100%); }
+}
+@keyframes slideUpBanner {
+  from { opacity: 0; transform: translateX(-50%) translateY(20px); }
+  to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+</style>
+
+<div class="topbar">
+  <div class="t-l">
+    <a class="logo" href="#" onclick="goPage(0,document.querySelector('.ntab'));return false;" title="Go to Monthly Dashboard"><img src="fonts/dstrict_CI_BLACK.png" alt="d'strict" class="logo-ci" style="height:18px;margin-right:8px;vertical-align:middle;filter:var(--logo-filter,none)">
+      <div><div class="logo-name" style="font-size:13px;white-space:nowrap">Error Dashboard <span style="font-size:11px;font-weight:400;color:var(--t3)">v5.4</span></div>
+      <div class="logo-sub">Global Tech Ops</div></div></a>
+    <div class="dvd"></div>
+    <div class="nav-tabs" role="tablist" aria-label="Dashboard navigation">
+      <button class="ntab active" onclick="goPage(0,this)" role="tab" aria-selected="true" aria-controls="pd" tabindex="0">Daily</button>
+      <button class="ntab" onclick="goPage(1,this)" role="tab" aria-selected="false" aria-controls="p0" tabindex="-1">Monthly</button>
+      <button class="ntab" onclick="goPage(2,this)" role="tab" aria-selected="false" aria-controls="p1" tabindex="-1">Error Log</button>
+      <button class="ntab" onclick="goPage(3,this)" role="tab" aria-selected="false" aria-controls="p2" tabindex="-1">Branches</button>
+      <button class="ntab" onclick="goPage(4,this)" role="tab" aria-selected="false" aria-controls="p3" tabindex="-1">Search</button>
+    </div>
+  </div>
+  <div class="t-r">
+    <button class="mobile-menu-btn" onclick="toggleMobileNav()" aria-label="Open menu">☰</button>
+    <div class="pill live"><div class="ldot"></div>Live</div>
+    <span class="sync-pill" id="sync-info">Connecting...</span>
+    <div class="pill" id="clockPill">--:--</div>
+    <button class="btn btn-ghost btn-sm" onclick="reloadData()" aria-label="Refresh data from SharePoint" style="font-size:16px">⟳</button>
+    <button class="btn btn-ghost btn-sm" id="langToggle" onclick="toggleLang()" style="font-size:11px;font-weight:700" title="한국어/English">EN</button>
+    <button class="btn-theme-toggle" onclick="toggleTheme()" aria-label="Toggle dark mode" title="Toggle theme">🌙</button>
+  </div>
+</div>
+
+<!-- PAGE: DAILY -->
+<div class="page active" id="pd" role="tabpanel" aria-labelledby="tab-daily">
+  <div class="ph"><div><div class="ph-title">Daily Overview</div><div class="ph-sub" id="pd-date"></div></div>
+    <div class="ph-r">
+      <div class="region-toggle" id="daily-region-toggle">
+        <button class="region-btn active" data-region="global" onclick="toggleRegion('global')">🌍 Global</button>
+        <button class="region-btn" data-region="korea" onclick="toggleRegion('korea')">🇰🇷 Korea</button>
+      </div>
+    </div>
+  </div>
+  <div id="daily-branch-toggles" style="display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap"></div>
+
+  <!-- Submit Error CTA -->
+  <button class="daily-submit-btn" id="dailySubmitBtn" onclick="openFormModal()">
+    <span class="daily-submit-icon">🚨</span>
+    <span class="daily-submit-text">에러 제출하기 · Submit Error</span>
+  </button>
+
+  <!-- Daily World Clocks (same style as Monthly) -->
+  <div id="daily-world-clocks"></div>
+
+  <!-- KPI Metrics -->
+  <div class="g4" id="daily-kpi"></div>
+
+  <!-- Charts -->
+  <div class="section-divider"></div>
+  <div class="g22">
+    <div class="card"><div class="ctitle">Weekly Error Trend (7 Days)</div><div style="position:relative;height:260px"><canvas id="daily-trend-chart"></canvas></div></div>
+    <div class="card"><div class="ctitle">Top Zone (Most Errors)</div><div id="daily-topzone" style="padding:4px 0"></div></div>
+  </div>
+  <div class="g22">
+    <div class="card"><div class="ctitle">Error Category (SW / HW / Network)</div><div style="position:relative;height:260px"><canvas id="daily-cat-chart"></canvas></div></div>
+    <div class="card"><div class="ctitle">Top Category</div><div id="daily-topcat" style="padding:4px 0"></div></div>
+  </div>
+
+  <!-- Error List -->
+  <div class="section-divider"></div>
+  <div class="card"><div class="ctitle">Recent Errors (This Week)</div><div id="daily-list"></div></div>
+</div>
+
+<!-- Microsoft Form Modal -->
+<div class="form-modal-overlay" id="formModalOverlay" onclick="closeFormModal()"></div>
+<div class="form-modal" id="formModal">
+  <div class="form-modal-header">
+    <span class="form-modal-title">에러 제출 · Submit Error</span>
+    <button class="form-modal-close" onclick="closeFormModal()">×</button>
+  </div>
+  <iframe id="formModalFrame" class="form-modal-iframe" loading="lazy" title="Error Submission Form"></iframe>
+</div>
+
+<!-- PAGE 0: MONTHLY -->
+<div class="page" id="p0" role="tabpanel" aria-labelledby="tab-monthly">
+  <div class="ph"><div><div class="ph-title">Monthly Overview</div><div class="ph-sub" id="p0-date"></div>
+    <!-- World clocks with timezone icons and visual grouping -->
+    <div id="world-clocks"></div></div>
+    <div class="ph-r">
+      <div class="region-toggle" id="monthly-region-toggle">
+        <button class="region-btn active" data-region="global" onclick="toggleRegion('global')">🌍 Global</button>
+        <button class="region-btn" data-region="korea" onclick="toggleRegion('korea')">🇰🇷 Korea</button>
+      </div>
+      <select id="yearSel" onchange="renderP0()" aria-label="Select year"></select><select id="monthSel" onchange="renderP0()" aria-label="Select month"></select>
+    </div></div>
+
+  <!-- KPI Metrics with icon badges -->
+  <div class="g4" id="kpi-row" style="grid-template-columns:repeat(auto-fit,minmax(200px,1fr))"></div>
+
+  <!-- Chart section with dividers -->
+  <div class="section-divider"></div>
+  <div class="g31">
+    <div class="card"><div class="ctitle">Monthly Error Trend</div><div style="position:relative;height:280px"><canvas id="annual-trend"></canvas></div></div>
+    <div class="card"><div class="ctitle">Errors by Zone</div><div id="zone-hm"></div></div>
+  </div>
+
+  <div class="section-divider"></div>
+  <div class="g3">
+    <div class="card"><div class="ctitle">Error Category (SW / HW / Network)</div><div style="position:relative;height:260px"><canvas id="cat-chart"></canvas></div></div>
+    <div class="card"><div class="ctitle">Error Severity Level</div><div style="position:relative;height:260px"><canvas id="diff-chart"></canvas></div></div>
+    <div class="card"><div class="ctitle">Resolution Method</div><div style="position:relative;height:260px"><canvas id="action-chart"></canvas></div></div>
+  </div>
+
+  <!-- Top Recurring Issues table -->
+  <div class="section-divider"></div>
+  <div class="tbl-wrap"><div class="tbl-hdr"><div class="tbl-title">Top Recurring Issues</div><span id="mon-cnt" class="rcnt"></span></div>
+    <table><thead><tr><th>#</th><th>Branch</th><th>Zone</th><th>Category</th><th>Issue</th><th>Count</th></tr></thead><tbody id="top-issues"></tbody></table></div>
+
+  <!-- Report Section — Toggle-based Region × Language selection -->
+  <div class="section-divider"></div>
+  <div style="margin-top:16px">
+    <!-- Report toggles row -->
+    <div style="display:flex;align-items:center;gap:16px;margin-bottom:14px;flex-wrap:wrap">
+      <span style="font-size:13px;font-weight:800;color:var(--t0)">📋 Reports</span>
+      <!-- Region toggle -->
+      <div class="region-toggle" id="rpt-region-toggle">
+        <button class="region-btn active" data-region="global" onclick="setRptRegion('global')">🌍 Global</button>
+        <button class="region-btn" data-region="korea" onclick="setRptRegion('korea')">🇰🇷 Korea</button>
+      </div>
+      <!-- Language toggle -->
+      <div class="region-toggle" id="rpt-lang-toggle">
+        <button class="region-btn active" data-lang="en" onclick="setRptLang('en')">ENG</button>
+        <button class="region-btn" data-lang="ko" onclick="setRptLang('ko')">KOR</button>
+      </div>
+    </div>
+
+    <!-- Monthly Report Card -->
+    <div class="card card-elevated" style="border:1px solid rgba(168,85,247,0.15);margin-bottom:12px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+        <div style="display:flex;align-items:center;gap:8px">
+          <span style="font-size:11px;font-weight:800;color:#fff;background:var(--purple);padding:2px 8px;border-radius:4px">MONTHLY</span>
+          <div>
+            <div id="monthly-title" style="font-size:14px;font-weight:800;color:var(--t0)">Monthly Error Report</div>
+            <div id="monthly-sub" style="font-size:11px;color:var(--t3);margin-top:1px">Selected month summary</div>
+          </div>
+        </div>
+        <div id="rpt-monthly-tag" style="font-size:10px;font-weight:700;color:var(--t3);background:var(--sub);padding:3px 8px;border-radius:6px">🇰🇷 Korea · ENG</div>
+      </div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap">
+        <button class="btn btn-sm" style="flex:1;background:var(--purple);color:#fff;font-weight:700;border-radius:8px" onclick="generateReport('download')">⬇ Download</button>
+        <button class="btn btn-sm" style="flex:1;background:#2563eb;color:#fff;font-weight:700;border-radius:8px" onclick="generateReport('preview')">👁 Preview</button>
+        <button class="btn btn-sm" style="flex:1;background:#059669;color:#fff;font-weight:700;border-radius:8px" onclick="generateReport('email')">✉ Email</button>
+      </div>
+      <div id="report-status" style="margin-top:8px;display:none"></div>
+    </div>
+
+    <!-- Annual Report Card -->
+    <div class="card card-elevated" style="border:1px solid rgba(15,118,110,0.15)">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+        <div style="display:flex;align-items:center;gap:8px">
+          <span style="font-size:11px;font-weight:800;color:#fff;background:#0f766e;padding:2px 8px;border-radius:4px">ANNUAL</span>
+          <div>
+            <div id="annual-title" style="font-size:14px;font-weight:800;color:var(--t0)">Annual Error Report</div>
+            <div id="annual-sub" style="font-size:11px;color:var(--t3);margin-top:1px">Selected year full-year summary</div>
+          </div>
+        </div>
+        <div id="rpt-annual-tag" style="font-size:10px;font-weight:700;color:var(--t3);background:var(--sub);padding:3px 8px;border-radius:6px">🇰🇷 Korea · ENG</div>
+      </div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap">
+        <button class="btn btn-sm" style="flex:1;background:#0f766e;color:#fff;font-weight:700;border-radius:8px" onclick="generateAnnualReport('download')">⬇ Download</button>
+        <button class="btn btn-sm" style="flex:1;background:#0d9488;color:#fff;font-weight:700;border-radius:8px" onclick="generateAnnualReport('preview')">👁 Preview</button>
+        <button class="btn btn-sm" style="flex:1;background:#14b8a6;color:#fff;font-weight:700;border-radius:8px" onclick="generateAnnualReport('email')">✉ Email</button>
+      </div>
+      <div id="annual-report-status" style="margin-top:8px;display:none"></div>
+    </div>
+  </div>
+</div>
+
+<!-- PAGE 1: INCIDENT LOG -->
+<div class="page" id="p1" role="tabpanel" aria-labelledby="tab-incidents">
+  <div class="ph"><div><div class="ph-title">Error Log</div><div class="ph-sub">Click any row for equipment matching, similar cases, and AI-powered analysis</div></div></div>
+
+  <!-- Filter bar with enhanced styling -->
+  <div class="fbar" style="flex-wrap:wrap;gap:8px"><span class="flbl">Period</span>
+    <select id="f1-yr" onchange="renderP1()" aria-label="Select year"></select>
+    <select id="f1-mn" onchange="renderP1()" aria-label="Select month"><option value="">All Months</option></select>
+    <select id="f1-ps" style="display:none" aria-hidden="true"><option value="20" selected>20</option><option value="50">50</option><option value="100">100</option></select>
+    <span style="flex:1"></span>
+    <span class="rcnt" id="p1-cnt"></span></div>
+
+  <div class="fbar" style="margin-top:-6px;gap:8px"><span class="flbl">Filter</span>
+    <select id="f1-br" onchange="renderP1()" aria-label="Filter by branch"><option value="">All Branches</option><option>AMGN</option><option>AMYS</option><option>AMBS</option><option>AMJJ</option><option>AMNY</option><option>AMLV</option><option>AMDB</option></select>
+    <select id="f1-zn" onchange="renderP1()" aria-label="Filter by zone"><option value="">All Zones</option></select>
+    <select id="f1-ca" onchange="renderP1()" aria-label="Filter by category"><option value="">All Categories</option><option>Hardware</option><option>Software</option><option>Network</option><option>Other</option></select>
+    <select id="f1-df" onchange="renderP1()" aria-label="Filter by difficulty"><option value="">All Diff</option><option value="1">Lv.1</option><option value="2">Lv.2</option><option value="3">Lv.3</option><option value="4">Lv.4</option><option value="5">Lv.5</option></select>
+    <!-- Search input with icon -->
+    <input type="text" id="f1-s" class="search-input" placeholder="Search..." oninput="debouncedP1()" style="min-width:140px;flex:1" aria-label="Search incidents">
+    <button class="b-btn" onclick="el('f1-br').value='';el('f1-zn').value='';el('f1-ca').value='';el('f1-df').value='';el('f1-s').value='';_p1Page=0;renderP1()" style="padding:5px 10px;font-size:11px;white-space:nowrap" aria-label="Reset all filters">Reset</button>
+    <!-- Export CSV button -->
+    <button class="btn btn-sm btn-ghost" onclick="exportErrorsCSV()" title="Export filtered errors as CSV">⬇ Export</button></div>
+
+  <!-- Error log table with zebra striping and row hover -->
+  <div class="tbl-wrap" style="margin-bottom:14px"><div style="overflow-x:auto">
+    <table><thead><tr><th style="width:36px;text-align:center">#</th><th class="sortable" data-sort="Branch" onclick="sortP1('Branch')">Branch <span class="sort-arrow">↕</span></th><th class="sortable" data-sort="Zone" onclick="sortP1('Zone')">Zone <span class="sort-arrow">↕</span></th><th class="sortable" data-sort="Date" onclick="sortP1('Date')">Date <span class="sort-arrow">↕</span></th><th class="sortable" data-sort="SolvedBy" onclick="sortP1('SolvedBy')">Solved By <span class="sort-arrow">↕</span></th><th class="sortable" data-sort="Category" onclick="sortP1('Category')">Category <span class="sort-arrow">↕</span></th><th class="sortable" data-sort="IssueDetail" onclick="sortP1('IssueDetail')">Issue Detail <span class="sort-arrow">↕</span></th><th class="sortable" data-sort="ActionType" onclick="sortP1('ActionType')">Action <span class="sort-arrow">↕</span></th><th class="sortable" data-sort="TimeTaken" onclick="sortP1('TimeTaken')">Duration <span class="sort-arrow">↕</span></th><th class="sortable" data-sort="Difficulty" onclick="sortP1('Difficulty')">Diff <span class="sort-arrow">↕</span></th></tr></thead>
+    <tbody id="p1-tbl"></tbody></table></div></div>
+
+  <!-- MOBILE VISUAL DASHBOARD (replaces table on mobile) -->
+  <div id="p1-mobile-viz" style="display:none"></div>
+
+  <!-- Empty state placeholder -->
+  <div id="p1-empty" style="display:none" class="empty-state">
+    <div class="empty-state-icon">📭</div>
+    <div class="empty-state-title">No errors found</div>
+    <div class="empty-state-subtitle">Try adjusting your filters</div>
+  </div>
+</div>
+
+<!-- PAGE 2: BRANCHES -->
+<div class="page" id="p2" role="tabpanel" aria-labelledby="tab-branches">
+  <div class="ph"><div>
+    <div>
+      <div class="region-toggle" style="margin-bottom:10px">
+        <button class="region-btn active" data-region="global" onclick="toggleRegion('global')">🌍 Global</button>
+        <button class="region-btn" data-region="korea" onclick="toggleRegion('korea')">🇰🇷 Korea</button>
+      </div>
+      <div class="ph-title">Branch Detail</div>
+      <!-- Branch subtitle with live connection indicator -->
+      <div class="branch-subtitle">
+        <span>Per-branch analysis</span>
+        <div class="connection-indicator"></div>
+        <span>Live</span>
+      </div>
+    </div></div></div>
+
+  <div class="b-sel" id="branch-sel"></div>
+
+  <div class="fbar" style="margin-bottom:12px;gap:8px"><span class="flbl">Period</span>
+    <select id="b-yr" onchange="renderBranchContent()" aria-label="Select year"></select>
+    <select id="b-mn" onchange="renderBranchContent()" aria-label="Select month"><option value="">All Months</option></select>
+  </div>
+
+  <div id="branch-content"></div>
+</div>
+
+<!-- PAGE 3: SEARCH -->
+<div class="page" id="p3" role="tabpanel" aria-labelledby="tab-search">
+  <div class="ph"><div><div class="ph-title">Search</div><div class="ph-sub">Past_History — Resolved cases archive</div></div></div>
+
+  <!-- Enhanced search bar: larger, centered, with icon and clear button -->
+  <div style="max-width:600px;margin:0 auto 32px;display:flex;flex-direction:column;gap:16px">
+    <div class="input-group" style="width:100%">
+      <span class="input-group-icon">🔍</span>
+      <input type="text" id="hist-s-main" class="search-input" placeholder="Search resolved cases..." oninput="debouncedHist()" style="border:none;padding:12px 16px;font-size:15px" aria-label="Search case history">
+      <button class="search-clear-btn" onclick="clearHistSearch()" title="Clear search" aria-label="Clear search">✕</button>
+    </div>
+
+    <div class="fbar" style="gap:8px;justify-content:center"><span class="flbl">Filter</span>
+      <select id="hist-zn" onchange="renderHist()" aria-label="Filter by zone"><option value="">All Zones</option></select>
+      <select id="hist-ca" onchange="renderHist()" aria-label="Filter by category"><option value="">All Categories</option></select>
+      <span class="rcnt" id="hist-cnt"></span>
+      <button class="b-btn" onclick="clearHistSearch()" style="padding:5px 10px;font-size:11px;white-space:nowrap" aria-label="Reset search and filters">Reset</button></div>
+  </div>
+
+  <div id="hist-list"></div>
+
+  <!-- Empty state for search -->
+  <div id="hist-empty" style="display:none" class="empty-state">
+    <div class="empty-state-icon">🔍</div>
+    <div class="empty-state-title">No cases found</div>
+    <div class="empty-state-subtitle">Try different search terms or filters</div>
+  </div>
+</div>
+
+<!-- PAGE 4: AI (hidden) -->
+<div class="page" id="p4">
+  <div class="ph"><div><div class="ph-title" style="color:var(--purple)">AI Analysis</div><div class="ph-sub">Gemini 2.5 Flash / Llama 3.3 70B (Groq) / Mistral Small — All Free</div></div></div>
+
+  <div class="ai-placeholder">
+    <div style="font-size:36px;margin-bottom:16px">🤖</div>
+    <div style="font-size:18px;font-weight:700;color:var(--purple);margin-bottom:12px">AI Analysis — Free API Keys Required</div>
+    <div style="font-size:14px;color:var(--t2);line-height:1.8;max-width:680px;margin:0 auto;text-align:left">
+      <strong>How it works:</strong><br>
+      1. Click a <b>Difficulty 4+</b> error in Error Log<br>
+      2. 3 free AIs comprehensively analyze: past history, equipment specs, manufacturer manuals, industry best practices<br>
+      3. Selects the best response and presents expert-level analysis<br>
+      4. Output: <b>Root Cause / Immediate Action / Prevention / Equipment Note / Pattern Alert</b><br><br>
+
+      <strong style="color:var(--purple);font-size:14px">Free API Key Setup (~1 min each):</strong>
+
+      <!-- Modern card-based layout for API setup -->
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px;margin-top:16px">
+        <!-- Gemini Card -->
+        <div class="card" style="border:1px solid rgba(83,74,183,0.1)">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
+            <span style="font-size:16px">🔑</span>
+            <div>
+              <div style="font-weight:600;color:var(--t0)">Gemini 2.5 Flash</div>
+              <div style="font-size:11px;color:var(--t3)">Google</div>
+            </div>
+          </div>
+          <a href="https://aistudio.google.com/apikey" target="_blank" style="color:#2563eb;text-decoration:none;font-size:13px;font-weight:500">Get API Key →</a>
+          <div class="api-status connected" style="margin-top:8px;justify-content:center">
+            <div class="api-status-dot"></div>Ready
+          </div>
+        </div>
+
+        <!-- Groq Card -->
+        <div class="card" style="border:1px solid rgba(83,74,183,0.1)">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
+            <span style="font-size:16px">⚡</span>
+            <div>
+              <div style="font-weight:600;color:var(--t0)">Llama 3.3 70B</div>
+              <div style="font-size:11px;color:var(--t3)">Groq</div>
+            </div>
+          </div>
+          <a href="https://console.groq.com" target="_blank" style="color:#2563eb;text-decoration:none;font-size:13px;font-weight:500">Get API Key →</a>
+          <div class="api-status not-configured" style="margin-top:8px;justify-content:center">
+            <div class="api-status-dot"></div>Not configured
+          </div>
+        </div>
+
+        <!-- Mistral Card -->
+        <div class="card" style="border:1px solid rgba(83,74,183,0.1)">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
+            <span style="font-size:16px">🎯</span>
+            <div>
+              <div style="font-weight:600;color:var(--t0)">Mistral Small</div>
+              <div style="font-size:11px;color:var(--t3)">Free & Unlimited</div>
+            </div>
+          </div>
+          <a href="https://console.mistral.ai/api-keys" target="_blank" style="color:#2563eb;text-decoration:none;font-size:13px;font-weight:500">Get API Key →</a>
+          <div class="api-status not-configured" style="margin-top:8px;justify-content:center">
+            <div class="api-status-dot"></div>Not configured
+          </div>
+        </div>
+      </div>
+
+      <!-- .env setup instructions with code block -->
+      <div style="margin-top:20px;background:var(--surface);padding:16px;border-radius:8px;border-left:3px solid var(--purple)">
+        <strong style="font-size:13px">Add to .env file:</strong><br>
+        <code style="font-size:12px;font-family:var(--f-mono);background:var(--bg);padding:12px;border-radius:6px;display:block;margin-top:8px;line-height:1.8;color:var(--t1);overflow-x:auto">GEMINI_KEY=AIzaSy...<br>GROQ_KEY=gsk_...<br>MISTRAL_KEY=...</code>
+        <button class="btn btn-sm" style="margin-top:8px;background:var(--purple);color:#fff" onclick="copyEnvTemplate()">📋 Copy</button>
+      </div>
+
+      <div style="margin-top:12px;color:var(--t3);font-size:12px">* Works with just 1 key. Best-of analysis activates with 2+ keys.</div>
+    </div>
+  </div>
+</div>
+
+<!-- FOOTER — Minimal footer with version, copyright, and last sync time -->
+<footer style="background:var(--sub);border-top:1px solid var(--border);padding:16px 32px;margin-top:48px;color:var(--t3);font-size:12px;text-align:center">
+  <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px">
+    <div>
+      <strong style="color:var(--t2)">D'strict Error Dashboard</strong> v5.4 — 2026 Enterprise Edition
+    </div>
+    <div>
+      Last sync: <span id="footer-sync-time">--</span>
+    </div>
+    <div>
+      <a href="#" style="color:var(--purple);text-decoration:none;font-weight:500">d'strict</a> © 2026 · Built by <span style="color:var(--t2);font-weight:600">Tony Hwang</span>
+    </div>
+  </div>
+</footer>
+
+<!-- MOBILE BOTTOM TAB BAR -->
+<div class="mobile-bottom-nav" id="mobileBottomNav">
+  <button class="bnav-active" onclick="mobileTabGo(0,this)"><span class="bnav-icon">📅</span>Daily</button>
+  <button onclick="mobileTabGo(1,this)"><span class="bnav-icon">📊</span>Monthly</button>
+  <button onclick="mobileTabGo(2,this)"><span class="bnav-icon">📋</span>Error Log</button>
+  <button onclick="mobileTabGo(3,this)"><span class="bnav-icon">🏢</span>Branches</button>
+  <button onclick="mobileTabGo(4,this)"><span class="bnav-icon">🔍</span>Search</button>
+</div>
+
+<!-- SCRIPTS — defer all for faster first paint -->
+<script defer src="js/i18n.js?v=5.5.2"></script>
+<script defer src="js/translate.js?v=5.5.2"></script>
+<script defer src="js/utils.js?v=5.5.2"></script>
+<script defer src="js/matching.js?v=5.5.2"></script>
+<script defer src="js/data.js?v=5.5.2"></script>
+<script defer src="js/daily.js?v=5.5.2"></script>
+<script defer src="js/monthly.js?v=5.5.2"></script>
+<script defer src="js/incidents.js?v=5.5.2"></script>
+<script defer src="js/branches.js?v=5.5.2"></script>
+<script defer src="js/search.js?v=5.5.2"></script>
+<script defer src="js/report.js?v=5.5.2"></script>
+<script defer src="js/ai.js?v=5.5.2"></script>
+<script defer src="js/mobile-app.js?v=5.5.2"></script>
+<script defer src="js/nav.js?v=5.5.2"></script>
+
+<!-- Form modal + Theme toggle -->
+<script>
+var FORM_URL_GLOBAL='https://forms.office.com/r/WSZEhYciby';
+var FORM_URL_KOREA='https://forms.office.com/r/CdTnRKePNH';
+function openFormModal(){
+  var isKorea=typeof _region!=='undefined'&&_region==='korea';
+  var url=isKorea?FORM_URL_KOREA:FORM_URL_GLOBAL;
+  window.open(url,'_blank');
+}
+function closeFormModal(){}
+</script>
+<script>
+function toggleTheme() {
+  var html = document.documentElement;
+  var isDark = html.classList.toggle('dark-mode');
+  html.classList.toggle('light-mode', !isDark);
+  localStorage.setItem('theme', isDark ? 'dark' : 'light');
+  var btn = document.querySelector('.btn-theme-toggle');
+  if(btn) btn.textContent = isDark ? '☀️' : '🌙';
+  /* force Chart.js redraw so center-text colour updates */
+  if(typeof Chart!=='undefined'){Chart.helpers.each(Chart.instances,function(c){c.update()});}
+  /* re-render active page to update colors */
+  var activePage = document.querySelector('.page.active');
+  if(activePage){
+    var pageId = activePage.id;
+    if(pageId === 'pd' && typeof renderDaily==='function') renderDaily();
+    else if(pageId === 'p0' && typeof renderP0==='function') renderP0();
+    else if(pageId === 'p1' && typeof renderP1==='function') renderP1();
+  }
+}
+
+// Load saved theme preference
+var savedTheme = localStorage.getItem('theme');
+if (savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+  document.documentElement.classList.add('dark-mode');
+  var tb = document.querySelector('.btn-theme-toggle');
+  if(tb) tb.textContent = '☀️';
+} else {
+  document.documentElement.classList.add('light-mode');
+}
+
+// Copy .env template
+function copyEnvTemplate() {
+  const template = 'GEMINI_KEY=AIzaSy...\nGROQ_KEY=gsk_...\nMISTRAL_KEY=...';
+  navigator.clipboard.writeText(template).then(() => {
+    toast(typeof t==='function'?t('copiedToClipboard'):'Copied to clipboard!', 'success');
+  });
+}
+
+// Update footer sync time
+function updateFooterSyncTime() {
+  const now = new Date();
+  const timeStr = now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', second: '2-digit', hour12: true });
+  const dateStr = now.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  document.getElementById('footer-sync-time').textContent = `${dateStr} ${timeStr}`;
+}
+
+setInterval(updateFooterSyncTime, 60000);
+updateFooterSyncTime();
+
+// Export errors as CSV — exports ALL filtered data, not just current page
+function exportErrorsCSV() {
+  // Use _p1Data which contains all filtered records (not just current page)
+  if(typeof _p1Data === 'undefined' || !Array.isArray(_p1Data)) {
+    toast(typeof t==='function'?t('noDataExport'):'No data available to export', 'error');
+    return;
+  }
+
+  var _t = typeof t==='function'?t:function(k){return k;};
+  let csv = _t('csvBranch')+','+_t('csvZone')+','+_t('csvDate')+','+_t('csvSolvedBy')+','+_t('csvCategory')+','+_t('csvIssue')+','+_t('csvAction')+','+_t('csvDuration')+','+_t('csvDiff')+'\n';
+
+  _p1Data.forEach(function(row) {
+    var branch = (row.Branch || '').replace(/"/g, '""');
+    var zone = (row.Zone || '').replace(/"/g, '""');
+    var date = (row.Date || '').replace(/"/g, '""');
+    var solvedBy = (row.SolvedBy || '').replace(/"/g, '""');
+    var category = (row.Category || '').replace(/"/g, '""');
+    var issue = (row.IssueDetail || '').replace(/"/g, '""');
+    var action = (row.ActionTaken || '').replace(/"/g, '""');
+    var duration = (row.TimeTaken || '').replace(/"/g, '""');
+    var difficulty = (row.Difficulty || '');
+    csv += '"'+branch+'","'+zone+'","'+date+'","'+solvedBy+'","'+category+'","'+issue+'","'+action+'","'+duration+'","'+difficulty+'"\n';
+  });
+
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const url = window.URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `errors_${new Date().toISOString().split('T')[0]}.csv`;
+  a.click();
+  window.URL.revokeObjectURL(url);
+  toast(_p1Data.length + ' ' + (typeof t === 'function' ? t('errors') : 'errors') + ' ' + (typeof t === 'function' ? t('exported') : 'exported'), 'success');
+}
+
+// Clear search + filters (Past History)
+function clearHistSearch() {
+  var inp = document.getElementById('hist-s-main');
+  if (inp) inp.value = '';
+  var zn = document.getElementById('hist-zn');
+  if (zn) zn.value = '';
+  var ca = document.getElementById('hist-ca');
+  if (ca) ca.value = '';
+  if (typeof debouncedHist === 'function') debouncedHist();
+  else if (typeof renderHist === 'function') renderHist();
+}
+
+// Mobile navigation
+function toggleMobileNav() {
+  var nav = document.getElementById('mobileNav');
+  var overlay = document.getElementById('mobileOverlay');
+  var isOpen = nav.classList.contains('active');
+  if (isOpen) { closeMobileNav(); } else {
+    nav.classList.add('active');
+    overlay.classList.add('active');
+    document.body.style.overflow = 'hidden';
+  }
+}
+function closeMobileNav() {
+  document.getElementById('mobileNav').classList.remove('active');
+  document.getElementById('mobileOverlay').classList.remove('active');
+  document.body.style.overflow = '';
+}
+function mobileGoPage(i) {
+  closeMobileNav();
+  goPage(i, document.querySelectorAll('.ntab')[i]);
+  // Update active state
+  document.querySelectorAll('.mobile-nav-item').forEach(function(btn, idx) {
+    btn.classList.toggle('active', idx === i);
+  });
+}
+// Close mobile nav on escape key
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') closeMobileNav();
+});
+// Close mobile nav on resize to desktop
+window.addEventListener('resize', function() {
+  if (window.innerWidth > 768) closeMobileNav();
+});
+
+// Mobile bottom tab bar
+function mobileTabGo(i, btn) {
+  _currentMobilePage = i;
+  goPage(i, document.querySelectorAll('.ntab')[i]);
+  // Update bottom nav active state
+  document.querySelectorAll('#mobileBottomNav button').forEach(function(b, idx) {
+    b.classList.toggle('bnav-active', idx === i);
+  });
+  // Also update drawer nav
+  document.querySelectorAll('.mobile-nav-item').forEach(function(b, idx) {
+    b.classList.toggle('active', idx === i);
+  });
+  // Scroll to top
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  // Mobile app: render mobile-specific content
+  if(typeof renderMobilePage === 'function') setTimeout(function(){ renderMobilePage(i); }, 100);
+}
+
+// ══════ GLOBAL ERROR HANDLING ══════
+window.onerror = function(message, source, lineno, colno, error) {
+  var errMsg = (message || 'Unknown error').slice(0, 80);
+  console.error('[G-ATIS] Error:', message, 'at', source, ':', lineno, ':', colno);
+  toast('Error: ' + errMsg + '...', 'error');
+  // Return true to suppress default error handling
+  return true;
+};
+
+// Handle unhandled promise rejections
+window.addEventListener('unhandledrejection', function(event) {
+  var reason = event.reason || 'Unknown promise rejection';
+  var errMsg = (String(reason).slice ? String(reason).slice(0, 80) : 'Unknown error');
+  console.error('[G-ATIS] Unhandled promise rejection:', reason);
+  toast('Unexpected error: ' + errMsg, 'error');
+  // Don't prevent default - just log
+});
+
+// ══════ PWA Service Worker + Update Detection ══════
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function() {
+    navigator.serviceWorker.register('/sw.js').then(function(reg) {
+      console.log('[PWA] SW registered:', reg.scope);
+
+      // Check for updates every 30 minutes
+      setInterval(function() { reg.update(); }, 30 * 60 * 1000);
+
+      // Detect waiting worker (new version ready)
+      reg.addEventListener('updatefound', function() {
+        var newWorker = reg.installing;
+        if (!newWorker) return;
+        newWorker.addEventListener('statechange', function() {
+          if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+            showUpdateBanner(reg);
+          }
+        });
+      });
+    }).catch(function(err) {
+      console.warn('[PWA] SW registration failed:', err);
+    });
+
+    // Listen for SW_UPDATED message
+    navigator.serviceWorker.addEventListener('message', function(e) {
+      if (e.data && e.data.type === 'SW_UPDATED') {
+        console.log('[PWA] New version activated:', e.data.version);
+      }
+    });
+  });
+}
+
+// Update available banner
+function showUpdateBanner(reg) {
+  var banner = document.createElement('div');
+  banner.id = 'pwa-update-banner';
+  banner.style.cssText = 'position:fixed;bottom:70px;left:50%;transform:translateX(-50%);z-index:9999;background:#534AB7;color:#fff;padding:12px 20px;border-radius:12px;font-size:13px;font-weight:600;font-family:var(--f,sans-serif);display:flex;align-items:center;gap:12px;box-shadow:0 8px 32px rgba(83,74,183,0.3);animation:slideUpBanner 0.4s ease-out;max-width:calc(100vw - 32px)';
+  banner.innerHTML = '<span>New version available</span><button onclick=\"applyUpdate()\" style=\"background:#fff;color:#534AB7;border:none;padding:6px 14px;border-radius:8px;font-weight:700;font-size:12px;cursor:pointer\">Update</button><button onclick=\"this.parentElement.remove()\" style=\"background:none;border:none;color:rgba(255,255,255,0.7);font-size:18px;cursor:pointer;padding:0 4px\">×</button>';
+  document.body.appendChild(banner);
+}
+function applyUpdate() {
+  if (navigator.serviceWorker.controller) {
+    navigator.serviceWorker.ready.then(function(reg) {
+      if (reg.waiting) { reg.waiting.postMessage({ type: 'SKIP_WAITING' }); }
+    });
+  }
+  var b = document.getElementById('pwa-update-banner');
+  if (b) b.remove();
+  setTimeout(function() { location.reload(); }, 300);
+}
+
+// ══════ PWA Install Prompt ══════
+var _deferredInstallPrompt = null;
+window.addEventListener('beforeinstallprompt', function(e) {
+  e.preventDefault();
+  _deferredInstallPrompt = e;
+  showInstallHint();
+});
+function showInstallHint() {
+  // Only show on mobile, and only once per session
+  if (window.innerWidth > 768 || sessionStorage.getItem('pwa-hint-shown')) return;
+  sessionStorage.setItem('pwa-hint-shown', '1');
+  var hint = document.createElement('div');
+  hint.id = 'pwa-install-hint';
+  hint.style.cssText = 'position:fixed;bottom:70px;left:50%;transform:translateX(-50%);z-index:9998;background:#1a1a18;color:#fff;padding:14px 20px;border-radius:12px;font-size:13px;font-weight:500;font-family:var(--f,sans-serif);display:flex;align-items:center;gap:12px;box-shadow:0 8px 32px rgba(0,0,0,0.2);animation:slideUpBanner 0.4s ease-out;max-width:calc(100vw - 32px)';
+  hint.innerHTML = '<span style="font-size:20px">📲</span><span>Install as app for faster access</span><button onclick=\"installPWA()\" style=\"background:#534AB7;color:#fff;border:none;padding:8px 16px;border-radius:8px;font-weight:700;font-size:12px;cursor:pointer;white-space:nowrap\">Install</button><button onclick=\"this.parentElement.remove()\" style=\"background:none;border:none;color:rgba(255,255,255,0.5);font-size:18px;cursor:pointer;padding:0 4px\">×</button>';
+  document.body.appendChild(hint);
+  // Auto-dismiss after 8 seconds
+  setTimeout(function() { var h = document.getElementById('pwa-install-hint'); if(h) h.remove(); }, 8000);
+}
+function installPWA() {
+  if (_deferredInstallPrompt) {
+    _deferredInstallPrompt.prompt();
+    _deferredInstallPrompt.userChoice.then(function(result) {
+      console.log('[PWA] Install:', result.outcome);
+      _deferredInstallPrompt = null;
+    });
+  }
+  var h = document.getElementById('pwa-install-hint');
+  if (h) h.remove();
+}
+window.addEventListener('appinstalled', function() {
+  console.log('[PWA] App installed successfully');
+  _deferredInstallPrompt = null;
+  toast('App installed! Open from home screen.', 'success');
+})
+</script>
+
+</body>
+</html>
