@@ -76,17 +76,31 @@ app.use((req, res, next) => {
 });
 
 // ══════════════════════════════════════════════
-//  Password Authentication (simple token-cookie)
+//  Multi-Account Authentication (ID + Password)
 // ══════════════════════════════════════════════
-const APP_PASSWORD = process.env.APP_PASSWORD || '1234';  // Change in .env for production
 const AUTH_SECRET = crypto.randomBytes(32).toString('hex');
-function makeToken() { return crypto.createHmac('sha256', AUTH_SECRET).update(APP_PASSWORD).digest('hex'); }
-const VALID_TOKEN = makeToken();
+function makeToken(id) { return crypto.createHmac('sha256', AUTH_SECRET).update(id || 'gto').digest('hex'); }
+
+// Account registry: id → { pwd, branch, locale, region }
+// branch=null means HQ (full access)
+const ACCOUNTS = {
+  gto:  { pwd: process.env.APP_PASSWORD || 'dst1234', branch: null,   locale: '',   region: null },
+  amdb: { pwd: 'db1234', branch: 'AMDB', locale: 'en', region: 'global' },
+  amlv: { pwd: 'lv1234', branch: 'AMLV', locale: 'en', region: 'global' },
+  amny: { pwd: 'ny1234', branch: 'AMNY', locale: 'en', region: 'global' },
+  amgn: { pwd: 'gn1234', branch: 'AMGN', locale: 'kr', region: 'korea' },
+  amys: { pwd: 'ys1234', branch: 'AMYS', locale: 'kr', region: 'korea' },
+  amjj: { pwd: 'jj1234', branch: 'AMJJ', locale: 'kr', region: 'korea' },
+  ambs: { pwd: 'bs1234', branch: 'AMBS', locale: 'kr', region: 'korea' },
+};
+
+// Pre-compute valid tokens for each account
+const VALID_TOKENS = {};
+Object.keys(ACCOUNTS).forEach(id => { VALID_TOKENS[id] = makeToken(id); });
 
 // Login page HTML generator — locale param for /en, /kr redirect after login
 function buildLoginHTML(locale) {
-  const localeField = locale ? `<input type="hidden" name="locale" value="${locale}">` : '';
-  const actionUrl = locale ? `/login?locale=${locale}` : '/login';
+  const actionUrl = '/login';
   return `<!DOCTYPE html>
 <html lang="ko"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>d'strict Error Dashboard | Login</title>
@@ -96,14 +110,19 @@ function buildLoginHTML(locale) {
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:'Pretendard',-apple-system,sans-serif;background:#1a1a18;display:flex;align-items:center;justify-content:center;min-height:100vh;color:#fff}
-.login-box{background:#2a2a28;border-radius:16px;padding:48px 40px;width:380px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,0.5)}
+.login-box{background:#2a2a28;border-radius:16px;padding:48px 40px;width:400px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,0.5)}
 .logo-wrap{margin-bottom:24px}
 .logo-text{font-size:36px;font-weight:900;color:#fff;letter-spacing:-1.5px;font-family:'Helvetica Neue',Arial,sans-serif}
 .app-name{font-size:18px;font-weight:700;color:#534AB7;margin-top:8px;letter-spacing:0.5px}
 .sub{font-size:12px;color:#73726c;margin-bottom:28px;margin-top:4px}
-input{width:100%;padding:14px 16px;background:#1a1a18;border:1.5px solid #3a3a38;border-radius:10px;color:#fff;font-size:15px;text-align:center;letter-spacing:8px;outline:none;transition:border-color 0.2s}
-input:focus{border-color:#534AB7}
-input::placeholder{letter-spacing:normal;font-size:13px;color:#555}
+.field{width:100%;padding:14px 16px;background:#1a1a18;border:1.5px solid #3a3a38;border-radius:10px;color:#fff;font-size:15px;outline:none;transition:border-color 0.2s}
+.field:focus{border-color:#534AB7}
+.field::placeholder{font-size:13px;color:#555}
+.field-id{text-align:center;letter-spacing:3px;text-transform:lowercase;margin-bottom:10px}
+.field-pw{text-align:center;letter-spacing:8px}
+.remember-row{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:14px}
+.remember-row input[type=checkbox]{width:16px;height:16px;accent-color:#534AB7;cursor:pointer}
+.remember-row label{font-size:12px;color:#888;cursor:pointer;user-select:none}
 button{width:100%;margin-top:16px;padding:14px;background:#534AB7;color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;transition:background 0.2s}
 button:hover{background:#4339a0}
 .err{color:#e53e3e;font-size:12px;margin-top:12px;display:none}
@@ -118,13 +137,34 @@ button:hover{background:#4339a0}
 <div class="app-name">Error Dashboard</div>
 </div>
 <div class="sub">Global Technical Operations</div>
-<form method="POST" action="${actionUrl}">
-${localeField}<input type="password" name="password" placeholder="Password" autofocus autocomplete="current-password">
+<form method="POST" action="${actionUrl}" id="loginForm">
+<input class="field field-id" type="text" name="username" id="loginId" placeholder="ID (e.g. gto, amdb, amgn)" autofocus autocomplete="username">
+<input class="field field-pw" type="password" name="password" id="loginPw" placeholder="Password" autocomplete="current-password">
+<div class="remember-row">
+<input type="checkbox" id="rememberMe" name="remember">
+<label for="rememberMe">ID / Password 저장</label>
+</div>
 <button type="submit">Sign In</button>
-<div class="err" id="err">Incorrect password. Please try again.</div>
+<div class="err" id="err">ID 또는 비밀번호가 올바르지 않습니다.</div>
 </form>
 </div>
-<script>if(new URLSearchParams(location.search).has('fail'))document.getElementById('err').style.display='block'</script>
+<script>
+(function(){
+  var saved=localStorage.getItem('gto_saved_creds');
+  if(saved){try{var c=JSON.parse(saved);
+    document.getElementById('loginId').value=c.id||'';
+    document.getElementById('loginPw').value=c.pw||'';
+    document.getElementById('rememberMe').checked=true;
+  }catch(e){}}
+  document.getElementById('loginForm').addEventListener('submit',function(){
+    var cb=document.getElementById('rememberMe');
+    if(cb.checked){
+      localStorage.setItem('gto_saved_creds',JSON.stringify({id:document.getElementById('loginId').value,pw:document.getElementById('loginPw').value}));
+    }else{localStorage.removeItem('gto_saved_creds');}
+  });
+  if(new URLSearchParams(location.search).has('fail'))document.getElementById('err').style.display='block';
+})();
+</script>
 <script>if('serviceWorker' in navigator){var loc='${locale}';if(loc==='en')navigator.serviceWorker.register('/en/sw.js',{scope:'/en'});else if(loc==='kr')navigator.serviceWorker.register('/kr/sw.js',{scope:'/kr'});else navigator.serviceWorker.register('/sw.js');}</script>
 </body></html>`;
 }
@@ -156,27 +196,39 @@ app.get('/login', (req, res) => {
   res.type('html').send(locale ? buildLoginHTML(locale) : LOGIN_HTML);
 });
 app.post('/login', (req, res) => {
-  const pw = req.body.password;
-  if (typeof pw !== 'string' || pw.length === 0 || pw.length > 128) {
+  const uid = (req.body.username || '').trim().toLowerCase();
+  const pw = req.body.password || '';
+  if (!uid || !pw || pw.length > 128) {
     return res.redirect('/login?fail=1');
   }
-  // Timing-safe comparison to prevent timing attacks
+  const account = ACCOUNTS[uid];
+  if (!account) {
+    console.warn(`⚠️  Unknown account "${uid}" at ${new Date().toISOString()}`);
+    return res.redirect('/login?fail=1');
+  }
+  // Timing-safe comparison
   const a = Buffer.from(pw.padEnd(256, '\0'));
-  const b = Buffer.from(APP_PASSWORD.padEnd(256, '\0'));
+  const b = Buffer.from(account.pwd.padEnd(256, '\0'));
   if (a.length === b.length && crypto.timingSafeEqual(a, b)) {
-    console.log(`✅ Login at ${new Date().toISOString()}`);
-    res.cookie('dse_auth', VALID_TOKEN, COOKIE_OPTS);
-    // Redirect to the locale path if specified, otherwise /
-    const locale = req.query.locale || req.body.locale || '';
+    console.log(`✅ Login [${uid}] at ${new Date().toISOString()}`);
+    res.cookie('dse_auth', VALID_TOKENS[uid], COOKIE_OPTS);
+    // Store account info in a non-httpOnly cookie so frontend JS can read it
+    const acctInfo = JSON.stringify({ id: uid, branch: account.branch, region: account.region });
+    res.cookie('dse_acct', acctInfo, { ...COOKIE_OPTS, httpOnly: false });
+    // Redirect to the account's default locale
+    const locale = account.locale;
     if (locale === 'kr') return res.redirect('/kr');
     if (locale === 'en') return res.redirect('/en');
     return res.redirect('/');
   }
-  console.warn(`⚠️  Failed login attempt at ${new Date().toISOString()}`);
-  const locale = req.query.locale || req.body.locale || '';
-  res.redirect('/login?fail=1' + (locale ? '&locale=' + locale : ''));
+  console.warn(`⚠️  Failed login [${uid}] at ${new Date().toISOString()}`);
+  res.redirect('/login?fail=1');
 });
-app.get('/logout', (req, res) => { res.clearCookie('dse_auth', { httpOnly: true, sameSite: 'lax', secure: USE_HTTPS, path: '/' }); res.redirect('/login'); });
+app.get('/logout', (req, res) => {
+  res.clearCookie('dse_auth', { httpOnly: true, sameSite: 'lax', secure: USE_HTTPS, path: '/' });
+  res.clearCookie('dse_acct', { sameSite: 'lax', secure: USE_HTTPS, path: '/' });
+  res.redirect('/login');
+});
 
 // Health check (no auth required)
 app.get('/api/health', (req, res) => {
@@ -216,7 +268,9 @@ app.use(express.static(PUBLIC_DIR, { maxAge: IS_PROD ? '1d' : 0, etag: true, ind
 // Auth middleware — protect pages and API (static assets already served above)
 app.use((req, res, next) => {
   if (req.path === '/login' || req.path === '/favicon.ico') return next();
-  if (req.cookies.dse_auth === VALID_TOKEN) return next();
+  const authToken = req.cookies.dse_auth || '';
+  const isValid = Object.values(VALID_TOKENS).some(t => t === authToken);
+  if (isValid) return next();
   // API requests get 401, page requests redirect to login with locale
   if (req.path.startsWith('/api/')) return res.status(401).json({ error: 'Unauthorized' });
   // Preserve locale on redirect to login

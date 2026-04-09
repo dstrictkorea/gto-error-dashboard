@@ -470,7 +470,25 @@
 <script>
 var FORM_URL_GLOBAL='https://forms.office.com/r/WSZEhYciby';
 var FORM_URL_KOREA='https://forms.office.com/r/CdTnRKePNH';
+
+/* Branch-specific Forms URLs (pre-filled site field) */
+var FORM_URL_BRANCH={
+  AMDB:'https://forms.office.com/Pages/ResponsePage.aspx?id=Fux_6MqrLEq_640Ktdw0wCBEaDMiqdxBsQp4GE5st3tUNFg2MlJUSjBNUEoyUkM1VldaSTBLVUVPMyQlQCN0PWcu&rfcad899895c94353a7dce39ae5c72807=%22AMDB%22',
+  AMLV:'https://forms.office.com/Pages/ResponsePage.aspx?id=Fux_6MqrLEq_640Ktdw0wCBEaDMiqdxBsQp4GE5st3tUNFg2MlJUSjBNUEoyUkM1VldaSTBLVUVPMyQlQCN0PWcu&rfcad899895c94353a7dce39ae5c72807=%22AMLV%22',
+  AMNY:'https://forms.office.com/Pages/ResponsePage.aspx?id=Fux_6MqrLEq_640Ktdw0wCBEaDMiqdxBsQp4GE5st3tUNFg2MlJUSjBNUEoyUkM1VldaSTBLVUVPMyQlQCN0PWcu&rfcad899895c94353a7dce39ae5c72807=%22AMNY%22',
+  AMGN:'https://forms.office.com/Pages/ResponsePage.aspx?id=Fux_6MqrLEq_640Ktdw0wCBEaDMiqdxBsQp4GE5st3tUNlBCU05UUlI2RUROVTRFOFRZOVFXUjk4QSQlQCN0PWcu&rfcad899895c94353a7dce39ae5c72807=%22AMGN%22',
+  AMYS:'https://forms.office.com/Pages/ResponsePage.aspx?id=Fux_6MqrLEq_640Ktdw0wCBEaDMiqdxBsQp4GE5st3tUNlBCU05UUlI2RUROVTRFOFRZOVFXUjk4QSQlQCN0PWcu&rfcad899895c94353a7dce39ae5c72807=%22AMYS%22',
+  AMJJ:'https://forms.office.com/Pages/ResponsePage.aspx?id=Fux_6MqrLEq_640Ktdw0wCBEaDMiqdxBsQp4GE5st3tUNlBCU05UUlI2RUROVTRFOFRZOVFXUjk4QSQlQCN0PWcu&rfcad899895c94353a7dce39ae5c72807=%22AMJJ%22',
+  AMBS:'https://forms.office.com/Pages/ResponsePage.aspx?id=Fux_6MqrLEq_640Ktdw0wCBEaDMiqdxBsQp4GE5st3tUNlBCU05UUlI2RUROVTRFOFRZOVFXUjk4QSQlQCN0PWcu&rfcad899895c94353a7dce39ae5c72807=%22AMBS%22'
+};
+
 function openFormModal(){
+  /* Site account → open branch-specific form only */
+  if(typeof _loggedBranch!=='undefined' && _loggedBranch){
+    var branchUrl=FORM_URL_BRANCH[_loggedBranch];
+    if(branchUrl){ window.open(branchUrl,'_blank'); return; }
+  }
+  /* HQ (gto) account → region-based form (current behavior) */
   var isKorea=typeof _region!=='undefined'&&_region==='korea';
   var url=isKorea?FORM_URL_KOREA:FORM_URL_GLOBAL;
   window.open(url,'_blank');

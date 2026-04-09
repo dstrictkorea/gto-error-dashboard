@@ -8,8 +8,10 @@
 var _dailyCharts = {};
 var _dailyInited = false;
 
-// URL locale: /kr → AMGN (Korea default), /en or / → AMNY (Global default)
-var _dailyBranch = (typeof _urlLocale !== 'undefined' && _urlLocale === 'kr') ? 'AMGN' : 'AMNY';
+// If logged in as a site account, default to that branch; otherwise URL locale based
+var _dailyBranch = (typeof _loggedBranch !== 'undefined' && _loggedBranch)
+  ? _loggedBranch
+  : ((typeof _urlLocale !== 'undefined' && _urlLocale === 'kr') ? 'AMGN' : 'AMNY');
 
 /* ── Branch → Timezone map ── */
 var _brTzMap={
@@ -50,6 +52,7 @@ function renderDaily(){
   if(!G||!G.logs) return;
   _fillDailyBranchToggles();
   _updateDaily();
+  _updateSubmitBtnState();
 }
 
 /* ── Branch toggle buttons ── */
@@ -74,6 +77,27 @@ function _selectDailyBranch(b){
   _dailyBranch=(_dailyBranch===b)?'ALL':b;
   _fillDailyBranchToggles();
   _updateDaily();
+  _updateSubmitBtnState();
+}
+
+/* ── Update error submit button based on account + selected branch ── */
+function _updateSubmitBtnState(){
+  var btn=document.getElementById('dailySubmitBtn');
+  if(!btn) return;
+  // HQ (gto) account: always enabled
+  if(typeof _loggedBranch==='undefined'||!_loggedBranch){
+    btn.disabled=false;btn.style.opacity='1';btn.style.pointerEvents='auto';
+    btn.title='';return;
+  }
+  // Site account: only enabled when viewing own branch (or ALL)
+  var viewing=_dailyBranch||'ALL';
+  if(viewing==='ALL'||viewing===_loggedBranch){
+    btn.disabled=false;btn.style.opacity='1';btn.style.pointerEvents='auto';
+    btn.title='';
+  }else{
+    btn.disabled=true;btn.style.opacity='0.35';btn.style.pointerEvents='none';
+    btn.title='타 지점 에러 제출 불가 (Only your branch)';
+  }
 }
 
 /* ══════════════════════════════

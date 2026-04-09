@@ -4,6 +4,17 @@ var G={logs:[],history:[],assets:[],meta:{}}, curBranch='ALL', _timer=null;
 var MONTHS=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 var NOW=new Date(), CY=NOW.getFullYear(), CM=NOW.getMonth();
 
+/* ── Account info from cookie (set by server on login) ── */
+var _acctInfo = (function(){
+  try {
+    var m = document.cookie.match(/(?:^|;\s*)dse_acct=([^;]*)/);
+    if (m) return JSON.parse(decodeURIComponent(m[1]));
+  } catch(e){}
+  return { id: 'gto', branch: null, region: null }; // default = HQ full access
+})();
+var _loggedBranch = _acctInfo.branch;  // null = HQ (all access), 'AMDB' = Dubai only, etc.
+var _loggedId = _acctInfo.id;           // 'gto', 'amdb', 'amlv', etc.
+
 /* ── Branch / Region Registry (Frontend) ── */
 var BR_NAMES={AMGN:'Gangneung',AMYS:'Yeosu',AMBS:'Busan',AMJJ:'Jeju',AMNY:'New York',AMLV:'Las Vegas',AMDB:'Dubai'};
 var BR_COLORS_MAP={AMGN:'#0891b2',AMYS:'#059669',AMBS:'#2563eb',AMJJ:'#7c3aed',AMNY:'#185FA5',AMLV:'#993C1D',AMDB:'#534AB7'};
@@ -20,7 +31,8 @@ var _urlLocale = (function(){
   if (p === '/en') return 'en';
   return '';
 })();
-var _region = (_urlLocale === 'kr') ? 'korea' : 'global';
+/* If account has a locked region, use that; otherwise URL-based */
+var _region = (_acctInfo.region) ? _acctInfo.region : ((_urlLocale === 'kr') ? 'korea' : 'global');
 function getRegionBranches(){return _region==='korea'?KOREA_BRANCHES:GLOBAL_BRANCHES;}
 function toggleRegion(r){
   _region=r||(_region==='korea'?'global':'korea');
