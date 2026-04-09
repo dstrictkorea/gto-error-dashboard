@@ -263,7 +263,7 @@ app.get('/kr/sw.js', (req, res, next) => { res.setHeader('Service-Worker-Allowed
 // ── Static assets BEFORE auth — JS/CSS/images/fonts served without login ──
 // index: false prevents serving index.html for '/' — that stays behind auth
 const PUBLIC_DIR = path.join(__dirname, 'public');
-app.use(express.static(PUBLIC_DIR, { maxAge: IS_PROD ? '1d' : 0, etag: true, index: false }));
+app.use(express.static(PUBLIC_DIR, { maxAge: IS_PROD ? '1d' : 0, etag: true, index: false, redirect: false }));
 
 // Auth middleware — protect pages and API (static assets already served above)
 app.use((req, res, next) => {

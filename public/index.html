@@ -25,15 +25,15 @@
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
 <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
 <!-- Critical CSS first -->
-<link rel="stylesheet" href="css/style.css?v=5.6.0">
-<link rel="stylesheet" href="css/mobile-app.css?v=5.6.0">
+<link rel="stylesheet" href="/css/style.css?v=5.6.0">
+<link rel="stylesheet" href="/css/mobile-app.css?v=5.6.0">
 <!-- Font: non-blocking load with swap -->
 <link rel="preload" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
 <noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css"></noscript>
 <!-- Chart.js: local fallback (CDN blocked on server) -->
 <script defer src="/js/vendor/chart.umd.min.js?v=5.6.0"></script>
 <!-- Preload logo for topbar -->
-<link rel="preload" href="fonts/dstrict_CI_BLACK.png" as="image">
+<link rel="preload" href="/fonts/dstrict_CI_BLACK.png" as="image">
 </head>
 <body>
 <a href="#p0" class="skip-link" style="position:absolute;top:-40px;left:0;background:var(--purple);color:#fff;padding:8px 16px;z-index:999;font-size:13px;font-weight:700;transition:top .2s" onfocus="this.style.top='0'" onblur="this.style.top='-40px'">Skip to content</a>
@@ -87,7 +87,7 @@
 
 <div class="topbar">
   <div class="t-l">
-    <a class="logo" href="#" onclick="goPage(0,document.querySelector('.ntab'));return false;" title="Go to Monthly Dashboard"><img src="fonts/dstrict_CI_BLACK.png" alt="d'strict" class="logo-ci" style="height:18px;margin-right:8px;vertical-align:middle;filter:var(--logo-filter,none)">
+    <a class="logo" href="#" onclick="goPage(0,document.querySelector('.ntab'));return false;" title="Go to Monthly Dashboard"><img src="/fonts/dstrict_CI_BLACK.png" alt="d'strict" class="logo-ci" style="height:18px;margin-right:8px;vertical-align:middle;filter:var(--logo-filter,none)">
       <div><div class="logo-name" style="font-size:13px;white-space:nowrap">Error Dashboard <span style="font-size:11px;font-weight:400;color:var(--t3)">v5.4</span></div>
       <div class="logo-sub">Global Tech Ops</div></div></a>
     <div class="dvd"></div>
@@ -451,20 +451,20 @@
 </div>
 
 <!-- SCRIPTS — defer all for faster first paint -->
-<script defer src="js/i18n.js?v=5.6.0"></script>
-<script defer src="js/translate.js?v=5.6.0"></script>
-<script defer src="js/utils.js?v=5.6.0"></script>
-<script defer src="js/matching.js?v=5.6.0"></script>
-<script defer src="js/data.js?v=5.6.0"></script>
-<script defer src="js/daily.js?v=5.6.0"></script>
-<script defer src="js/monthly.js?v=5.6.0"></script>
-<script defer src="js/incidents.js?v=5.6.0"></script>
-<script defer src="js/branches.js?v=5.6.0"></script>
-<script defer src="js/search.js?v=5.6.0"></script>
-<script defer src="js/report.js?v=5.6.0"></script>
-<script defer src="js/ai.js?v=5.6.0"></script>
-<script defer src="js/mobile-app.js?v=5.6.0"></script>
-<script defer src="js/nav.js?v=5.6.0"></script>
+<script defer src="/js/i18n.js?v=5.6.0"></script>
+<script defer src="/js/translate.js?v=5.6.0"></script>
+<script defer src="/js/utils.js?v=5.6.0"></script>
+<script defer src="/js/matching.js?v=5.6.0"></script>
+<script defer src="/js/data.js?v=5.6.0"></script>
+<script defer src="/js/daily.js?v=5.6.0"></script>
+<script defer src="/js/monthly.js?v=5.6.0"></script>
+<script defer src="/js/incidents.js?v=5.6.0"></script>
+<script defer src="/js/branches.js?v=5.6.0"></script>
+<script defer src="/js/search.js?v=5.6.0"></script>
+<script defer src="/js/report.js?v=5.6.0"></script>
+<script defer src="/js/ai.js?v=5.6.0"></script>
+<script defer src="/js/mobile-app.js?v=5.6.0"></script>
+<script defer src="/js/nav.js?v=5.6.0"></script>
 
 <!-- Form modal + Theme toggle -->
 <script>
