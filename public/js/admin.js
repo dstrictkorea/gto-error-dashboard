@@ -301,22 +301,28 @@ function renderAdminDaily(){
     }
   }
 
-  // ── Top Zone: Daily와 동일한 방식 ──
+  // ── Top Zone ──
   var tzEl=document.getElementById('adm-daily-topzone');
   if(tzEl){
-    var zc={};weekLogs.forEach(function(r){var k=r.Zone||'Unknown';zc[k]=(zc[k]||0)+1;});
-    var sorted=Object.keys(zc).map(function(k){return{zone:k,cnt:zc[k]};}).sort(function(a,b){return b.cnt-a.cnt;}).slice(0,5);
-    var total=weekLogs.length||1;
-    var cols=['#534AB7','#60a5fa','#f59e0b','#ef4444','#10b981'];
-    if(!sorted.length){tzEl.innerHTML='<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:160px;gap:6px;opacity:0.7"><div style="font-size:36px">📊</div><div style="font-size:13px;font-weight:700;color:var(--t2)">데이터 없음</div></div>';return;}
-    tzEl.innerHTML=sorted.map(function(item,i){
-      var pct=Math.round(item.cnt/total*100);
-      return '<div style="display:flex;align-items:center;gap:10px;padding:8px 0;'+(i<sorted.length-1?'border-bottom:1px solid var(--border)':'')+'">'
-        +'<div style="min-width:22px;font-size:12px;font-weight:700;color:var(--t1)">#'+(i+1)+'</div>'
-        +'<div style="flex:1"><div style="display:flex;justify-content:space-between;margin-bottom:4px"><span style="font-size:13px;font-weight:600;color:var(--t0)">'+esc(item.zone)+'</span><span style="font-size:12px;font-weight:700;color:'+cols[i]+'">'+pct+'%</span></div>'
-        +'<div style="background:var(--border);border-radius:4px;height:6px;overflow:hidden"><div style="background:'+cols[i]+';height:100%;border-radius:4px;width:'+pct+'%;min-width:4px"></div></div>'
-        +'</div></div>';
-    }).join('');
+    if(noData){
+      tzEl.innerHTML='<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:160px;gap:8px"><div style="font-size:40px">📊</div><div style="font-size:13px;font-weight:700;color:var(--t2)">데이터 없음</div></div>';
+    } else {
+      var zc={};weekLogs.forEach(function(r){var k=r.Zone||'Unknown';zc[k]=(zc[k]||0)+1;});
+      var ztop=Object.keys(zc).map(function(k){return{zone:k,cnt:zc[k]};}).sort(function(a,b){return b.cnt-a.cnt;}).slice(0,5);
+      var ztotal=weekLogs.length||1;
+      var zcols=['#534AB7','#60a5fa','#f59e0b','#ef4444','#10b981'];
+      tzEl.innerHTML=ztop.map(function(item,i){
+        var pct=Math.round(item.cnt/ztotal*100);
+        return '<div style="display:flex;align-items:center;gap:10px;padding:8px 0;'+(i<ztop.length-1?'border-bottom:1px solid var(--border)':'')+'">'
+          +'<div style="min-width:22px;font-size:12px;font-weight:700;color:var(--t1)">#'+(i+1)+'</div>'
+          +'<div style="flex:1"><div style="display:flex;justify-content:space-between;margin-bottom:4px">'
+          +'<span style="font-size:13px;font-weight:600;color:var(--t0)">'+esc(item.zone)+'</span>'
+          +'<span style="font-size:12px;font-weight:700;color:'+zcols[i]+'">'+pct+'%</span></div>'
+          +'<div style="background:var(--border);border-radius:4px;height:6px;overflow:hidden">'
+          +'<div style="background:'+zcols[i]+';height:100%;border-radius:4px;width:'+pct+'%;min-width:4px"></div></div>'
+          +'</div></div>';
+      }).join('');
+    }
   }
 
   // ── Category chart ──
@@ -963,17 +969,26 @@ function renderAdmin(){
   // 리전 버튼 초기화
   document.querySelectorAll('#adm-daily-region-toggle .region-btn').forEach(function(b){b.classList.toggle('active',b.dataset.region==='all');});
   _admDailyStrip();
-  renderAdminDaily();
+  // G 이미 로드됐으면 즉시 렌더, 아니면 pending
+  if(G&&G.logs&&G.logs.length){
+    renderAdminDaily();
+  } else {
+    window._admDailyPendingRender=true;
+  }
 }
 
 // G 데이터 로드 완료 후 Admin pending 렌더링 처리
 // data.js 의 G 설정 후 호출되는 훅에 연결
 var _admOrigSetG = typeof window._onGLoaded === 'function' ? window._onGLoaded : null;
 window._onAdminGLoaded = function(){
-  if(window._admDailyPendingRender && document.getElementById('pAdmin') && document.getElementById('pAdmin').style.display !== 'none'){
+  if(window._admDailyPendingRender){
     window._admDailyPendingRender = false;
-    _admDailyStrip();
-    renderAdminDaily();
+    // Admin 탭이 활성화된 상태면 바로 렌더
+    var pA=document.getElementById('pAdmin');
+    if(pA && (pA.classList.contains('active') || pA.style.display!=='none')){
+      _admDailyStrip();
+      renderAdminDaily();
+    }
   }
 };
 
