@@ -195,64 +195,9 @@
   <div class="tbl-wrap"><div class="tbl-hdr"><div class="tbl-title">Top Recurring Issues</div><span id="mon-cnt" class="rcnt"></span></div>
     <table><thead><tr><th>#</th><th>Branch</th><th>Zone</th><th>Category</th><th>Issue</th><th>Count</th></tr></thead><tbody id="top-issues"></tbody></table></div>
 
-  <!-- Report Section — Toggle-based Region × Language selection -->
-  <div class="section-divider"></div>
-  <div style="margin-top:16px">
-    <!-- Report toggles row -->
-    <div style="display:flex;align-items:center;gap:16px;margin-bottom:14px;flex-wrap:wrap">
-      <span style="font-size:13px;font-weight:800;color:var(--t0)">📋 Reports</span>
-      <!-- Region toggle -->
-      <div class="region-toggle" id="rpt-region-toggle">
-        <button class="region-btn active" data-region="global" onclick="setRptRegion('global')">🌍 Global</button>
-        <button class="region-btn" data-region="korea" onclick="setRptRegion('korea')">🇰🇷 Korea</button>
-      </div>
-      <!-- Language toggle -->
-      <div class="region-toggle" id="rpt-lang-toggle">
-        <button class="region-btn active" data-lang="en" onclick="setRptLang('en')">ENG</button>
-        <button class="region-btn" data-lang="ko" onclick="setRptLang('ko')">KOR</button>
-      </div>
-    </div>
+  <!-- Branch Report Section — 지점 계정 로그인 시에만 표시 (gto는 Admin에서 생성) -->
+  <div id="branch-report-section" style="display:none;margin-top:20px;"></div>
 
-    <!-- Monthly Report Card -->
-    <div class="card card-elevated" style="border:1px solid rgba(168,85,247,0.15);margin-bottom:12px">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
-        <div style="display:flex;align-items:center;gap:8px">
-          <span style="font-size:11px;font-weight:800;color:#fff;background:var(--purple);padding:2px 8px;border-radius:4px">MONTHLY</span>
-          <div>
-            <div id="monthly-title" style="font-size:14px;font-weight:800;color:var(--t0)">Monthly Error Report</div>
-            <div id="monthly-sub" style="font-size:11px;color:var(--t3);margin-top:1px">Selected month summary</div>
-          </div>
-        </div>
-        <div id="rpt-monthly-tag" style="font-size:10px;font-weight:700;color:var(--t3);background:var(--sub);padding:3px 8px;border-radius:6px">🇰🇷 Korea · ENG</div>
-      </div>
-      <div style="display:flex;gap:6px;flex-wrap:wrap">
-        <button class="btn btn-sm" style="flex:1;background:var(--purple);color:#fff;font-weight:700;border-radius:8px" onclick="generateReport('download')">⬇ Download</button>
-        <button class="btn btn-sm" style="flex:1;background:#2563eb;color:#fff;font-weight:700;border-radius:8px" onclick="generateReport('preview')">👁 Preview</button>
-        <button class="btn btn-sm" style="flex:1;background:#059669;color:#fff;font-weight:700;border-radius:8px" onclick="generateReport('email')">✉ Email</button>
-      </div>
-      <div id="report-status" style="margin-top:8px;display:none"></div>
-    </div>
-
-    <!-- Annual Report Card -->
-    <div class="card card-elevated" style="border:1px solid rgba(15,118,110,0.15)">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
-        <div style="display:flex;align-items:center;gap:8px">
-          <span style="font-size:11px;font-weight:800;color:#fff;background:#0f766e;padding:2px 8px;border-radius:4px">ANNUAL</span>
-          <div>
-            <div id="annual-title" style="font-size:14px;font-weight:800;color:var(--t0)">Annual Error Report</div>
-            <div id="annual-sub" style="font-size:11px;color:var(--t3);margin-top:1px">Selected year full-year summary</div>
-          </div>
-        </div>
-        <div id="rpt-annual-tag" style="font-size:10px;font-weight:700;color:var(--t3);background:var(--sub);padding:3px 8px;border-radius:6px">🇰🇷 Korea · ENG</div>
-      </div>
-      <div style="display:flex;gap:6px;flex-wrap:wrap">
-        <button class="btn btn-sm" style="flex:1;background:#0f766e;color:#fff;font-weight:700;border-radius:8px" onclick="generateAnnualReport('download')">⬇ Download</button>
-        <button class="btn btn-sm" style="flex:1;background:#0d9488;color:#fff;font-weight:700;border-radius:8px" onclick="generateAnnualReport('preview')">👁 Preview</button>
-        <button class="btn btn-sm" style="flex:1;background:#14b8a6;color:#fff;font-weight:700;border-radius:8px" onclick="generateAnnualReport('email')">✉ Email</button>
-      </div>
-      <div id="annual-report-status" style="margin-top:8px;display:none"></div>
-    </div>
-  </div>
 </div>
 
 <!-- PAGE 1: INCIDENT LOG -->
@@ -532,6 +477,139 @@ function copyEnvTemplate() {
     toast(typeof t==='function'?t('copiedToClipboard'):'Copied to clipboard!', 'success');
   });
 }
+
+// ══════ 지점 계정 월간 리포트 섹션 초기화 ══════
+(function initBranchReport(){
+  if(typeof _loggedBranch === 'undefined' || !_loggedBranch) return;
+  var sec = document.getElementById('branch-report-section');
+  if(!sec) return;
+
+  var br = _loggedBranch;
+  var isKorea = (typeof BR_REGIONS !== 'undefined') && BR_REGIONS[br] === 'Korea';
+  var defLang  = isKorea ? 'ko' : 'en';
+  var region   = isKorea ? 'korea' : 'global';
+  var brLabel  = (typeof BR_NAMES !== 'undefined' && BR_NAMES[br]) ? BR_NAMES[br] : br;
+
+  sec.innerHTML = [
+    '<div class="section-divider"></div>',
+    '<div style="margin-top:4px">',
+    '  <div style="font-size:13px;font-weight:800;color:var(--t0);margin-bottom:12px">📋 ',
+        (isKorea ? brLabel + ' 지점 리포트 생성' : br + ' Branch Report'),
+    '  </div>',
+    // 코멘트 입력란
+    '  <div class="card card-elevated" style="border:1px solid rgba(83,74,183,0.15);margin-bottom:12px">',
+    '    <div style="font-size:12px;font-weight:700;color:var(--t1);margin-bottom:6px">',
+         (isKorea ? '📝 담당자 코멘트 / 비고 (선택)' : '📝 Manager Comment / Remarks (optional)'),
+    '    </div>',
+    '    <div style="font-size:11px;color:var(--t3);margin-bottom:8px;line-height:1.6">',
+         (isKorea
+           ? '개별 안내사항, 심각한 내용, 따로 보고할 추가 내용이 있으면 입력하세요.<br>입력된 내용은 리포트 상단에 게시됩니다.'
+           : 'Add any individual notes, serious issues, or additional information to report.<br>This content will be displayed at the top of the report.'),
+    '    </div>',
+    '    <textarea id="branch-rpt-comment" rows="4"',
+    '      style="width:100%;padding:10px 12px;border-radius:8px;border:1.5px solid var(--border);background:var(--bg);color:var(--t0);font-family:var(--f,sans-serif);font-size:13px;resize:vertical;outline:none;transition:border-color .2s"',
+    '      placeholder="' + (isKorea
+        ? '예: 3월 중 LED 모듈 이상 관련 추가 조사 필요. 벤더 미팅 일정 협의 중.'
+        : 'e.g. LED module anomaly in March requires further investigation. Vendor meeting being scheduled.') + '"',
+    '    ></textarea>',
+    '  </div>',
+    // 월간 리포트
+    '  <div class="card card-elevated" style="border:1px solid rgba(168,85,247,0.15);margin-bottom:12px">',
+    '    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">',
+    '      <div style="display:flex;align-items:center;gap:8px">',
+    '        <span style="font-size:11px;font-weight:800;color:#fff;background:var(--purple);padding:2px 8px;border-radius:4px">MONTHLY</span>',
+    '        <div>',
+    '          <div style="font-size:13px;font-weight:800;color:var(--t0)">' + (isKorea ? brLabel + ' 월간 에러 리포트' : br + ' Monthly Error Report') + '</div>',
+    '          <div style="font-size:11px;color:var(--t3);margin-top:1px">' + (isKorea ? '해당 지점 에러만 포함 · 한국어 리포트' : 'Branch errors only · English report') + '</div>',
+    '        </div>',
+    '      </div>',
+    '      <div style="font-size:10px;font-weight:700;color:var(--t3);background:var(--sub);padding:3px 8px;border-radius:6px">' + (isKorea ? '🇰🇷' : '🌍') + ' ' + br + (isKorea ? ' · KOR' : ' · ENG') + '</div>',
+    '    </div>',
+    '    <div style="display:flex;gap:6px;flex-wrap:wrap">',
+    '      <button class="btn btn-sm" style="flex:1;background:var(--purple);color:#fff;font-weight:700;border-radius:8px" onclick="branchGenReport(\'download\',\'monthly\')">⬇ ' + (isKorea ? '다운로드' : 'Download') + '</button>',
+    '      <button class="btn btn-sm" style="flex:1;background:#2563eb;color:#fff;font-weight:700;border-radius:8px" onclick="branchGenReport(\'preview\',\'monthly\')">👁 ' + (isKorea ? '미리보기' : 'Preview') + '</button>',
+    '    </div>',
+    '    <div id="br-monthly-status" style="margin-top:8px;display:none;padding:8px 12px;border-radius:6px;font-size:12px;"></div>',
+    '  </div>',
+    // 연간 리포트
+    '  <div class="card card-elevated" style="border:1px solid rgba(15,118,110,0.15)">',
+    '    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">',
+    '      <div style="display:flex;align-items:center;gap:8px">',
+    '        <span style="font-size:11px;font-weight:800;color:#fff;background:#0f766e;padding:2px 8px;border-radius:4px">ANNUAL</span>',
+    '        <div>',
+    '          <div style="font-size:13px;font-weight:800;color:var(--t0)">' + (isKorea ? brLabel + ' 연간 에러 리포트' : br + ' Annual Error Report') + '</div>',
+    '          <div style="font-size:11px;color:var(--t3);margin-top:1px">' + (isKorea ? '해당 지점 연간 누적' : 'Branch annual summary') + '</div>',
+    '        </div>',
+    '      </div>',
+    '    </div>',
+    '    <div style="display:flex;gap:6px;flex-wrap:wrap">',
+    '      <button class="btn btn-sm" style="flex:1;background:#0f766e;color:#fff;font-weight:700;border-radius:8px" onclick="branchGenReport(\'download\',\'annual\')">⬇ ' + (isKorea ? '다운로드' : 'Download') + '</button>',
+    '      <button class="btn btn-sm" style="flex:1;background:#0d9488;color:#fff;font-weight:700;border-radius:8px" onclick="branchGenReport(\'preview\',\'annual\')">👁 ' + (isKorea ? '미리보기' : 'Preview') + '</button>',
+    '    </div>',
+    '    <div id="br-annual-status" style="margin-top:8px;display:none;padding:8px 12px;border-radius:6px;font-size:12px;"></div>',
+    '  </div>',
+    '</div>'
+  ].join('');
+
+  sec.style.display = 'block';
+
+  window.branchGenReport = function(action, type) {
+    var commentEl = document.getElementById('branch-rpt-comment');
+    var comment = commentEl ? commentEl.value : '';
+    var mSel = document.getElementById('monthSel');
+    var ySel = document.getElementById('yearSel');
+    var month = mSel ? parseInt(mSel.value) : (new Date().getMonth());
+    var year  = ySel ? parseInt(ySel.value)  : (new Date().getFullYear());
+    var statusId = type === 'annual' ? 'br-annual-status' : 'br-monthly-status';
+    var statusEl = document.getElementById(statusId);
+
+    if(statusEl) {
+      statusEl.style.display = 'block';
+      statusEl.style.background = '#eff6ff';
+      statusEl.style.color = '#1e40af';
+      statusEl.style.border = '1px solid #bfdbfe';
+      statusEl.innerHTML = '<span style="display:inline-block;width:12px;height:12px;border:2px solid rgba(30,64,175,.3);border-top-color:#1e40af;border-radius:50%;animation:spin .6s linear infinite;vertical-align:middle;margin-right:6px"></span>' + (isKorea ? '리포트 생성 중...' : 'Generating report...');
+    }
+
+    var endpoint = (type === 'annual') ? '/api/annual-report' : '/api/report';
+    var body = (type === 'annual')
+      ? { year:year, action:action, lang:defLang, region:region, comment:comment, branchFilter:br }
+      : { month:month, year:year, action:action, lang:defLang, reportType:'monthly', region:region, comment:comment, branchFilter:br };
+
+    fetch(endpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    }).then(function(r){ return r.json(); }).then(function(d){
+      if(!d.ok) throw new Error(d.error || (isKorea ? '생성 실패' : 'Generation failed'));
+      if(statusEl) {
+        statusEl.style.background = '#f0fdf4';
+        statusEl.style.color = '#166534';
+        statusEl.style.border = '1px solid #bbf7d0';
+        statusEl.textContent = '✅ ' + d.message;
+      }
+      if(action === 'download' || action === 'preview') {
+        var bin = atob(d.pdfBase64), arr = new Uint8Array(bin.length);
+        for(var i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
+        var blob = new Blob([arr], { type: 'application/pdf' });
+        var url  = URL.createObjectURL(blob);
+        if(action === 'download') {
+          var a = document.createElement('a'); a.href = url; a.download = d.fileName; a.click();
+          setTimeout(function(){ URL.revokeObjectURL(url); }, 3000);
+        } else { window.open(url, '_blank'); }
+      }
+      if(typeof toast === 'function') toast(d.fileName + (isKorea ? ' 생성 완료' : ' generated'), 'success');
+    }).catch(function(e){
+      if(statusEl) {
+        statusEl.style.background = '#fef2f2';
+        statusEl.style.color = '#991b1b';
+        statusEl.style.border = '1px solid #fecaca';
+        statusEl.textContent = '❌ ' + e.message;
+      }
+      if(typeof toast === 'function') toast((isKorea ? '리포트 생성 실패: ' : 'Report failed: ') + e.message, 'error');
+    });
+  };
+})();
 
 // Update footer sync time
 function updateFooterSyncTime() {

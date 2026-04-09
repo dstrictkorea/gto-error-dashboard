@@ -1,0 +1,911 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#534AB7">
+<title>Admin — d'strict Error Dashboard</title>
+<link rel="icon" type="image/png" sizes="192x192" href="/fonts/icon-192.png">
+<link rel="manifest" href="/manifest.json">
+<link rel="stylesheet" href="/css/style.css?v=5.6.0">
+<link rel="preload" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+<noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css"></noscript>
+<script defer src="/js/vendor/chart.umd.min.js?v=5.6.0"></script>
+<link rel="preload" href="/fonts/dstrict_CI_BLACK.png" as="image">
+
+<style>
+/* ─── Admin 전용 스타일 ─── */
+:root{
+  --adm-purple:#534AB7; --adm-bg:#f6f5f0; --adm-card:#ffffff;
+  --adm-border:#e8e6df; --adm-t0:#111110; --adm-t1:#3d3d38;
+  --adm-t2:#73726c; --adm-t3:#a3a29c;
+  --adm-global:#185FA5; --adm-korea:#059669;
+  --adm-red:#dc2626; --adm-amber:#d97706;
+}
+html.dark-mode{
+  --adm-bg:#1a1a18; --adm-card:#252523; --adm-border:#2e2e2c;
+  --adm-t0:#f5f5f0; --adm-t1:#d4d4ce; --adm-t2:#8a8a84; --adm-t3:#555552;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Pretendard',-apple-system,BlinkMacSystemFont,sans-serif;background:var(--adm-bg);color:var(--adm-t0);min-height:100vh;}
+
+/* Topbar */
+.adm-topbar{position:sticky;top:0;z-index:200;background:var(--adm-card);border-bottom:1px solid var(--adm-border);padding:0 28px;height:56px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 1px 8px rgba(0,0,0,0.06);}
+.adm-topbar-l{display:flex;align-items:center;gap:14px;}
+.adm-logo-ci{height:18px;vertical-align:middle;filter:var(--logo-filter,none);}
+.adm-title{font-size:15px;font-weight:800;color:var(--adm-t0);letter-spacing:-0.3px;}
+.adm-badge{background:var(--adm-purple);color:#fff;font-size:10px;font-weight:800;padding:2px 8px;border-radius:4px;letter-spacing:0.5px;}
+.adm-topbar-r{display:flex;align-items:center;gap:10px;}
+.adm-pill{background:var(--adm-bg);border:1px solid var(--adm-border);border-radius:20px;padding:4px 12px;font-size:11px;font-weight:600;color:var(--adm-t2);}
+.adm-pill.live{color:#16a34a;border-color:#bbf7d0;}
+.adm-pill.live::before{content:'●';margin-right:5px;font-size:8px;}
+.adm-btn{padding:7px 14px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;border:none;transition:all .2s;}
+.adm-btn-ghost{background:transparent;border:1px solid var(--adm-border);color:var(--adm-t1);}
+.adm-btn-ghost:hover{background:var(--adm-bg);}
+.adm-btn-danger{background:#fee2e2;color:#991b1b;border:1px solid #fecaca;}
+.adm-btn-danger:hover{background:#fecaca;}
+
+/* Layout */
+.adm-main{max-width:1400px;margin:0 auto;padding:28px 28px 60px;}
+
+/* Report Header Section */
+.adm-report-section{background:var(--adm-card);border-radius:14px;border:1.5px solid rgba(83,74,183,0.2);padding:22px 24px;margin-bottom:28px;box-shadow:0 2px 12px rgba(83,74,183,0.06);}
+.adm-report-section-title{font-size:13px;font-weight:800;color:var(--adm-purple);margin-bottom:16px;display:flex;align-items:center;gap:8px;letter-spacing:0.3px;}
+.adm-report-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+@media(max-width:800px){.adm-report-grid{grid-template-columns:1fr;}}
+
+/* Report Card */
+.adm-rpt-card{background:var(--adm-bg);border:1px solid var(--adm-border);border-radius:10px;padding:16px;}
+.adm-rpt-card-title{display:flex;align-items:center;gap:8px;margin-bottom:12px;}
+.adm-rpt-card-title .tag{padding:3px 9px;border-radius:5px;font-size:11px;font-weight:800;color:#fff;}
+.adm-rpt-card-title .tag.global{background:var(--adm-global);}
+.adm-rpt-card-title .tag.korea{background:var(--adm-korea);}
+.adm-rpt-card-title h3{font-size:13px;font-weight:700;color:var(--adm-t0);}
+.adm-rpt-type-row{display:flex;gap:8px;margin-bottom:10px;}
+.adm-lang-toggle,.adm-type-toggle{display:flex;gap:4px;}
+.adm-toggle-btn{padding:5px 12px;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;border:1.5px solid var(--adm-border);background:var(--adm-card);color:var(--adm-t2);transition:all .2s;}
+.adm-toggle-btn.active{border-color:var(--adm-purple);background:var(--adm-purple);color:#fff;}
+.adm-rpt-buttons{display:flex;gap:6px;flex-wrap:wrap;}
+.adm-rpt-btn{flex:1;padding:9px 8px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;border:none;color:#fff;transition:all .15s;min-width:80px;}
+.adm-rpt-btn:hover{filter:brightness(1.1);}
+.adm-rpt-btn.dl{background:var(--adm-purple);}
+.adm-rpt-btn.pv{background:#2563eb;}
+.adm-rpt-btn.em{background:#059669;}
+.adm-rpt-status{margin-top:8px;display:none;font-size:12px;padding:8px 12px;border-radius:6px;}
+.adm-year-sel,.adm-month-sel{padding:5px 10px;border-radius:6px;border:1.5px solid var(--adm-border);background:var(--adm-card);color:var(--adm-t0);font-size:12px;font-weight:600;}
+
+/* Divider */
+.adm-divider{height:1px;background:var(--adm-border);margin:28px 0;}
+
+/* Toggle section (일일/월간) */
+.adm-section{background:var(--adm-card);border-radius:14px;border:1px solid var(--adm-border);overflow:hidden;margin-bottom:20px;}
+.adm-section-header{display:flex;align-items:center;justify-content:space-between;padding:18px 22px;cursor:pointer;user-select:none;transition:background .15s;}
+.adm-section-header:hover{background:var(--adm-bg);}
+.adm-section-header-l{display:flex;align-items:center;gap:12px;}
+.adm-section-icon{font-size:18px;}
+.adm-section-title-wrap{}
+.adm-section-title{font-size:14px;font-weight:800;color:var(--adm-t0);}
+.adm-section-sub{font-size:11px;color:var(--adm-t2);margin-top:2px;}
+.adm-section-chevron{font-size:16px;color:var(--adm-t2);transition:transform .25s;}
+.adm-section.open .adm-section-chevron{transform:rotate(180deg);}
+.adm-section-body{display:none;padding:0 22px 22px;}
+.adm-section.open .adm-section-body{display:block;}
+
+/* Branch toggles */
+.adm-branch-strip{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:18px;padding-top:4px;}
+.adm-br-btn{padding:7px 14px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;border:1.5px solid var(--adm-border);background:var(--adm-card);color:var(--adm-t1);transition:all .2s;display:inline-flex;align-items:center;gap:5px;}
+.adm-br-btn.active{color:#fff;border-color:transparent;}
+.adm-br-btn:hover:not(.active){background:var(--adm-bg);}
+
+/* Region tabs inside section */
+.adm-region-tabs{display:flex;gap:4px;margin-bottom:14px;border-bottom:2px solid var(--adm-border);padding-bottom:8px;}
+.adm-rtab{padding:6px 16px;border-radius:6px 6px 0 0;font-size:12px;font-weight:700;cursor:pointer;border:none;background:transparent;color:var(--adm-t2);transition:all .2s;}
+.adm-rtab.active{background:var(--adm-purple);color:#fff;}
+
+/* Content area */
+.adm-content-area{background:var(--adm-bg);border-radius:10px;padding:18px;}
+
+/* Period selector row */
+.adm-period-row{display:flex;align-items:center;gap:10px;margin-bottom:16px;flex-wrap:wrap;}
+.adm-period-lbl{font-size:12px;font-weight:700;color:var(--adm-t2);}
+
+/* KPI grid */
+.adm-kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin-bottom:18px;}
+.adm-kpi{background:var(--adm-card);border-radius:10px;border:1px solid var(--adm-border);padding:14px 16px;}
+.adm-kpi-label{font-size:10px;font-weight:700;color:var(--adm-t2);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;}
+.adm-kpi-value{font-size:26px;font-weight:900;color:var(--adm-t0);line-height:1;}
+.adm-kpi-sub{font-size:10px;color:var(--adm-t3);margin-top:4px;}
+
+/* Chart grid */
+.adm-chart-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:18px;}
+@media(max-width:900px){.adm-chart-grid{grid-template-columns:1fr;}}
+.adm-chart-card{background:var(--adm-card);border-radius:10px;border:1px solid var(--adm-border);padding:14px;}
+.adm-chart-title{font-size:11px;font-weight:700;color:var(--adm-t1);margin-bottom:10px;text-transform:uppercase;letter-spacing:0.4px;}
+.adm-canvas-wrap{position:relative;height:200px;}
+
+/* Error list mini */
+.adm-err-list{background:var(--adm-card);border-radius:10px;border:1px solid var(--adm-border);overflow:hidden;}
+.adm-err-list table{width:100%;border-collapse:collapse;font-size:12px;}
+.adm-err-list th{background:var(--adm-t0);color:#fff;padding:8px 10px;text-align:left;font-size:11px;font-weight:700;}
+.adm-err-list td{padding:8px 10px;border-bottom:1px solid var(--adm-border);color:var(--adm-t1);vertical-align:middle;}
+.adm-err-list tr:last-child td{border-bottom:none;}
+.adm-err-list tr:hover td{background:var(--adm-bg);}
+.adm-empty{text-align:center;padding:32px;color:var(--adm-t3);font-size:13px;}
+
+/* Loading spinner */
+.adm-spinner{display:inline-block;width:14px;height:14px;border:2px solid rgba(255,255,255,0.3);border-top-color:#fff;border-radius:50%;animation:adm-spin .6s linear infinite;vertical-align:middle;margin-right:6px;}
+@keyframes adm-spin{to{transform:rotate(360deg)}}
+
+/* Sync info */
+.adm-sync{font-size:11px;color:var(--adm-t3);}
+#adm-toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%);z-index:9999;background:#111;color:#fff;padding:10px 20px;border-radius:10px;font-size:13px;font-weight:600;display:none;animation:fadeIn .2s;}
+#adm-toast.show{display:block;}
+@keyframes fadeIn{from{opacity:0;transform:translateX(-50%) translateY(10px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+
+/* Theme toggle button */
+.adm-theme-btn{background:none;border:none;font-size:16px;cursor:pointer;padding:4px 8px;border-radius:6px;transition:background .15s;}
+.adm-theme-btn:hover{background:var(--adm-bg);}
+</style>
+</head>
+<body>
+
+<div id="adm-toast"></div>
+
+<!-- ━━━━━━━━ TOPBAR ━━━━━━━━ -->
+<div class="adm-topbar">
+  <div class="adm-topbar-l">
+    <img src="/fonts/dstrict_CI_BLACK.png" alt="d'strict" class="adm-logo-ci" id="adm-logo">
+    <div class="adm-title">Error Dashboard</div>
+    <span class="adm-badge">ADMIN</span>
+  </div>
+  <div class="adm-topbar-r">
+    <div class="adm-pill live">Live</div>
+    <div class="adm-pill adm-sync" id="adm-sync-info">연결 중...</div>
+    <div class="adm-pill" id="adm-clock">--:--</div>
+    <button class="adm-btn adm-btn-ghost" onclick="admReload()" title="새로고침">⟳</button>
+    <button class="adm-theme-btn" onclick="admToggleTheme()" id="adm-theme-btn" title="테마 전환">🌙</button>
+    <button class="adm-btn adm-btn-danger" onclick="doLogout()">⏻ 로그아웃</button>
+  </div>
+</div>
+
+<!-- ━━━━━━━━ MAIN ━━━━━━━━ -->
+<div class="adm-main">
+
+  <!-- ══════ 리포트 생성 헤더 섹션 ══════ -->
+  <div class="adm-report-section">
+    <div class="adm-report-section-title">
+      <span>📋</span> 리포트 생성 — 글로벌·국내 지점 통합 (Admin 전용)
+    </div>
+    <div class="adm-report-grid">
+
+      <!-- ── 글로벌 리포트 ── -->
+      <div class="adm-rpt-card">
+        <div class="adm-rpt-card-title">
+          <span class="tag global">🌍 GLOBAL</span>
+          <h3>글로벌 지점 리포트 (AMNY · AMLV · AMDB)</h3>
+        </div>
+        <!-- 기간 선택 -->
+        <div class="adm-period-row" style="margin-bottom:10px;">
+          <span class="adm-period-lbl">기간</span>
+          <select class="adm-year-sel" id="rpt-g-year"></select>
+          <select class="adm-month-sel" id="rpt-g-month">
+            <option value="-1">연간(Annual)</option>
+          </select>
+        </div>
+        <!-- 언어 토글 -->
+        <div class="adm-rpt-type-row">
+          <span class="adm-period-lbl">언어</span>
+          <div class="adm-lang-toggle" id="rpt-g-lang-toggle">
+            <button class="adm-toggle-btn active" data-lang="en" onclick="setAdmLang('global','en',this)">ENG</button>
+            <button class="adm-toggle-btn" data-lang="ko" onclick="setAdmLang('global','ko',this)">KOR</button>
+          </div>
+        </div>
+        <!-- 버튼 -->
+        <div class="adm-rpt-buttons" style="margin-top:10px;">
+          <button class="adm-rpt-btn dl" onclick="admGenReport('global','download')">⬇ 다운로드</button>
+          <button class="adm-rpt-btn pv" onclick="admGenReport('global','preview')">👁 미리보기</button>
+          <button class="adm-rpt-btn em" onclick="admGenReport('global','email')">✉ 이메일</button>
+        </div>
+        <div id="rpt-g-status" class="adm-rpt-status"></div>
+      </div>
+
+      <!-- ── 국내 리포트 ── -->
+      <div class="adm-rpt-card">
+        <div class="adm-rpt-card-title">
+          <span class="tag korea">🇰🇷 KOREA</span>
+          <h3>국내 지점 리포트 (AMGN · AMYS · AMBS · AMJJ)</h3>
+        </div>
+        <!-- 기간 선택 -->
+        <div class="adm-period-row" style="margin-bottom:10px;">
+          <span class="adm-period-lbl">기간</span>
+          <select class="adm-year-sel" id="rpt-k-year"></select>
+          <select class="adm-month-sel" id="rpt-k-month">
+            <option value="-1">연간(Annual)</option>
+          </select>
+        </div>
+        <!-- 언어 토글 -->
+        <div class="adm-rpt-type-row">
+          <span class="adm-period-lbl">언어</span>
+          <div class="adm-lang-toggle" id="rpt-k-lang-toggle">
+            <button class="adm-toggle-btn" data-lang="en" onclick="setAdmLang('korea','en',this)">ENG</button>
+            <button class="adm-toggle-btn active" data-lang="ko" onclick="setAdmLang('korea','ko',this)">KOR</button>
+          </div>
+        </div>
+        <!-- 버튼 -->
+        <div class="adm-rpt-buttons" style="margin-top:10px;">
+          <button class="adm-rpt-btn dl" style="background:var(--adm-korea)" onclick="admGenReport('korea','download')">⬇ 다운로드</button>
+          <button class="adm-rpt-btn pv" style="background:#0d9488" onclick="admGenReport('korea','preview')">👁 미리보기</button>
+          <button class="adm-rpt-btn em" style="background:#14b8a6" onclick="admGenReport('korea','email')">✉ 이메일</button>
+        </div>
+        <div id="rpt-k-status" class="adm-rpt-status"></div>
+      </div>
+
+    </div><!-- /.adm-report-grid -->
+  </div><!-- /.adm-report-section -->
+
+  <!-- ══════ 일일 현황 토글 ══════ -->
+  <div class="adm-section" id="sec-daily">
+    <div class="adm-section-header" onclick="admToggleSection('daily')">
+      <div class="adm-section-header-l">
+        <span class="adm-section-icon">📅</span>
+        <div class="adm-section-title-wrap">
+          <div class="adm-section-title">일일 현황</div>
+          <div class="adm-section-sub">7개 지점 전체 · 오늘 발생 에러 현황</div>
+        </div>
+      </div>
+      <span class="adm-section-chevron">▾</span>
+    </div>
+    <div class="adm-section-body" id="body-daily">
+      <!-- 지역 탭 -->
+      <div class="adm-region-tabs">
+        <button class="adm-rtab active" onclick="admDailyRegion('all',this)">🌐 전체 (7지점)</button>
+        <button class="adm-rtab" onclick="admDailyRegion('global',this)">🌍 글로벌 (3지점)</button>
+        <button class="adm-rtab" onclick="admDailyRegion('korea',this)">🇰🇷 국내 (4지점)</button>
+      </div>
+      <!-- 지점 선택 -->
+      <div class="adm-branch-strip" id="daily-br-strip"></div>
+      <!-- 컨텐츠 -->
+      <div class="adm-content-area" id="daily-content">
+        <div class="adm-empty">데이터 로딩 중...</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════ 월간 현황 토글 ══════ -->
+  <div class="adm-section" id="sec-monthly">
+    <div class="adm-section-header" onclick="admToggleSection('monthly')">
+      <div class="adm-section-header-l">
+        <span class="adm-section-icon">📊</span>
+        <div class="adm-section-title-wrap">
+          <div class="adm-section-title">월간 현황</div>
+          <div class="adm-section-sub">7개 지점 전체 · 지점별 에러 통계</div>
+        </div>
+      </div>
+      <span class="adm-section-chevron">▾</span>
+    </div>
+    <div class="adm-section-body" id="body-monthly">
+      <!-- 지역 탭 -->
+      <div class="adm-region-tabs">
+        <button class="adm-rtab active" onclick="admMonthlyRegion('all',this)">🌐 전체 (7지점)</button>
+        <button class="adm-rtab" onclick="admMonthlyRegion('global',this)">🌍 글로벌 (3지점)</button>
+        <button class="adm-rtab" onclick="admMonthlyRegion('korea',this)">🇰🇷 국내 (4지점)</button>
+      </div>
+      <!-- 지점 선택 -->
+      <div class="adm-branch-strip" id="monthly-br-strip"></div>
+      <!-- 기간 선택 -->
+      <div class="adm-period-row">
+        <span class="adm-period-lbl">기간</span>
+        <select class="adm-year-sel" id="adm-year-sel" onchange="admRenderMonthly()"></select>
+        <select class="adm-month-sel" id="adm-month-sel" onchange="admRenderMonthly()"></select>
+      </div>
+      <!-- 컨텐츠 -->
+      <div class="adm-content-area">
+        <div class="adm-kpi-grid" id="adm-kpi-grid"></div>
+        <div class="adm-chart-grid">
+          <div class="adm-chart-card">
+            <div class="adm-chart-title">월별 에러 추이</div>
+            <div class="adm-canvas-wrap"><canvas id="adm-trend-chart"></canvas></div>
+          </div>
+          <div class="adm-chart-card">
+            <div class="adm-chart-title">유형별 분포</div>
+            <div class="adm-canvas-wrap"><canvas id="adm-cat-chart"></canvas></div>
+          </div>
+        </div>
+        <div class="adm-err-list">
+          <table>
+            <thead>
+              <tr>
+                <th style="width:36px;">#</th>
+                <th>지점</th>
+                <th>Zone</th>
+                <th>일자</th>
+                <th>유형</th>
+                <th>내용</th>
+                <th style="width:50px;">난이도</th>
+              </tr>
+            </thead>
+            <tbody id="adm-err-tbody"></tbody>
+          </table>
+        </div>
+        <div id="adm-monthly-empty" class="adm-empty" style="display:none">해당 기간 에러 없음</div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /.adm-main -->
+
+<!-- ━━━━━━━━ JS: 공통 유틸 인라인 ━━━━━━━━ -->
+<script>
+'use strict';
+
+/* ── 전역 데이터 저장소 ── */
+var G = { logs:[], history:[], assets:[], meta:{} };
+var NOW = new Date(), CY = NOW.getFullYear(), CM = NOW.getMonth();
+var MONTHS_KO = ['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
+var MONTHS_EN_FULL = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+
+var BR_NAMES   = {AMGN:'강릉',AMYS:'여수',AMBS:'부산',AMJJ:'제주',AMNY:'뉴욕',AMLV:'라스베가스',AMDB:'두바이'};
+var BR_COLORS  = {AMGN:'#0891b2',AMYS:'#059669',AMBS:'#2563eb',AMJJ:'#7c3aed',AMNY:'#185FA5',AMLV:'#993C1D',AMDB:'#534AB7'};
+var BR_ICONS   = {AMNY:'🗽',AMLV:'🎰',AMDB:'🏜️',AMGN:'🏔',AMYS:'🌊',AMBS:'⚓',AMJJ:'🍊'};
+var BR_REGIONS = {AMGN:'korea',AMYS:'korea',AMBS:'korea',AMJJ:'korea',AMNY:'global',AMLV:'global',AMDB:'global'};
+var KOREA_BRS  = ['AMGN','AMYS','AMBS','AMJJ'];
+var GLOBAL_BRS = ['AMNY','AMLV','AMDB'];
+var ALL_BRS    = GLOBAL_BRS.concat(KOREA_BRS);
+
+/* 현재 Admin 상태 */
+var _admDailyBranch   = 'ALL';
+var _admDailyRegion   = 'all';
+var _admMonthlyBranch = 'ALL';
+var _admMonthlyRegion = 'all';
+var _admCharts = {};
+
+/* 리포트 상태 */
+var _rptState = {
+  global: { lang:'en' },
+  korea:  { lang:'ko' }
+};
+
+/* ── 유틸 ── */
+function admEl(id){ return document.getElementById(id); }
+function admEsc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function admToast(msg, type){
+  var t=admEl('adm-toast');
+  if(!t) return;
+  t.textContent = msg;
+  t.className = 'show';
+  t.style.background = (type==='error') ? '#991b1b' : (type==='success') ? '#166534' : '#111';
+  clearTimeout(admToast._timer);
+  admToast._timer = setTimeout(function(){ t.className=''; }, 2800);
+}
+function admBrBadge(b){
+  return '<span style="display:inline-block;padding:2px 7px;border-radius:4px;font-size:10px;font-weight:800;color:#fff;background:'+(BR_COLORS[b]||'#534AB7')+'">'+admEsc(b)+'</span>';
+}
+function admDiffBadge(d){
+  var cols=['','#22c55e','#eab308','#ef4444','#be123c','#7f1d1d'];
+  d=parseInt(d)||1; d=Math.min(5,Math.max(1,d));
+  return '<span style="display:inline-block;min-width:20px;padding:2px 6px;border-radius:4px;font-size:10px;font-weight:800;color:#fff;background:'+(cols[d]||'#999')+'">Lv.'+d+'</span>';
+}
+function admGetBranchesForRegion(r){
+  if(r==='global') return GLOBAL_BRS;
+  if(r==='korea')  return KOREA_BRS;
+  return ALL_BRS;
+}
+function admFilterLogs(logs, region, branch){
+  var brs = admGetBranchesForRegion(region);
+  var filtered = logs.filter(function(r){ return brs.indexOf(r.Branch)>=0; });
+  if(branch && branch !== 'ALL') filtered = filtered.filter(function(r){ return r.Branch===branch; });
+  return filtered;
+}
+function admGetByMonth(m, y){
+  return G.logs.filter(function(r){
+    var d=new Date(r.Date); return d.getMonth()===m && d.getFullYear()===y;
+  });
+}
+
+/* ── 테마 ── */
+function admToggleTheme(){
+  var html = document.documentElement;
+  var isDark = html.classList.toggle('dark-mode');
+  html.classList.toggle('light-mode', !isDark);
+  localStorage.setItem('theme', isDark?'dark':'light');
+  admEl('adm-theme-btn').textContent = isDark ? '☀️' : '🌙';
+  admEl('adm-logo').style.filter = isDark ? 'invert(1)' : '';
+  if(typeof Chart!=='undefined'){
+    Chart.helpers.each(Chart.instances, function(c){ c.update(); });
+  }
+}
+(function(){
+  var t = localStorage.getItem('theme');
+  if(t==='dark' || (!t && window.matchMedia('(prefers-color-scheme:dark)').matches)){
+    document.documentElement.classList.add('dark-mode');
+    document.addEventListener('DOMContentLoaded', function(){
+      var btn=admEl('adm-theme-btn'); if(btn) btn.textContent='☀️';
+      var logo=admEl('adm-logo'); if(logo) logo.style.filter='invert(1)';
+    });
+  } else {
+    document.documentElement.classList.add('light-mode');
+  }
+})();
+
+/* ── 로그아웃 ── */
+function doLogout(){
+  fetch('/logout').then(function(){ window.location.href='/login'; });
+}
+
+/* ── 시계 ── */
+(function admClock(){
+  function tick(){
+    var c=admEl('adm-clock');
+    if(!c) return;
+    c.textContent = new Date().toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false});
+  }
+  tick(); setInterval(tick, 1000);
+})();
+
+/* ── 섹션 토글 ── */
+function admToggleSection(id){
+  var sec = admEl('sec-'+id);
+  if(!sec) return;
+  var wasOpen = sec.classList.contains('open');
+  sec.classList.toggle('open');
+  if(!wasOpen){
+    if(id==='daily') admRenderDaily();
+    if(id==='monthly') admRenderMonthly();
+  }
+}
+
+/* ──────────────────────────────────────────────
+   데이터 로드
+   ────────────────────────────────────────────── */
+var _admLoading = false;
+function admLoadData(silent){
+  if(_admLoading) return;
+  _admLoading = true;
+  if(!silent){
+    admEl('adm-sync-info').textContent = '데이터 로딩 중...';
+  }
+  fetch('/api/data').then(function(r){
+    if(r.status===401){ window.location.href='/login'; return; }
+    if(!r.ok) throw new Error('서버 오류 '+r.status);
+    return r.json();
+  }).then(function(d){
+    if(!d || d.error) throw new Error(d&&d.error?d.error:'응답 오류');
+    G.logs    = Array.isArray(d.logs)    ? d.logs.filter(function(r){return r&&(r.Zone||r.IssueDetail);}) : [];
+    G.history = Array.isArray(d.history) ? d.history : [];
+    G.assets  = Array.isArray(d.assets)  ? d.assets  : [];
+    G.meta    = d.meta || {};
+    admEl('adm-sync-info').textContent = '✅ SharePoint Live · '+(G.meta.lastSync||'');
+    if(!silent) admToast('데이터 로드 완료 — '+G.logs.length+'건', 'success');
+    admFillSelects();
+    // 열려 있는 섹션 갱신
+    if(admEl('sec-daily').classList.contains('open'))   admRenderDaily();
+    if(admEl('sec-monthly').classList.contains('open')) admRenderMonthly();
+  }).catch(function(e){
+    admEl('adm-sync-info').textContent = '⚠️ '+e.message;
+    if(!silent) admToast('데이터 로드 실패: '+e.message, 'error');
+  }).finally(function(){
+    _admLoading = false;
+  });
+}
+function admReload(){ admLoadData(false); }
+
+/* 기간 셀렉트 초기화 */
+function admFillSelects(){
+  // 리포트용 연도
+  ['rpt-g-year','rpt-k-year'].forEach(function(id){
+    var s=admEl(id); if(!s||s.options.length>1) return;
+    for(var y=CY; y>=CY-3; y--){
+      var o=document.createElement('option');
+      o.value=y; o.textContent=y+'년'; if(y===CY) o.selected=true;
+      s.appendChild(o);
+    }
+  });
+  // 리포트용 월
+  ['rpt-g-month','rpt-k-month'].forEach(function(id){
+    var s=admEl(id); if(!s||s.options.length>1) return;
+    MONTHS_KO.forEach(function(mn,i){
+      var o=document.createElement('option');
+      o.value=i; o.textContent=mn; if(i===CM) o.selected=true;
+      s.appendChild(o);
+    });
+  });
+  // 월간 현황용 연도
+  var ys=admEl('adm-year-sel');
+  if(ys && !ys.options.length){
+    [CY+1,CY,CY-1,CY-2].forEach(function(y){
+      var o=document.createElement('option');
+      o.value=y; o.textContent=y+'년'; if(y===CY) o.selected=true;
+      ys.appendChild(o);
+    });
+  }
+  // 월간 현황용 월
+  var ms=admEl('adm-month-sel');
+  if(ms && !ms.options.length){
+    MONTHS_KO.forEach(function(mn,i){
+      var o=document.createElement('option');
+      o.value=i; o.textContent=mn; if(i===CM) o.selected=true;
+      ms.appendChild(o);
+    });
+  }
+}
+
+/* ──────────────────────────────────────────────
+   리포트 생성
+   ────────────────────────────────────────────── */
+function setAdmLang(region, lang, btn){
+  _rptState[region].lang = lang;
+  var containerId = region==='global' ? 'rpt-g-lang-toggle' : 'rpt-k-lang-toggle';
+  var wrap = admEl(containerId);
+  wrap.querySelectorAll('.adm-toggle-btn').forEach(function(b){
+    b.classList.toggle('active', b.dataset.lang===lang);
+  });
+}
+
+function admGenReport(region, action){
+  var yearSelId  = region==='global' ? 'rpt-g-year'  : 'rpt-k-year';
+  var monthSelId = region==='global' ? 'rpt-g-month' : 'rpt-k-month';
+  var statusId   = region==='global' ? 'rpt-g-status': 'rpt-k-status';
+
+  var yearVal  = parseInt(admEl(yearSelId).value);
+  var monthVal = parseInt(admEl(monthSelId).value);
+  var lang     = _rptState[region].lang;
+  var isAnnual = (monthVal === -1);
+  var statusEl = admEl(statusId);
+
+  statusEl.style.display='block';
+  statusEl.style.background='#eff6ff';
+  statusEl.style.color='#1e40af';
+  statusEl.style.border='1px solid #bfdbfe';
+  statusEl.innerHTML='<span class="adm-spinner"></span>리포트 생성 중...';
+
+  var endpoint = isAnnual ? '/api/annual-report' : '/api/report';
+  var body = isAnnual
+    ? { year:yearVal, action:action, lang:lang, region:region }
+    : { month:monthVal, year:yearVal, action:action, lang:lang, reportType:'monthly', region:region };
+
+  fetch(endpoint, {
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify(body)
+  }).then(function(r){ return r.json(); }).then(function(d){
+    if(!d.ok) throw new Error(d.error||'생성 실패');
+    statusEl.style.background='#f0fdf4';
+    statusEl.style.color='#166534';
+    statusEl.style.border='1px solid #bbf7d0';
+    statusEl.textContent='✅ '+d.message;
+    if(action==='download' || action==='preview'){
+      var bin = atob(d.pdfBase64);
+      var arr = new Uint8Array(bin.length);
+      for(var i=0;i<bin.length;i++) arr[i]=bin.charCodeAt(i);
+      var blob = new Blob([arr], {type:'application/pdf'});
+      var url  = URL.createObjectURL(blob);
+      if(action==='download'){
+        var a=document.createElement('a'); a.href=url; a.download=d.fileName; a.click();
+        setTimeout(function(){ URL.revokeObjectURL(url); }, 3000);
+      } else {
+        window.open(url,'_blank');
+      }
+    }
+    admToast(d.fileName+' 생성 완료', 'success');
+  }).catch(function(e){
+    statusEl.style.background='#fef2f2';
+    statusEl.style.color='#991b1b';
+    statusEl.style.border='1px solid #fecaca';
+    statusEl.textContent='❌ '+e.message;
+    admToast('리포트 생성 실패: '+e.message, 'error');
+  });
+}
+
+/* ──────────────────────────────────────────────
+   일일 현황
+   ────────────────────────────────────────────── */
+var _brTzMap={
+  AMNY:{tz:'America/New_York',label:'뉴욕 (EST)'},
+  AMLV:{tz:'America/Los_Angeles',label:'라스베가스 (PST)'},
+  AMDB:{tz:'Asia/Dubai',label:'두바이 (GST)'},
+  AMGN:{tz:'Asia/Seoul',label:'한국 (KST)'},
+  AMYS:{tz:'Asia/Seoul',label:'한국 (KST)'},
+  AMBS:{tz:'Asia/Seoul',label:'한국 (KST)'},
+  AMJJ:{tz:'Asia/Seoul',label:'한국 (KST)'}
+};
+function _tzToday(br){
+  var tz=(_brTzMap[br]||{tz:'Asia/Seoul'}).tz;
+  return new Date().toLocaleDateString('en-CA',{timeZone:tz});
+}
+function _tzWeekAgo(br){
+  var tz=(_brTzMap[br]||{tz:'Asia/Seoul'}).tz;
+  var d=new Date(); d.setDate(d.getDate()-7);
+  return d.toLocaleDateString('en-CA',{timeZone:tz});
+}
+
+function admDailyRegion(r, btn){
+  _admDailyRegion  = r;
+  _admDailyBranch  = 'ALL';
+  admEl('sec-daily').querySelectorAll('.adm-rtab').forEach(function(b){
+    b.classList.toggle('active', b===btn);
+  });
+  admRenderDailyBrStrip();
+  admRenderDaily();
+}
+
+function admRenderDailyBrStrip(){
+  var strip=admEl('daily-br-strip'); if(!strip) return;
+  var brs=admGetBranchesForRegion(_admDailyRegion);
+  var html='<button class="adm-br-btn'+((_admDailyBranch==='ALL')?' active':'')+'" onclick="admSelectDailyBranch(\'ALL\')" style="'+((_admDailyBranch==='ALL')?'background:#534AB7;color:#fff':'')+';border-radius:8px;">📍 전체</button>';
+  brs.forEach(function(b){
+    var isA=_admDailyBranch===b;
+    var col=BR_COLORS[b]||'#534AB7';
+    html+='<button class="adm-br-btn'+(isA?' active':'')+'" onclick="admSelectDailyBranch(\''+b+'\')" style="'+(isA?'background:'+col+';color:#fff;border-color:'+col:'')+'">'+BR_ICONS[b]+' '+b+' <span style="font-size:10px;opacity:.8">'+BR_NAMES[b]+'</span></button>';
+  });
+  strip.innerHTML=html;
+}
+
+function admSelectDailyBranch(b){
+  _admDailyBranch = (_admDailyBranch===b && b!=='ALL') ? 'ALL' : b;
+  admRenderDailyBrStrip();
+  admRenderDaily();
+}
+
+function admRenderDaily(){
+  var content=admEl('daily-content'); if(!content) return;
+  var brs = admGetBranchesForRegion(_admDailyRegion);
+
+  // 모든 지점의 오늘~7일 데이터 수집
+  var allToday=[], allWeek=[];
+  brs.forEach(function(b){
+    var today=_tzToday(b), weekAgo=_tzWeekAgo(b);
+    G.logs.forEach(function(r){
+      if(r.Branch!==b) return;
+      if(_admDailyBranch!=='ALL' && r.Branch!==_admDailyBranch) return;
+      if(r.Date===today) allToday.push(r);
+      if(r.Date>=weekAgo && r.Date<=today) allWeek.push(r);
+    });
+  });
+
+  // 지점별 오늘 카운트
+  var brTodayCnt={};
+  brs.forEach(function(b){ brTodayCnt[b]=0; });
+  allToday.forEach(function(r){
+    if(_admDailyBranch==='ALL'||r.Branch===_admDailyBranch)
+      brTodayCnt[r.Branch]=(brTodayCnt[r.Branch]||0)+1;
+  });
+
+  // KPI
+  var critToday=allToday.filter(function(r){return(r.Difficulty||0)>=4;}).length;
+  var html='<div class="adm-kpi-grid">';
+  html+='<div class="adm-kpi"><div class="adm-kpi-label">오늘 총 에러</div><div class="adm-kpi-value">'+allToday.length+'</div><div class="adm-kpi-sub">금일 발생</div></div>';
+  html+='<div class="adm-kpi"><div class="adm-kpi-label">주간 에러</div><div class="adm-kpi-value">'+allWeek.length+'</div><div class="adm-kpi-sub">최근 7일</div></div>';
+  html+='<div class="adm-kpi"><div class="adm-kpi-label">위험 장애</div><div class="adm-kpi-value" style="color:#dc2626">'+critToday+'</div><div class="adm-kpi-sub">오늘 Lv.4+</div></div>';
+  // 지점별
+  brs.forEach(function(b){
+    if(_admDailyBranch!=='ALL' && b!==_admDailyBranch) return;
+    html+='<div class="adm-kpi" style="border-left:3px solid '+(BR_COLORS[b]||'#534AB7')+'"><div class="adm-kpi-label">'+BR_ICONS[b]+' '+b+'</div><div class="adm-kpi-value" style="color:'+(BR_COLORS[b]||'#534AB7')+'">'+brTodayCnt[b]+'</div><div class="adm-kpi-sub">'+BR_NAMES[b]+' 오늘</div></div>';
+  });
+  html+='</div>';
+
+  // 에러 목록 (오늘 기준, 최대 50건)
+  var listData = allToday.slice().sort(function(a,b){ return new Date(b.Date)-new Date(a.Date); }).slice(0,50);
+  html+='<div class="adm-err-list"><table>';
+  html+='<thead><tr><th>#</th><th>지점</th><th>Zone</th><th>일자</th><th>유형</th><th>내용</th><th>난이도</th></tr></thead><tbody>';
+  if(!listData.length){
+    html+='<tr><td colspan="7" style="text-align:center;padding:24px;color:var(--adm-t3)">오늘 에러 없음 — 전 지점 정상 운영 중 ✅</td></tr>';
+  } else {
+    listData.forEach(function(r,i){
+      html+='<tr>';
+      html+='<td style="color:var(--adm-t3);font-weight:600">'+(i+1)+'</td>';
+      html+='<td>'+admBrBadge(r.Branch)+'</td>';
+      html+='<td style="font-weight:600">'+admEsc(r.Zone||'--')+'</td>';
+      html+='<td style="font-size:11px;color:var(--adm-t2)">'+admEsc(r.Date||'')+'</td>';
+      html+='<td style="font-size:11px">'+admEsc(r.Category||'--')+'</td>';
+      html+='<td style="font-size:12px">'+admEsc((r.IssueDetail||'').slice(0,60))+((r.IssueDetail||'').length>60?'…':'')+'</td>';
+      html+='<td style="text-align:center">'+admDiffBadge(r.Difficulty)+'</td>';
+      html+='</tr>';
+    });
+  }
+  html+='</tbody></table></div>';
+
+  content.innerHTML=html;
+}
+
+/* ──────────────────────────────────────────────
+   월간 현황
+   ────────────────────────────────────────────── */
+function admMonthlyRegion(r, btn){
+  _admMonthlyRegion  = r;
+  _admMonthlyBranch  = 'ALL';
+  admEl('sec-monthly').querySelectorAll('.adm-rtab').forEach(function(b){
+    b.classList.toggle('active', b===btn);
+  });
+  admRenderMonthlyBrStrip();
+  admRenderMonthly();
+}
+
+function admRenderMonthlyBrStrip(){
+  var strip=admEl('monthly-br-strip'); if(!strip) return;
+  var brs=admGetBranchesForRegion(_admMonthlyRegion);
+  var html='<button class="adm-br-btn'+((_admMonthlyBranch==='ALL')?' active':'')+'" onclick="admSelectMonthlyBranch(\'ALL\')" style="'+((_admMonthlyBranch==='ALL')?'background:#534AB7;color:#fff':'')+'">📍 전체</button>';
+  brs.forEach(function(b){
+    var isA=_admMonthlyBranch===b;
+    var col=BR_COLORS[b]||'#534AB7';
+    html+='<button class="adm-br-btn'+(isA?' active':'')+'" onclick="admSelectMonthlyBranch(\''+b+'\')" style="'+(isA?'background:'+col+';color:#fff;border-color:'+col:'')+'">'+BR_ICONS[b]+' '+b+'</button>';
+  });
+  strip.innerHTML=html;
+}
+
+function admSelectMonthlyBranch(b){
+  _admMonthlyBranch = (_admMonthlyBranch===b && b!=='ALL') ? 'ALL' : b;
+  admRenderMonthlyBrStrip();
+  admRenderMonthly();
+}
+
+function admRenderMonthly(){
+  var ySel=admEl('adm-year-sel'), mSel=admEl('adm-month-sel');
+  if(!ySel||!mSel) return;
+  var y=parseInt(ySel.value)||CY, m=parseInt(mSel.value);
+  if(isNaN(m)) m=CM;
+
+  var brs=admGetBranchesForRegion(_admMonthlyRegion);
+  var md = G.logs.filter(function(r){
+    var d=new Date(r.Date);
+    if(d.getMonth()!==m || d.getFullYear()!==y) return false;
+    if(brs.indexOf(r.Branch)<0) return false;
+    if(_admMonthlyBranch!=='ALL' && r.Branch!==_admMonthlyBranch) return false;
+    return true;
+  });
+  var prevM=m===0?11:m-1, prevY=m===0?y-1:y;
+  var lm = G.logs.filter(function(r){
+    var d=new Date(r.Date);
+    if(d.getMonth()!==prevM || d.getFullYear()!==prevY) return false;
+    if(brs.indexOf(r.Branch)<0) return false;
+    if(_admMonthlyBranch!=='ALL' && r.Branch!==_admMonthlyBranch) return false;
+    return true;
+  });
+
+  // KPI 카드
+  var kpiGrid=admEl('adm-kpi-grid'); if(!kpiGrid) return;
+  var crit=md.filter(function(r){return(r.Difficulty||0)>=4;}).length;
+  var mom=md.length-lm.length, momStr=(mom>0?'+':'')+mom;
+  var momCol=mom>0?'#dc2626':mom<0?'#16a34a':'#64748b';
+  var kpiHtml='';
+  kpiHtml+='<div class="adm-kpi"><div class="adm-kpi-label">총 에러</div><div class="adm-kpi-value">'+md.length+'</div><div class="adm-kpi-sub" style="color:'+momCol+'">전월 대비 '+momStr+'건</div></div>';
+  kpiHtml+='<div class="adm-kpi"><div class="adm-kpi-label" style="color:#dc2626">위험 장애(Lv.4+)</div><div class="adm-kpi-value" style="color:#dc2626">'+crit+'</div><div class="adm-kpi-sub">이번 달</div></div>';
+  brs.forEach(function(b){
+    if(_admMonthlyBranch!=='ALL' && b!==_admMonthlyBranch) return;
+    var cnt=md.filter(function(r){return r.Branch===b;}).length;
+    var pcnt=lm.filter(function(r){return r.Branch===b;}).length;
+    var d=cnt-pcnt;
+    var dc=(d>0?'+':'')+d;
+    var dcol=d>0?'#ef4444':d<0?'#16a34a':'#64748b';
+    kpiHtml+='<div class="adm-kpi" style="border-left:3px solid '+(BR_COLORS[b]||'#534AB7')+'">'
+      +'<div class="adm-kpi-label">'+BR_ICONS[b]+' '+b+'</div>'
+      +'<div class="adm-kpi-value" style="color:'+(BR_COLORS[b]||'#534AB7')+'">'+cnt+'</div>'
+      +'<div class="adm-kpi-sub" style="color:'+dcol+'">'+BR_NAMES[b]+' · 전월비 '+dc+'</div>'
+      +'</div>';
+  });
+  kpiGrid.innerHTML=kpiHtml;
+
+  // 추이 차트
+  admRenderTrendChart(brs, y, _admMonthlyBranch);
+  // 유형 차트
+  admRenderCatChart(md);
+
+  // 에러 목록
+  var tbody=admEl('adm-err-tbody'); if(!tbody) return;
+  var emptyEl=admEl('adm-monthly-empty');
+  var sorted=md.slice().sort(function(a,b){ return new Date(b.Date)-new Date(a.Date); });
+  if(!sorted.length){
+    tbody.innerHTML='';
+    if(emptyEl) emptyEl.style.display='block';
+    return;
+  }
+  if(emptyEl) emptyEl.style.display='none';
+  tbody.innerHTML=sorted.slice(0,100).map(function(r,i){
+    return '<tr>'
+      +'<td style="color:var(--adm-t3);font-weight:600">'+(i+1)+'</td>'
+      +'<td>'+admBrBadge(r.Branch)+'</td>'
+      +'<td style="font-weight:600">'+admEsc(r.Zone||'--')+'</td>'
+      +'<td style="font-size:11px;color:var(--adm-t2)">'+admEsc(r.Date||'')+'</td>'
+      +'<td style="font-size:11px">'+admEsc(r.Category||'--')+'</td>'
+      +'<td style="font-size:12px">'+admEsc((r.IssueDetail||'').slice(0,70))+((r.IssueDetail||'').length>70?'…':'')+'</td>'
+      +'<td style="text-align:center">'+admDiffBadge(r.Difficulty)+'</td>'
+      +'</tr>';
+  }).join('');
+}
+
+function admRenderTrendChart(brs, y, brFilter){
+  if(typeof Chart==='undefined') return;
+  var canvas=admEl('adm-trend-chart'); if(!canvas) return;
+  if(_admCharts.trend) { _admCharts.trend.destroy(); _admCharts.trend=null; }
+  var isDark=document.documentElement.classList.contains('dark-mode');
+  var gridC=isDark?'#2e2e2e':'#e5e4df', tickC=isDark?'#ededed':'#111110';
+
+  var labels=MONTHS_KO.map(function(m){return m;});
+  var datasets=[];
+
+  if(brFilter && brFilter!=='ALL'){
+    // 단일 지점 추이
+    var data=MONTHS_KO.map(function(_,mi){
+      return G.logs.filter(function(r){
+        var d=new Date(r.Date);
+        return d.getMonth()===mi && d.getFullYear()===y && r.Branch===brFilter;
+      }).length;
+    });
+    datasets.push({label:brFilter,data:data,borderColor:BR_COLORS[brFilter]||'#534AB7',backgroundColor:'rgba(83,74,183,0.08)',fill:true,tension:0.35,pointRadius:3,borderWidth:2.5});
+  } else {
+    // 전체/지역: 지점별 스택
+    brs.forEach(function(b){
+      var data=MONTHS_KO.map(function(_,mi){
+        return G.logs.filter(function(r){
+          var d=new Date(r.Date);
+          return d.getMonth()===mi && d.getFullYear()===y && r.Branch===b && brs.indexOf(r.Branch)>=0;
+        }).length;
+      });
+      datasets.push({label:b,data:data,borderColor:BR_COLORS[b]||'#999',backgroundColor:'transparent',fill:false,tension:0.35,pointRadius:3,borderWidth:1.8});
+    });
+  }
+
+  _admCharts.trend = new Chart(canvas.getContext('2d'), {
+    type:'line',
+    data:{labels:labels,datasets:datasets},
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      animation:{duration:600,easing:'easeOutQuart'},
+      plugins:{
+        legend:{position:'top',align:'end',labels:{boxWidth:10,padding:8,font:{size:10,family:"'Pretendard',sans-serif"},color:tickC}},
+        tooltip:{backgroundColor:'#111',titleFont:{family:"'Pretendard',sans-serif"},bodyFont:{family:"'Pretendard',sans-serif"},borderColor:'#2e2e2e',borderWidth:1,cornerRadius:6,padding:8,mode:'index',intersect:false}
+      },
+      scales:{
+        x:{grid:{color:gridC},ticks:{font:{size:10,family:"'Pretendard',sans-serif"},color:tickC}},
+        y:{grid:{color:gridC},ticks:{stepSize:1,precision:0,font:{size:10,family:"'Pretendard',sans-serif"},color:tickC},beginAtZero:true}
+      }
+    }
+  });
+}
+
+function admRenderCatChart(md){
+  if(typeof Chart==='undefined') return;
+  var canvas=admEl('adm-cat-chart'); if(!canvas) return;
+  if(_admCharts.cat) { _admCharts.cat.destroy(); _admCharts.cat=null; }
+  var isDark=document.documentElement.classList.contains('dark-mode');
+  var sw=md.filter(function(r){return r.Category==='Software';}).length;
+  var hw=md.filter(function(r){return r.Category==='Hardware';}).length;
+  var nw=md.filter(function(r){return r.Category==='Network';}).length;
+  var other=md.length-sw-hw-nw;
+  _admCharts.cat = new Chart(canvas.getContext('2d'), {
+    type:'doughnut',
+    data:{
+      labels:['소프트웨어','하드웨어','네트워크','기타'],
+      datasets:[{data:[sw,hw,nw,other],backgroundColor:['#ca8a04','#2563eb','#7c3aed','#64748b'],borderWidth:0}]
+    },
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      plugins:{
+        legend:{position:'right',labels:{boxWidth:10,padding:10,font:{size:10,family:"'Pretendard',sans-serif"},color:isDark?'#ededed':'#111110'}},
+        tooltip:{backgroundColor:'#111',cornerRadius:6,padding:8,titleFont:{family:"'Pretendard',sans-serif"},bodyFont:{family:"'Pretendard',sans-serif"}}
+      }
+    }
+  });
+}
+
+/* ──────────────────────────────────────────────
+   초기화
+   ────────────────────────────────────────────── */
+document.addEventListener('DOMContentLoaded', function(){
+  admFillSelects();
+  admRenderDailyBrStrip();
+  admRenderMonthlyBrStrip();
+  admLoadData(false);
+
+  // 1분 자동 갱신
+  setInterval(function(){
+    if(document.visibilityState==='visible') admLoadData(true);
+  }, 60000);
+
+  // 가시성 변경 시 갱신
+  document.addEventListener('visibilitychange', function(){
+    if(document.visibilityState==='visible') admLoadData(true);
+  });
+});
+</script>
+</body>
+</html>

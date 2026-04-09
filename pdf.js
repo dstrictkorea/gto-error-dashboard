@@ -99,7 +99,7 @@ ${numbered}`;
   }
 }
 
-function generatePDF(logs, month, year, lang, history, assets, reportType, region) {
+function generatePDF(logs, month, year, lang, history, assets, reportType, region, comment) {
   if (!Array.isArray(logs)) throw new Error('logs must be an array');
   month = Math.max(0, Math.min(11, parseInt(month, 10) || 0));
   year = Math.max(2000, Math.min(2100, parseInt(year, 10) || new Date().getFullYear()));
@@ -108,6 +108,7 @@ function generatePDF(logs, month, year, lang, history, assets, reportType, regio
   assets = Array.isArray(assets) ? assets : [];
   reportType = reportType === 'annual' ? 'annual' : 'monthly'; // default monthly
   region = ['korea','global'].includes(region) ? region : 'global';
+  const safeComment = typeof comment === 'string' ? comment.trim().slice(0, 2000) : '';
   const PDF_BRANCHES = region === 'korea' ? KOREA_BRANCHES : GLOBAL_BRANCHES;
 
   // If Korean, translate IssueDetail and ActionTaken via AI before PDF generation
@@ -812,6 +813,29 @@ function generatePDF(logs, month, year, lang, history, assets, reportType, regio
     doc.save().rect(0,836,595,6).fill(CP).restore();
 
     // Cover page complete — sect() will add new page
+
+    // ══════════ MANAGER COMMENT (if provided) ══════════
+    // Inserted on first content page, before Executive Summary
+    if (safeComment) {
+      sect('', isKo ? '담당자 코멘트 / 비고' : 'Manager Comment / Remarks');
+      const cmtY = doc.y;
+      // Highlight box
+      doc.save().roundedRect(ML, cmtY, PW, 16).fill('#FEF3C7').restore();
+      doc.save().rect(ML, cmtY, 4, 16).fill('#D97706').restore();
+      doc.fillColor('#92400E').fontSize(isKo ? 9 : 8.5).font(F.bold)
+        .text(isKo ? '※ 이 코멘트는 담당자가 직접 작성한 내용입니다.' : '※ This comment was written directly by the branch manager.',
+          ML + 10, cmtY + 4, { width: PW - 20, lineBreak: false });
+      doc.y = cmtY + 20;
+      // Comment body box
+      const cmtLines = safeComment.split('\n');
+      const cmtHeight = Math.max(60, cmtLines.length * (isKo ? 16 : 15) + 20);
+      pc(cmtHeight + 20);
+      const cmtBodyY = doc.y;
+      doc.save().roundedRect(ML, cmtBodyY, PW, cmtHeight + 12, 6).fill('#FFFBEB').stroke('#FDE68A').restore();
+      doc.fillColor('#78350F').fontSize(isKo ? 10 : 9.5).font(F.med)
+        .text(safeComment, ML + 12, cmtBodyY + 10, { width: PW - 24, lineBreak: true });
+      doc.y = cmtBodyY + cmtHeight + 20;
+    }
 
     // ══════════ 1. EXECUTIVE SUMMARY ══════════
     sect('1', L.execSummary);

@@ -1,4 +1,4 @@
-﻿'use strict';
+'use strict';
 require('dotenv').config({ path: require('path').join(__dirname, '.env') });
 
 const express = require('express');
@@ -215,7 +215,9 @@ app.post('/login', (req, res) => {
     // Store account info in a non-httpOnly cookie so frontend JS can read it
     const acctInfo = JSON.stringify({ id: uid, branch: account.branch, region: account.region });
     res.cookie('dse_acct', acctInfo, { ...COOKIE_OPTS, httpOnly: false });
-    // Redirect to the account's default locale
+    // Redirect to the account's default page
+    // gto (HQ) → Admin dashboard, branch accounts → their locale
+    if (uid === 'gto') return res.redirect('/admin');
     const locale = account.locale;
     if (locale === 'kr') return res.redirect('/kr');
     if (locale === 'en') return res.redirect('/en');
@@ -353,7 +355,7 @@ app.use('/api', aiRouter);
 app.post('/api/report', async (req, res) => {
   const t0 = Date.now();
   try {
-    const { month, year, action, lang, reportType, region } = req.body;
+    const { month, year, action, lang, reportType, region, comment, branchFilter } = req.body;
     const validActions = ['download', 'preview', 'email'];
     const validLangs = ['en', 'ko'];
     const validTypes = ['monthly', 'annual'];
@@ -382,7 +384,12 @@ app.post('/api/report', async (req, res) => {
     const assets = assetRaw.map(normAsset).filter(a=>a.Name);
 
     const regionLogs = logs.filter(r => regionBranches.includes(r.Branch));
-    const pdfBuffer = await generatePDF(regionLogs, month, year, safeLang, allHistory, assets, safeType, safeRegion);
+    // If branchFilter specified (single branch account), filter further
+    const finalLogs = branchFilter && ALL_BRANCHES.includes(branchFilter)
+      ? regionLogs.filter(r => r.Branch === branchFilter)
+      : regionLogs;
+    const safeComment = typeof comment === 'string' ? comment.slice(0, 2000) : '';
+    const pdfBuffer = await generatePDF(finalLogs, month, year, safeLang, allHistory, assets, safeType, safeRegion, safeComment);
     const pdfBase64 = pdfBuffer.toString('base64');
     const mm = String(month + 1).padStart(2, '0');
     const langTag = safeLang === 'ko' ? '(KOR)' : '(ENG)';
@@ -408,7 +415,7 @@ app.post('/api/report', async (req, res) => {
 app.post('/api/annual-report', async (req, res) => {
   const t0 = Date.now();
   try {
-    const { year, action, lang, region } = req.body;
+    const { year, action, lang, region, comment, branchFilter } = req.body;
     const validActions = ['download', 'preview', 'email'];
     const validLangs = ['en', 'ko'];
     const validRegions = ['korea', 'global'];
@@ -433,7 +440,12 @@ app.post('/api/annual-report', async (req, res) => {
     const assets = assetRaw.map(normAsset).filter(a=>a.Name);
 
     const regionLogs = logs.filter(r => regionBranches.includes(r.Branch));
-    const pdfBuffer = await generateAnnualPDF(regionLogs, year, safeLang, allHistory, assets, safeRegion);
+    // branchFilter: 지점 계정이 자신의 지점만 리포트 생성할 때
+    const finalAnnualLogs = branchFilter && ALL_BRANCHES.includes(branchFilter)
+      ? regionLogs.filter(r => r.Branch === branchFilter)
+      : regionLogs;
+    const safeAnnualComment = typeof comment === 'string' ? comment.slice(0, 2000) : '';
+    const pdfBuffer = await generateAnnualPDF(finalAnnualLogs, year, safeLang, allHistory, assets, safeRegion, safeAnnualComment);
     const pdfBase64 = pdfBuffer.toString('base64');
     const langTag = safeLang === 'ko' ? '(KOR)' : '(ENG)';
     const regionTag = safeRegion === 'korea' ? 'Korea' : 'Global';
@@ -453,8 +465,29 @@ app.post('/api/annual-report', async (req, res) => {
 });
 
 // ══════════════════════════════════════════════
-//  Error Handling — API 404 (MUST come BEFORE SPA fallback)
+//  /admin — GTO Admin Dashboard (gto account only)
 // ══════════════════════════════════════════════
+app.get('/admin', (req, res) => {
+  // Check if logged in as gto
+  const authToken = req.cookies.dse_auth || '';
+  if (authToken !== VALID_TOKENS['gto']) {
+    // If logged in as another account, redirect to their page; else login
+    const isAnyValid = Object.values(VALID_TOKENS).some(t => t === authToken);
+    return isAnyValid ? res.redirect('/') : res.redirect('/login');
+  }
+  const fs = require('fs');
+  // Try public/admin.html first, then root admin.html
+  const adminPath = fs.existsSync(path.join(PUBLIC_DIR, 'admin.html'))
+    ? path.join(PUBLIC_DIR, 'admin.html')
+    : path.join(__dirname, 'admin.html');
+  if (fs.existsSync(adminPath)) {
+    res.sendFile(adminPath);
+  } else {
+    res.status(404).send('Admin page not found');
+  }
+});
+
+
 app.all('/api/*', (req, res) => {
   res.status(404).json({ error: 'API endpoint not found', path: req.path });
 });

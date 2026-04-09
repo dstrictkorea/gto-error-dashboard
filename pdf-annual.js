@@ -9,13 +9,14 @@ const LOGO_WHITE = path.join(FONT_DIR, 'dstrict_CI_WHITE.png');
 const LOGO_BLACK = path.join(FONT_DIR, 'dstrict_CI_BLACK.png');
 const MAX_PDF_SIZE = 50 * 1024 * 1024;
 
-function generateAnnualPDF(logs, year, lang, history, assets, region) {
+function generateAnnualPDF(logs, year, lang, history, assets, region, comment) {
   if (!Array.isArray(logs)) throw new Error('logs must be an array');
   year = Math.max(2000, Math.min(2100, parseInt(year, 10) || new Date().getFullYear()));
   lang = ['en','ko'].includes(lang) ? lang : 'en';
   history = Array.isArray(history) ? history : [];
   assets = Array.isArray(assets) ? assets : [];
   region = ['korea','global'].includes(region) ? region : 'global';
+  const safeComment = typeof comment === 'string' ? comment.trim().slice(0, 2000) : '';
 
   return new Promise((resolve, reject) => {
     const doc = new PDFDocument({ size: 'A4', margins: { top: 40, left: 40, right: 40, bottom: 0 }, bufferPages: true });
@@ -301,6 +302,41 @@ function generateAnnualPDF(logs, year, lang, history, assets, region) {
     doc.fillColor('#73726c').fontSize(9).font(F.light).text(L.generated+': '+new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'}), ML, 740);
     // Bottom accent
     doc.save().rect(0,836,595,6).fill(CP).restore();
+
+    // ══════════════════════════════════════════════
+    //  MANAGER COMMENT (if provided)
+    // ══════════════════════════════════════════════
+    if (safeComment) {
+      doc.addPage();
+      _drawPageBranding();
+      // Section header
+      const cmtSecY = doc.y;
+      doc.save().rect(ML, cmtSecY, PW, 28).fill('#f0eff8').restore();
+      doc.save().rect(ML, cmtSecY, 4, 28).fill(CP).restore();
+      doc.fillColor(CT).fontSize(isKo ? 14 : 13).font(F.bold)
+        .text(isKo ? '담당자 코멘트 / 비고' : 'Manager Comment / Remarks',
+          ML + 14, cmtSecY + 7, { lineBreak: false });
+      doc.y = cmtSecY + 36;
+      // Notice bar
+      const ntcY = doc.y;
+      doc.save().roundedRect(ML, ntcY, PW, 16, 3).fill('#FEF3C7').restore();
+      doc.save().rect(ML, ntcY, 4, 16, 0).fill('#D97706').restore();
+      doc.fillColor('#92400E').fontSize(isKo ? 8.5 : 8).font(F.med)
+        .text(isKo
+          ? '※ 이 코멘트는 담당자가 직접 작성한 내용입니다.'
+          : '※ This comment was written directly by the branch manager.',
+          ML + 10, ntcY + 4, { width: PW - 20, lineBreak: false });
+      doc.y = ntcY + 22;
+      // Comment body
+      const cmtLines = safeComment.split('\n');
+      const cmtH = Math.max(60, cmtLines.length * (isKo ? 16 : 15) + 20);
+      const cmtBodyY = doc.y;
+      doc.save().roundedRect(ML, cmtBodyY, PW, cmtH + 12, 6)
+        .fill('#FFFBEB').stroke('#FDE68A').restore();
+      doc.fillColor('#78350F').fontSize(isKo ? 10 : 9.5).font(F.med)
+        .text(safeComment, ML + 12, cmtBodyY + 10, { width: PW - 24, lineBreak: true });
+      doc.y = cmtBodyY + cmtH + 24;
+    }
 
     // ══════════════════════════════════════════════
     //  SECTION 1: EXECUTIVE SUMMARY
