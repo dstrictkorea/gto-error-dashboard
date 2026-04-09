@@ -1,4 +1,4 @@
-'use strict';
+﻿'use strict';
 require('dotenv').config({ path: require('path').join(__dirname, '.env') });
 
 const express = require('express');
@@ -232,7 +232,7 @@ app.get('/logout', (req, res) => {
 
 // Health check (no auth required)
 app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok', version: '5.1.2', uptime: Math.floor(process.uptime()), timestamp: new Date().toISOString() });
+  res.json({ status: 'ok', version: '5.6.0', uptime: Math.floor(process.uptime()), timestamp: new Date().toISOString() });
 });
 
 // ══════════════════════════════════════════════
@@ -500,7 +500,7 @@ const PORT = process.env.PORT || 3000;
 
 // ── SERVER START (pm2 managed) ──
 const server = app.listen(PORT, async () => {
-  console.log(`\n🚀 d'strict Error Dashboard v5.5.0 → http://localhost:${PORT} (PID ${process.pid})`);
+  console.log(`\n🚀 d'strict Error Dashboard v5.6.0 → http://localhost:${PORT} (PID ${process.pid})`);
   console.log('📊 SharePoint Excel 연동 (페이지 접속/새로고침 시 로드)\n');
   validateConfig();
   try { await getToken(); console.log('✅ Azure AD 인증 완료\n'); }
