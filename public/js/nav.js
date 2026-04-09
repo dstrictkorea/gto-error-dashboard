@@ -3,45 +3,65 @@
 var _pageNames = ['daily', 'monthly', 'errorlog', 'branches', 'search', 'ai'];
 
 function goPage(i, btn, skipHistory) {
-  document.querySelectorAll('.page').forEach(function(p, j) { p.classList.toggle('active', j === i) });
+  // Admin page: i === -1
+  var isAdmin = (i === -1);
+  var adminPage = document.getElementById('pAdmin');
+
+  // Hide all regular pages + admin
+  document.querySelectorAll('.page').forEach(function(p) { p.classList.remove('active'); });
+  if(adminPage) adminPage.classList.remove('active');
+
+  if(isAdmin){
+    if(adminPage) adminPage.classList.add('active');
+  } else {
+    var pages = document.querySelectorAll('.page:not(#pAdmin)');
+    pages.forEach(function(p, j) { p.classList.toggle('active', j === i); });
+  }
+
+  // Update nav tabs
   document.querySelectorAll('.ntab').forEach(function(b) {
     b.classList.remove('active');
     b.setAttribute('aria-selected', 'false');
     b.setAttribute('tabindex', '-1');
   });
-  if (btn) {
+  if(isAdmin){
+    var adminTab = document.getElementById('adminTab');
+    if(adminTab){ adminTab.classList.add('active'); adminTab.setAttribute('aria-selected','true'); adminTab.setAttribute('tabindex','0'); }
+  } else if (btn) {
     btn.classList.add('active');
     btn.setAttribute('aria-selected', 'true');
     btn.setAttribute('tabindex', '0');
   } else {
+    // +1 offset because adminTab is the first .ntab now
     var tabs = document.querySelectorAll('.ntab');
-    if (tabs[i]) {
-      tabs[i].classList.add('active');
-      tabs[i].setAttribute('aria-selected', 'true');
-      tabs[i].setAttribute('tabindex', '0');
+    var tabIdx = (typeof _loggedId !== 'undefined' && _loggedId === 'gto') ? i + 1 : i;
+    if (tabs[tabIdx]) {
+      tabs[tabIdx].classList.add('active');
+      tabs[tabIdx].setAttribute('aria-selected', 'true');
+      tabs[tabIdx].setAttribute('tabindex', '0');
     }
   }
 
   if (!skipHistory) {
-    var hash = '#' + (_pageNames[i] || 'daily');
-    // Preserve locale path in URL: /kr#monthly, /en#branches etc.
+    var pageName = isAdmin ? 'admin' : (_pageNames[i] || 'daily');
+    var hash = '#' + pageName;
     var localePath = (typeof _urlLocale !== 'undefined' && _urlLocale) ? '/' + _urlLocale : '';
     var fullPath = localePath + hash;
-    if (window.location.pathname + window.location.hash !== localePath + hash) {
+    if (window.location.pathname + window.location.hash !== fullPath) {
       history.pushState({ page: i }, '', fullPath);
     }
   }
 
   // Sync mobile page index when desktop nav is used
-  if(typeof _currentMobilePage !== 'undefined') {
+  if(!isAdmin && typeof _currentMobilePage !== 'undefined') {
     _currentMobilePage = i;
   }
-  // Update mobile header label
-  if(typeof updateMobileHeaderLabel === 'function') {
+  if(!isAdmin && typeof updateMobileHeaderLabel === 'function') {
     updateMobileHeaderLabel(i);
   }
 
   /* Render the target page */
+  if (isAdmin && typeof renderAdmin === 'function') renderAdmin();
   if (i === 0 && typeof renderDaily === 'function') renderDaily();
   if (i === 1) renderP0();
   if (i === 2) renderP1();
@@ -56,8 +76,11 @@ window.addEventListener('popstate', function(e) {
     page = e.state.page;
   } else {
     var hash = window.location.hash.replace('#', '');
-    var idx = _pageNames.indexOf(hash);
-    if (idx >= 0) page = idx;
+    if (hash === 'admin') { page = -1; }
+    else {
+      var idx = _pageNames.indexOf(hash);
+      if (idx >= 0) page = idx;
+    }
   }
   goPage(page, null, true);
 });
@@ -65,16 +88,33 @@ window.addEventListener('popstate', function(e) {
 // Restore page from hash on initial load
 (function() {
   var hash = window.location.hash.replace('#', '');
-  if (hash) {
+  var isGto = (typeof _loggedId !== 'undefined' && _loggedId === 'gto');
+
+  if (hash === 'admin' && isGto) {
+    history.replaceState({ page: -1 }, '', '#admin');
+    setTimeout(function() { goPage(-1, null, true); }, 200);
+  } else if (hash) {
     var idx = _pageNames.indexOf(hash);
     if (idx > 0) {
       history.replaceState({ page: idx }, '', '#' + hash);
       setTimeout(function() { goPage(idx, null, true); }, 200);
+    } else if (!hash || hash === 'daily') {
+      // gto defaults to admin
+      if (isGto) {
+        history.replaceState({ page: -1 }, '', '#admin');
+        setTimeout(function() { goPage(-1, null, true); }, 200);
+      } else {
+        history.replaceState({ page: 0 }, '', '#daily');
+      }
+    }
+  } else {
+    // No hash: gto → admin, others → daily
+    if (isGto) {
+      history.replaceState({ page: -1 }, '', '#admin');
+      setTimeout(function() { goPage(-1, null, true); }, 200);
     } else {
       history.replaceState({ page: 0 }, '', '#daily');
     }
-  } else {
-    history.replaceState({ page: 0 }, '', '#daily');
   }
 })();
 

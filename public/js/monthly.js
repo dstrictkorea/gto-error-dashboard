@@ -51,12 +51,12 @@ function renderP0(){
   });
   el('kpi-row').innerHTML=kpiHtml;
 
-  // Annual Trend (Chart.js line) with gradient and animations
+  // Annual Trend (Chart.js line) with gradient and animations — REGION FILTERED
   var trendCanvas = document.getElementById('annual-trend');
   if(_charts.trend) _charts.trend.destroy();
   var trendLabels = MONTHS.map(function(m){return m.slice(0,3)});
-  var trendData = MONTHS.map(function(_,mi){return getByMonth(mi,y).length});
-  var prevYrData = MONTHS.map(function(_,mi){return getByMonth(mi,y-1).length});
+  var trendData = MONTHS.map(function(_,mi){return getByMonth(mi,y).filter(function(r){return regionBrs.indexOf(r.Branch)>=0}).length});
+  var prevYrData = MONTHS.map(function(_,mi){return getByMonth(mi,y-1).filter(function(r){return regionBrs.indexOf(r.Branch)>=0}).length});
   var yr = y;
 
   // Find peak index for annotation
@@ -125,9 +125,9 @@ function renderP0(){
     }]
   });
 
-  // Zone Heatmap with gradient animations and sorting
-  var zones=unique(G.logs.map(function(r){return r.Zone})).sort(),zc={};
-  zones.forEach(function(z){zc[z]=md.filter(function(r){return r.Zone===z}).length});
+  // Zone Heatmap with gradient animations and sorting — REGION FILTERED
+  var zones=unique(regionMd.map(function(r){return r.Zone})).sort(),zc={};
+  zones.forEach(function(z){zc[z]=regionMd.filter(function(r){return r.Zone===z}).length});
   var maxZ=Math.max.apply(null,Object.values(zc).concat([1]));
   var sortedZones=zones.sort(function(a,b){return(zc[b]||0)-(zc[a]||0)});
 
@@ -138,9 +138,9 @@ function renderP0(){
   if(_charts.cat) _charts.cat.destroy();
   var catLabels = _lang==='ko'?['소프트웨어','하드웨어','네트워크']:['Software','Hardware','Network'];
   var catData = [
-    md.filter(function(r){return r.Category==='Software'}).length,
-    md.filter(function(r){return r.Category==='Hardware'}).length,
-    md.filter(function(r){return r.Category==='Network'}).length
+    regionMd.filter(function(r){return r.Category==='Software'}).length,
+    regionMd.filter(function(r){return r.Category==='Hardware'}).length,
+    regionMd.filter(function(r){return r.Category==='Network'}).length
   ];
   var catColors = ['#ca8a04','#2563eb','#7c3aed'];
   var catTotal=catData.reduce(function(a,b){return a+b},0);
@@ -214,11 +214,11 @@ function renderP0(){
   if(_charts.diff) _charts.diff.destroy();
   var diffLabels = ['Lv.1','Lv.2','Lv.3','Lv.4','Lv.5'];
   var diffData = [
-    md.filter(function(r){return r.Difficulty<=1}).length,
-    md.filter(function(r){return r.Difficulty===2}).length,
-    md.filter(function(r){return r.Difficulty===3}).length,
-    md.filter(function(r){return r.Difficulty===4}).length,
-    md.filter(function(r){return r.Difficulty>=5}).length
+    regionMd.filter(function(r){return r.Difficulty<=1}).length,
+    regionMd.filter(function(r){return r.Difficulty===2}).length,
+    regionMd.filter(function(r){return r.Difficulty===3}).length,
+    regionMd.filter(function(r){return r.Difficulty===4}).length,
+    regionMd.filter(function(r){return r.Difficulty>=5}).length
   ];
   var diffColors = ['#22c55e','#eab308','#ef4444','#be123c','#7f1d1d'];
   var diffMax=Math.max.apply(null,diffData.concat([1]));
@@ -286,8 +286,8 @@ function renderP0(){
   if(_charts.act) _charts.act.destroy();
   var actLabels = ['🏢 '+t('onSite'),'📡 '+t('remote')];
   var actData = [
-    md.filter(function(r){return(r.ActionType||'').indexOf('On')>=0}).length,
-    md.filter(function(r){return(r.ActionType||'').indexOf('Remote')>=0}).length
+    regionMd.filter(function(r){return(r.ActionType||'').indexOf('On')>=0}).length,
+    regionMd.filter(function(r){return(r.ActionType||'').indexOf('Remote')>=0}).length
   ];
   var actColors = ['#3b82f6','#8b5cf6'];
   var actMax=Math.max.apply(null,actData.concat([1]));
@@ -339,8 +339,8 @@ function renderP0(){
     }]
   });
 
-  el('mon-cnt').textContent=md.length+' '+t('errors');
-  var map={};md.forEach(function(r){var k=r.Zone+'|'+r.Category;if(!map[k])map[k]={zone:r.Zone,cat:r.Category,br:r.Branch,cnt:0,s:r.IssueDetail};map[k].cnt++});
+  el('mon-cnt').textContent=regionMd.length+' '+t('errors');
+  var map={};regionMd.forEach(function(r){var k=r.Zone+'|'+r.Category;if(!map[k])map[k]={zone:r.Zone,cat:r.Category,br:r.Branch,cnt:0,s:r.IssueDetail};map[k].cnt++});
   var top=Object.values(map).sort(function(a,b){return b.cnt-a.cnt}).slice(0,8);
 
   // Top issues with rank badges — clean count display, no bar chart
