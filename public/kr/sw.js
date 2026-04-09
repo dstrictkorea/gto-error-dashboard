@@ -3,7 +3,7 @@
 // PWA Offline + Cache Strategy + Update Notify
 // ═══════════════════════════════════════════
 
-const CACHE_VERSION = 'v5.6.0-kr-Apr2026';
+const CACHE_VERSION = 'v5.7.0-kr-Apr2026';
 const CACHE_STATIC = 'gto-kr-static-' + CACHE_VERSION;
 const CACHE_DYNAMIC = 'gto-kr-dynamic-' + CACHE_VERSION;
 const CACHE_CDN = 'gto-kr-cdn-' + CACHE_VERSION;

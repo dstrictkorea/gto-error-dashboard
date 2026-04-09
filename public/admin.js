@@ -301,22 +301,28 @@ function renderAdminDaily(){
     }
   }
 
-  // ── Top Zone: Daily와 동일한 방식 ──
+  // ── Top Zone ──
   var tzEl=document.getElementById('adm-daily-topzone');
   if(tzEl){
-    var zc={};weekLogs.forEach(function(r){var k=r.Zone||'Unknown';zc[k]=(zc[k]||0)+1;});
-    var sorted=Object.keys(zc).map(function(k){return{zone:k,cnt:zc[k]};}).sort(function(a,b){return b.cnt-a.cnt;}).slice(0,5);
-    var total=weekLogs.length||1;
-    var cols=['#534AB7','#60a5fa','#f59e0b','#ef4444','#10b981'];
-    if(!sorted.length){tzEl.innerHTML='<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:160px;gap:6px;opacity:0.7"><div style="font-size:36px">📊</div><div style="font-size:13px;font-weight:700;color:var(--t2)">데이터 없음</div></div>';return;}
-    tzEl.innerHTML=sorted.map(function(item,i){
-      var pct=Math.round(item.cnt/total*100);
-      return '<div style="display:flex;align-items:center;gap:10px;padding:8px 0;'+(i<sorted.length-1?'border-bottom:1px solid var(--border)':'')+'">'
-        +'<div style="min-width:22px;font-size:12px;font-weight:700;color:var(--t1)">#'+(i+1)+'</div>'
-        +'<div style="flex:1"><div style="display:flex;justify-content:space-between;margin-bottom:4px"><span style="font-size:13px;font-weight:600;color:var(--t0)">'+esc(item.zone)+'</span><span style="font-size:12px;font-weight:700;color:'+cols[i]+'">'+pct+'%</span></div>'
-        +'<div style="background:var(--border);border-radius:4px;height:6px;overflow:hidden"><div style="background:'+cols[i]+';height:100%;border-radius:4px;width:'+pct+'%;min-width:4px"></div></div>'
-        +'</div></div>';
-    }).join('');
+    if(noData){
+      tzEl.innerHTML='<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:160px;gap:8px"><div style="font-size:40px">📊</div><div style="font-size:13px;font-weight:700;color:var(--t2)">데이터 없음</div></div>';
+    } else {
+      var zc={};weekLogs.forEach(function(r){var k=r.Zone||'Unknown';zc[k]=(zc[k]||0)+1;});
+      var ztop=Object.keys(zc).map(function(k){return{zone:k,cnt:zc[k]};}).sort(function(a,b){return b.cnt-a.cnt;}).slice(0,5);
+      var ztotal=weekLogs.length||1;
+      var zcols=['#534AB7','#60a5fa','#f59e0b','#ef4444','#10b981'];
+      tzEl.innerHTML=ztop.map(function(item,i){
+        var pct=Math.round(item.cnt/ztotal*100);
+        return '<div style="display:flex;align-items:center;gap:10px;padding:8px 0;'+(i<ztop.length-1?'border-bottom:1px solid var(--border)':'')+'">'
+          +'<div style="min-width:22px;font-size:12px;font-weight:700;color:var(--t1)">#'+(i+1)+'</div>'
+          +'<div style="flex:1"><div style="display:flex;justify-content:space-between;margin-bottom:4px">'
+          +'<span style="font-size:13px;font-weight:600;color:var(--t0)">'+esc(item.zone)+'</span>'
+          +'<span style="font-size:12px;font-weight:700;color:'+zcols[i]+'">'+pct+'%</span></div>'
+          +'<div style="background:var(--border);border-radius:4px;height:6px;overflow:hidden">'
+          +'<div style="background:'+zcols[i]+';height:100%;border-radius:4px;width:'+pct+'%;min-width:4px"></div></div>'
+          +'</div></div>';
+      }).join('');
+    }
   }
 
   // ── Category chart ──
@@ -841,44 +847,32 @@ function initBranchReport(){
     '<div style="margin-top:4px">',
     '<div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">',
     '<span style="display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:10px;font-size:20px;background:'+brCol+'22">'+brIcon+'</span>',
-    '<div><div style="font-size:15px;font-weight:800;color:var(--t0)">'+(isKorea?brName+' 지점 리포트 생성':br+' Branch Report')+'</div>',
-    '<div style="font-size:11px;color:var(--t2);margin-top:1px">'+(isKorea?'해당 지점 에러만 포함 · 한국어 리포트':'Branch-specific errors only · English report')+'</div></div></div>',
+    '<div><div style="font-size:15px;font-weight:800;color:var(--t0)">'+(isKorea?brName+' 에러 리포트':br+' Error Report')+'</div>',
+    '<div style="font-size:11px;color:var(--t2);margin-top:1px">'+(isKorea?'해당 지점 에러만 포함 · 월간 리포트 생성':'Branch-specific errors only · Monthly report')+'</div></div></div>',
     '<div class="card" style="border:1.5px solid rgba(83,74,183,0.15);margin-bottom:12px">',
-    '<div style="display:flex;align-items:center;gap:6px;margin-bottom:8px">',
-    '<span style="font-size:14px">📝</span>',
-    '<div style="font-size:12px;font-weight:700;color:var(--t0)">'+(isKorea?'담당자 코멘트 / 비고':'Manager Comment / Remarks')+'</div>',
-    '<span style="font-size:10px;color:var(--t3);margin-left:auto">'+(isKorea?'선택사항':'Optional')+'</span></div>',
-    '<div style="font-size:11px;color:var(--t3);margin-bottom:10px;line-height:1.6;padding:8px 10px;background:var(--bg);border-radius:6px">',
-    isKorea?'💡 개별 안내사항, 심각한 내용, 따로 보고할 사항을 입력하세요. 입력된 내용은 리포트 상단에 게시됩니다.'
-          :'💡 Add individual notes, serious issues, or additional information. Content will appear at the top of the report.',
+    '<div style="text-align:center;margin-bottom:10px">',
+    '<div style="font-size:13px;font-weight:800;color:var(--t0)">📝 '+(isKorea?'담당자 코멘트 / 비고':'Manager Comment / Remarks')+'</div>',
+    '<div style="font-size:10px;color:var(--t3);margin-top:2px">'+(isKorea?'선택사항':'Optional')+'</div></div>',
+    '<div style="font-size:11px;color:var(--t3);margin-bottom:10px;line-height:1.6;padding:8px 12px;background:var(--bg);border-radius:8px;text-align:left">',
+    isKorea?'개별 안내사항, 심각한 내용, 따로 보고할 사항을 입력하세요. 입력된 내용은 리포트 상단에 게시됩니다.'
+          :'Add any individual notes, serious issues, or additional information. Content will appear at the top of the report.',
     '</div>',
     '<textarea id="branch-rpt-comment" rows="3"',
     ' style="width:100%;padding:10px 12px;border-radius:8px;border:1.5px solid var(--border);background:var(--bg);color:var(--t0);font-family:var(--f,sans-serif);font-size:13px;resize:vertical;outline:none;transition:border-color .2s"',
     ' onfocus="this.style.borderColor=\'#534AB7\'" onblur="this.style.borderColor=\'var(--border)\'"',
     ' placeholder="'+(isKorea?'예: LED 모듈 이상 관련 추가 조사 필요.':'e.g. LED module anomaly requires further investigation.')+'"',
     '></textarea></div>',
-    '<div class="card" style="border-left:4px solid '+brCol+';margin-bottom:12px">',
+    '<div class="card" style="border-left:4px solid '+brCol+'">',
     '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">',
     '<div style="display:flex;align-items:center;gap:8px">',
     '<span style="font-size:11px;font-weight:800;color:#fff;background:'+brCol+';padding:3px 10px;border-radius:5px">MONTHLY</span>',
     '<div><div style="font-size:13px;font-weight:800;color:var(--t0)">'+(isKorea?brName+' 월간 에러 리포트':br+' Monthly Error Report')+'</div>',
-    '<div style="font-size:11px;color:var(--t3);margin-top:1px">'+(isKorea?'한국어 리포트':'English report')+'</div></div></div>',
+    '<div style="font-size:11px;color:var(--t3);margin-top:1px">'+(isKorea?'해당 지점 에러만 포함':'Branch errors only')+'</div></div></div>',
     '<span style="font-size:10px;font-weight:700;color:var(--t3);background:var(--sub);padding:3px 10px;border-radius:20px;border:1px solid var(--border)">'+(isKorea?'🇰🇷 KOR':'🌍 ENG')+'</span></div>',
     '<div style="display:flex;gap:8px">',
     '<button class="btn btn-sm" style="flex:1;background:'+brCol+';color:#fff;font-weight:700;border-radius:8px;padding:10px" onclick="branchReport(\'download\',\'monthly\')">'+(isKorea?'⬇ 다운로드':'⬇ Download')+'</button>',
     '<button class="btn btn-sm" style="flex:1;background:var(--card);color:var(--t1);border:1.5px solid var(--border);font-weight:700;border-radius:8px;padding:10px" onclick="branchReport(\'preview\',\'monthly\')">'+(isKorea?'👁 미리보기':'👁 Preview')+'</button>',
-    '</div><div id="br-monthly-status"></div></div>',
-    '<div class="card" style="border-left:4px solid #0f766e">',
-    '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">',
-    '<div style="display:flex;align-items:center;gap:8px">',
-    '<span style="font-size:11px;font-weight:800;color:#fff;background:#0f766e;padding:3px 10px;border-radius:5px">ANNUAL</span>',
-    '<div><div style="font-size:13px;font-weight:800;color:var(--t0)">'+(isKorea?brName+' 연간 에러 리포트':br+' Annual Error Report')+'</div>',
-    '<div style="font-size:11px;color:var(--t3);margin-top:1px">'+(isKorea?'해당 지점 연간 누적':'Branch annual summary')+'</div></div></div>',
-    '<span style="font-size:10px;font-weight:700;color:var(--t3);background:var(--sub);padding:3px 10px;border-radius:20px;border:1px solid var(--border)">'+(isKorea?'🇰🇷 KOR':'🌍 ENG')+'</span></div>',
-    '<div style="display:flex;gap:8px">',
-    '<button class="btn btn-sm" style="flex:1;background:#0f766e;color:#fff;font-weight:700;border-radius:8px;padding:10px" onclick="branchReport(\'download\',\'annual\')">'+(isKorea?'⬇ 다운로드':'⬇ Download')+'</button>',
-    '<button class="btn btn-sm" style="flex:1;background:var(--card);color:var(--t1);border:1.5px solid var(--border);font-weight:700;border-radius:8px;padding:10px" onclick="branchReport(\'preview\',\'annual\')">'+(isKorea?'👁 미리보기':'👁 Preview')+'</button>',
-    '</div><div id="br-annual-status"></div></div></div>'
+    '</div><div id="br-monthly-status"></div></div></div>'
   ].join('');
   sec.style.display='block';
 }
@@ -963,17 +957,26 @@ function renderAdmin(){
   // 리전 버튼 초기화
   document.querySelectorAll('#adm-daily-region-toggle .region-btn').forEach(function(b){b.classList.toggle('active',b.dataset.region==='all');});
   _admDailyStrip();
-  renderAdminDaily();
+  // G 이미 로드됐으면 즉시 렌더, 아니면 pending
+  if(G&&G.logs&&G.logs.length){
+    renderAdminDaily();
+  } else {
+    window._admDailyPendingRender=true;
+  }
 }
 
 // G 데이터 로드 완료 후 Admin pending 렌더링 처리
 // data.js 의 G 설정 후 호출되는 훅에 연결
 var _admOrigSetG = typeof window._onGLoaded === 'function' ? window._onGLoaded : null;
 window._onAdminGLoaded = function(){
-  if(window._admDailyPendingRender && document.getElementById('pAdmin') && document.getElementById('pAdmin').style.display !== 'none'){
+  if(window._admDailyPendingRender){
     window._admDailyPendingRender = false;
-    _admDailyStrip();
-    renderAdminDaily();
+    // Admin 탭이 활성화된 상태면 바로 렌더
+    var pA=document.getElementById('pAdmin');
+    if(pA && (pA.classList.contains('active') || pA.style.display!=='none')){
+      _admDailyStrip();
+      renderAdminDaily();
+    }
   }
 };
 
@@ -983,11 +986,4 @@ window._onAdminGLoaded = function(){
     initAdminPage();
     initBranchReport();
     // G.logs 준비 후 Admin 페이지가 활성화되어 있으면 즉시 렌더링
-    // goPage(-1) 호출 시점에 G가 없을 수 있으므로 data load 후 재렌더
-    if(typeof window._admDailyPendingRender==='undefined'){
-      window._admDailyPendingRender=false;
-    }
-  }
-  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',_i);
-  else setTimeout(_i,100);
-})();
+    // goPage(-1) 호출 시점에 G가 �

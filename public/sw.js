@@ -5,7 +5,7 @@
 
 // Cache versioning: update this when assets change to bust old caches
 // Format: YYYY.MM.DD or semantic v#.#.#
-const CACHE_VERSION = 'v5.6.0-Apr2026';
+const CACHE_VERSION = 'v5.7.0-Apr2026';
 const CACHE_STATIC = 'dstrict-static-' + CACHE_VERSION;
 const CACHE_DYNAMIC = 'dstrict-dynamic-' + CACHE_VERSION;
 const CACHE_CDN = 'dstrict-cdn-' + CACHE_VERSION;

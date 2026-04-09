@@ -32,7 +32,9 @@ async function loadData(silent){
       var syncTime=new Date().toLocaleTimeString(_lang==='ko'?'ko-KR':'en-US',{hour:'numeric',minute:'2-digit',second:'2-digit',hour12:true});
       syncEl.textContent=(_lang==='ko'?'\ucd5c\uc885 \ub3d9\uae30\ud654: ':'Last sync: ')+syncTime;
     }
-    if(!silent) toast('Data loaded \u2014 '+G.logs.length+'\uac74','success');
+    if(!silent) toast('Data loaded — '+G.logs.length+'건','success');
+    // Admin 페이지 pending render 처리
+    if(typeof window._onAdminGLoaded==='function') window._onAdminGLoaded();
 
   }catch(e){
     var errMsg=(e&&e.message)?e.message:'Unknown error';

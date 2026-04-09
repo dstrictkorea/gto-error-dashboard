@@ -99,7 +99,7 @@ ${numbered}`;
   }
 }
 
-function generatePDF(logs, month, year, lang, history, assets, reportType, region, comment) {
+function generatePDF(logs, month, year, lang, history, assets, reportType, region, comment, branchFilter) {
   if (!Array.isArray(logs)) throw new Error('logs must be an array');
   month = Math.max(0, Math.min(11, parseInt(month, 10) || 0));
   year = Math.max(2000, Math.min(2100, parseInt(year, 10) || new Date().getFullYear()));
@@ -109,6 +109,7 @@ function generatePDF(logs, month, year, lang, history, assets, reportType, regio
   reportType = reportType === 'annual' ? 'annual' : 'monthly'; // default monthly
   region = ['korea','global'].includes(region) ? region : 'global';
   const safeComment = typeof comment === 'string' ? comment.trim().slice(0, 2000) : '';
+  branchFilter = typeof branchFilter === 'string' ? branchFilter.trim() : '';
   const PDF_BRANCHES = region === 'korea' ? KOREA_BRANCHES : GLOBAL_BRANCHES;
 
   // If Korean, translate IssueDetail and ActionTaken via AI before PDF generation
@@ -817,7 +818,28 @@ function generatePDF(logs, month, year, lang, history, assets, reportType, regio
     // ══════════ MANAGER COMMENT (if provided) ══════════
     // Inserted on first content page, before Executive Summary
     if (safeComment) {
-      sect('', isKo ? '담당자 코멘트 / 비고' : 'Manager Comment / Remarks');
+      _markPage();
+      if(doc.y > BOT - 200) {
+        doc.addPage();
+        _drawPageBranding();
+      } else if(doc.y > 80) {
+        doc.y = doc.y + 20;
+      } else {
+        doc.y = 40;
+      }
+      const headerY = doc.y;
+      // Section header with background band — CENTER-ALIGNED
+      doc.save().rect(ML, headerY, PW, 28).fill('#f0eff8').restore();
+      doc.save().rect(ML, headerY, 4, 28).fill(CP).restore();
+      const headerTitle = isKo ? '담당자 코멘트 / 비고' : 'Manager Comment / Remarks';
+      doc.fillColor(CT).fontSize(isKo ? 14 : 15).font(F.bold)
+        .text(headerTitle.toUpperCase(), ML, headerY + 6, { width: PW, align: 'center', lineBreak: false });
+      doc.y = headerY + 32;
+      doc.moveTo(ML, doc.y - 2).lineTo(MR, doc.y - 2).strokeColor(CP).lineWidth(0.8).stroke();
+      doc.moveDown(0.7);
+      doc.x = ML;
+      doc.font(F.reg).fillColor(CT);
+
       const cmtY = doc.y;
       // Highlight box
       doc.save().roundedRect(ML, cmtY, PW, 16).fill('#FEF3C7').restore();
@@ -826,14 +848,19 @@ function generatePDF(logs, month, year, lang, history, assets, reportType, regio
         .text(isKo ? '※ 이 코멘트는 담당자가 직접 작성한 내용입니다.' : '※ This comment was written directly by the branch manager.',
           ML + 10, cmtY + 4, { width: PW - 20, lineBreak: false });
       doc.y = cmtY + 20;
-      // Comment body box
-      const cmtLines = safeComment.split('\n');
+      // Comment body box — remove bullet points from content
+      let cleanComment = safeComment;
+      // Remove bullet points (• or ◦ or ★ or ✓ and similar characters)
+      cleanComment = cleanComment.replace(/[•◦★✓▪︎▫︎◼︎☐☑︎☒✗✘]/g, '');
+      // Remove markdown list markers (-, *, +) at line start
+      cleanComment = cleanComment.replace(/^\s*[-*+]\s+/gm, '');
+      const cmtLines = cleanComment.split('\n');
       const cmtHeight = Math.max(60, cmtLines.length * (isKo ? 16 : 15) + 20);
       pc(cmtHeight + 20);
       const cmtBodyY = doc.y;
       doc.save().roundedRect(ML, cmtBodyY, PW, cmtHeight + 12, 6).fill('#FFFBEB').stroke('#FDE68A').restore();
       doc.fillColor('#78350F').fontSize(isKo ? 10 : 9.5).font(F.med)
-        .text(safeComment, ML + 12, cmtBodyY + 10, { width: PW - 24, lineBreak: true });
+        .text(cleanComment, ML + 12, cmtBodyY + 10, { width: PW - 24, align: 'left', lineBreak: true });
       doc.y = cmtBodyY + cmtHeight + 20;
     }
 
@@ -1049,6 +1076,58 @@ function generatePDF(logs, month, year, lang, history, assets, reportType, regio
     // Monthly report skips detailed branch/category/zone analysis
     // and goes straight to Critical Errors + Recommendations
     let _nextSectNum = 2; // dynamic section counter
+
+    // ══════════ BRANCH-SPECIFIC SUMMARY (if single branch selected) ══════════
+    if(branchFilter && reportType === 'monthly'){
+      const filterBranch = branchFilter.toUpperCase();
+      const branchLogs = logs.filter(r => {
+        const p = (r.Date || '').split('-');
+        return parseInt(p[0]) === year && parseInt(p[1]) === month + 1 && r.Branch === filterBranch;
+      });
+      const branchCritical = branchLogs.filter(r => r.Difficulty >= 4);
+      const branchCatCount = {};
+      branchLogs.forEach(r => { branchCatCount[r.Category] = (branchCatCount[r.Category] || 0) + 1; });
+      const topCategories = Object.entries(branchCatCount).sort((a,b) => b[1] - a[1]).slice(0, 5);
+
+      sect('', isKo ? '지점별 요약' : 'Branch Summary');
+
+      const sumY = doc.y;
+      pc(80);
+
+      // Status line
+      if(branchCritical.length === 0){
+        const statusText = isKo
+          ? '[OK] 금월 크리티컬(Lv.4+) 장애 미발생 — ' + filterBranch + '지점 정상 운영중'
+          : '[OK] No critical (Lv.4+) incidents this month — ' + filterBranch + ' branch operating normally';
+        doc.save().roundedRect(ML, sumY, PW, 24, 4).fill('#EAF3DE').restore();
+        doc.save().rect(ML, sumY, 4, 24).fill(COK).restore();
+        doc.fillColor(COK).fontSize(10).font(F.bold).text(statusText, ML + 12, sumY + 5, { width: PW - 20, lineBreak: false });
+      } else {
+        const statusText = isKo
+          ? 'April 2026: 해당 월 장애 발생: ' + branchCritical.length + '건'
+          : 'April 2026: Critical incidents detected: ' + branchCritical.length + ' case(s)';
+        doc.save().roundedRect(ML, sumY, PW, 24, 4).fill('#FCEBEB').restore();
+        doc.save().rect(ML, sumY, 4, 24).fill(CE).restore();
+        doc.fillColor(CE).fontSize(10).font(F.bold).text(statusText, ML + 12, sumY + 5, { width: PW - 20, lineBreak: false });
+      }
+      doc.y = sumY + 30;
+
+      // Top issues section
+      if(topCategories.length > 0){
+        doc.fillColor(CT).fontSize(10).font(F.bold).text(isKo ? '주요 장애 유형' : 'Top Issue Categories', ML);
+        doc.moveDown(0.3);
+        topCategories.forEach((cat, idx) => {
+          const catName = cat[0];
+          const catCount = cat[1];
+          const pct = branchLogs.length ? Math.round(catCount / branchLogs.length * 100) : 0;
+          const label = (idx + 1) + '. ' + (isKo ? trCat(catName) : catName) + ': ' + catCount + ' (' + pct + '%)';
+          doc.fillColor(CS).fontSize(9).font(F.med).text(label, ML + 10, undefined, { lineBreak: false });
+          doc.moveDown(0.4);
+        });
+      }
+      doc.moveDown(0.5);
+      _markPage();
+    }
 
     if(reportType === 'annual'){
 

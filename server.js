@@ -389,7 +389,7 @@ app.post('/api/report', async (req, res) => {
       ? regionLogs.filter(r => r.Branch === branchFilter)
       : regionLogs;
     const safeComment = typeof comment === 'string' ? comment.slice(0, 2000) : '';
-    const pdfBuffer = await generatePDF(finalLogs, month, year, safeLang, allHistory, assets, safeType, safeRegion, safeComment);
+    const pdfBuffer = await generatePDF(finalLogs, month, year, safeLang, allHistory, assets, safeType, safeRegion, safeComment, branchFilter);
     const pdfBase64 = pdfBuffer.toString('base64');
     const mm = String(month + 1).padStart(2, '0');
     const langTag = safeLang === 'ko' ? '(KOR)' : '(ENG)';
@@ -532,28 +532,13 @@ app.use((err, req, res, _next) => {
 const PORT = process.env.PORT || 3000;
 
 // ── SERVER START (pm2 managed) ──
-const server = app.listen(PORT, async () => {
-  console.log(`\n🚀 d'strict Error Dashboard v5.6.0 → http://localhost:${PORT} (PID ${process.pid})`);
-  console.log('📊 SharePoint Excel 연동 (페이지 접속/새로고침 시 로드)\n');
+const server = app.listen(PORT, () => {
+  console.log(`\n✅ Server running on port ${PORT} (${process.env.NODE_ENV || 'development'})`);
   validateConfig();
-  try { await getToken(); console.log('✅ Azure AD 인증 완료\n'); }
-  catch(e) { console.error('⚠️  인증 실패:',e.message,'\n   → AZURE_SECRET을 확인하세요\n'); }
 });
 
-server.on('error', function(err) {
-  console.error('❌ 서버 시작 실패:', err.code, err.message);
-  process.exit(1);
-});
-
-// Graceful shutdown (pm2 sends SIGINT)
-function shutdown(sig) {
-  console.log(`\n${sig} received — shutting down… (PID ${process.pid})`);
-  server.close(() => { console.log('Server closed'); process.exit(0); });
-  setTimeout(() => process.exit(1), 10000);
-}
-process.on('SIGTERM', function() { shutdown('SIGTERM'); });
-process.on('SIGINT', function() { shutdown('SIGINT'); });
-process.on('uncaughtException', function(err) {
-  console.error('Uncaught exception:', err);
-  process.exit(1);
+// Graceful shutdown
+process.on('SIGTERM', () => {
+  console.log('SIGTERM received, shutting down gracefully...');
+  server.close(() => process.exit(0));
 });

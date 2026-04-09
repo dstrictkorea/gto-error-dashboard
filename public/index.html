@@ -181,14 +181,14 @@
   <div class="section-divider"></div>
   <div class="g31">
     <div class="card"><div class="ctitle">Monthly Error Trend</div><div style="position:relative;height:280px"><canvas id="annual-trend"></canvas></div></div>
-    <div class="card"><div class="ctitle">Errors by Zone</div><div id="zone-hm"></div></div>
+    <div class="card"><div class="ctitle">Zone별 에러 현황</div><div id="zone-hm"></div></div>
   </div>
 
   <div class="section-divider"></div>
   <div class="g3">
     <div class="card"><div class="ctitle">Error Category (SW / HW / Network)</div><div style="position:relative;height:260px"><canvas id="cat-chart"></canvas></div></div>
-    <div class="card"><div class="ctitle">Error Severity Level</div><div style="position:relative;height:260px"><canvas id="diff-chart"></canvas></div></div>
-    <div class="card"><div class="ctitle">Resolution Method</div><div style="position:relative;height:260px"><canvas id="action-chart"></canvas></div></div>
+    <div class="card"><div class="ctitle">난이도 분포</div><div style="position:relative;height:260px"><canvas id="diff-chart"></canvas></div></div>
+    <div class="card"><div class="ctitle">처리 방식</div><div style="position:relative;height:260px"><canvas id="action-chart"></canvas></div></div>
   </div>
 
   <!-- Top Recurring Issues table -->
@@ -373,176 +373,265 @@
 </div>
 
 <!-- PAGE: ADMIN (gto 전용) -->
-<div id="pAdmin" style="display:none;padding:0 0 48px">
+<div id="pAdmin" class="page" style="display:none">
 
-  <style>
-  .adm-rpt-card{background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:0}
-  .adm-lang-btn{padding:5px 12px;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;border:1.5px solid var(--border);background:var(--card);color:var(--t2);transition:all .2s}
-  .adm-lang-btn.active{border-color:var(--purple);background:var(--purple);color:#fff}
-  .adm-rtab{padding:6px 14px;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer;border:none;background:transparent;color:var(--t2);transition:all .2s}
-  .adm-rtab.active{background:var(--purple);color:#fff}
-  .adm-br-btn{padding:7px 13px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;border:1.5px solid var(--border);background:var(--card);color:var(--t1);transition:all .2s;display:inline-flex;align-items:center;gap:4px}
-  .adm-br-btn:hover:not(.adm-br-active){background:var(--bg)}
-  </style>
-
+  <!-- ══ 페이지 헤더 ══ -->
   <div class="ph">
-    <div><div class="ph-title" style="color:var(--purple)">⚙ Admin Dashboard</div>
-    <div class="ph-sub">전체 7지점 통합 관리 · gto 전용</div></div>
+    <div>
+      <div class="ph-title" style="color:var(--purple)">⚙ Admin</div>
+      <div class="ph-sub">전체 7지점 통합 관리 · gto 전용</div>
+    </div>
   </div>
 
-  <!-- ══ 리포트 생성 ══ -->
-  <div class="card" style="border:1.5px solid rgba(83,74,183,0.2);margin-bottom:20px">
-    <div style="font-size:13px;font-weight:800;color:var(--purple);margin-bottom:16px">📋 리포트 생성 — 글로벌 · 국내 지점</div>
+  <!-- ══ 리포트 생성 (Daily의 에러제출 버튼 위치) ══ -->
+  <div class="card" style="border:1.5px solid rgba(83,74,183,0.18);margin-bottom:20px;padding:18px 20px">
+    <div style="font-size:12px;font-weight:800;color:var(--purple);margin-bottom:14px;display:flex;align-items:center;gap:6px">
+      <span>📋</span> 리포트 생성
+    </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
-
       <!-- 글로벌 -->
-      <div class="adm-rpt-card">
-        <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
-          <span style="padding:3px 9px;border-radius:5px;font-size:11px;font-weight:800;color:#fff;background:#185FA5">🌍 GLOBAL</span>
-          <span style="font-size:12px;font-weight:700;color:var(--t1)">AMNY · AMLV · AMDB</span>
+      <div style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:14px">
+        <div style="display:flex;align-items:center;gap:7px;margin-bottom:10px">
+          <span style="padding:2px 8px;border-radius:4px;font-size:10px;font-weight:800;color:#fff;background:#185FA5">🌍 GLOBAL</span>
+          <span style="font-size:11px;color:var(--t2);font-weight:600">AMNY · AMLV · AMDB</span>
         </div>
-        <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap">
-          <span style="font-size:11px;font-weight:700;color:var(--t2)">기간</span>
-          <select id="adm-g-year" style="padding:4px 8px;border-radius:6px;border:1px solid var(--border);background:var(--card);color:var(--t0);font-size:12px"></select>
-          <select id="adm-g-month" style="padding:4px 8px;border-radius:6px;border:1px solid var(--border);background:var(--card);color:var(--t0);font-size:12px">
-            <option value="-1">연간(Annual)</option>
-          </select>
-        </div>
-        <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
-          <span style="font-size:11px;font-weight:700;color:var(--t2)">언어</span>
-          <div id="adm-g-lang-toggle" style="display:flex;gap:4px">
-            <button class="adm-lang-btn active" data-lang="en" onclick="setAdminRptLang('global','en',this)">ENG</button>
-            <button class="adm-lang-btn" data-lang="ko" onclick="setAdminRptLang('global','ko',this)">KOR</button>
+        <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;flex-wrap:wrap">
+          <span style="font-size:11px;color:var(--t2);font-weight:600">기간</span>
+          <select id="adm-g-year" class="flt-sel" style="font-size:12px"></select>
+          <select id="adm-g-month" class="flt-sel" style="font-size:12px"><option value="-1">연간</option></select>
+          <div style="display:flex;gap:3px;margin-left:auto">
+            <button class="region-btn active" id="adm-g-en" data-lang="en" onclick="setAdminRptLang('global','en',this)" style="font-size:11px;padding:3px 10px">ENG</button>
+            <button class="region-btn" id="adm-g-ko" data-lang="ko" onclick="setAdminRptLang('global','ko',this)" style="font-size:11px;padding:3px 10px">KOR</button>
           </div>
         </div>
-        <div style="display:flex;gap:6px;flex-wrap:wrap">
-          <button class="btn btn-sm" style="flex:1;background:#185FA5;color:#fff;font-weight:700;border-radius:8px" onclick="adminReport('global','download')">⬇ 다운로드</button>
-          <button class="btn btn-sm" style="flex:1;background:#2563eb;color:#fff;font-weight:700;border-radius:8px" onclick="adminReport('global','preview')">👁 미리보기</button>
-          <button class="btn btn-sm" style="flex:1;background:#059669;color:#fff;font-weight:700;border-radius:8px" onclick="adminReport('global','email')">✉ 이메일</button>
+        <div style="display:flex;gap:5px">
+          <button class="btn btn-sm" style="flex:1;background:#185FA5;color:#fff;font-weight:700;border-radius:7px;font-size:11px" onclick="adminReport('global','download')">⬇ 다운로드</button>
+          <button class="btn btn-sm" style="flex:1;background:#2563eb;color:#fff;font-weight:700;border-radius:7px;font-size:11px" onclick="adminReport('global','preview')">👁 미리보기</button>
+          <button class="btn btn-sm" style="flex:1;background:#059669;color:#fff;font-weight:700;border-radius:7px;font-size:11px" onclick="adminReport('global','email')">✉ 이메일</button>
         </div>
         <div id="adm-g-status"></div>
       </div>
-
       <!-- 국내 -->
-      <div class="adm-rpt-card">
-        <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
-          <span style="padding:3px 9px;border-radius:5px;font-size:11px;font-weight:800;color:#fff;background:#059669">🇰🇷 KOREA</span>
-          <span style="font-size:12px;font-weight:700;color:var(--t1)">AMGN · AMYS · AMBS · AMJJ</span>
+      <div style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:14px">
+        <div style="display:flex;align-items:center;gap:7px;margin-bottom:10px">
+          <span style="padding:2px 8px;border-radius:4px;font-size:10px;font-weight:800;color:#fff;background:#059669">🇰🇷 KOREA</span>
+          <span style="font-size:11px;color:var(--t2);font-weight:600">AMGN · AMYS · AMBS · AMJJ</span>
         </div>
-        <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap">
-          <span style="font-size:11px;font-weight:700;color:var(--t2)">기간</span>
-          <select id="adm-k-year" style="padding:4px 8px;border-radius:6px;border:1px solid var(--border);background:var(--card);color:var(--t0);font-size:12px"></select>
-          <select id="adm-k-month" style="padding:4px 8px;border-radius:6px;border:1px solid var(--border);background:var(--card);color:var(--t0);font-size:12px">
-            <option value="-1">연간(Annual)</option>
-          </select>
-        </div>
-        <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
-          <span style="font-size:11px;font-weight:700;color:var(--t2)">언어</span>
-          <div id="adm-k-lang-toggle" style="display:flex;gap:4px">
-            <button class="adm-lang-btn" data-lang="en" onclick="setAdminRptLang('korea','en',this)">ENG</button>
-            <button class="adm-lang-btn active" data-lang="ko" onclick="setAdminRptLang('korea','ko',this)">KOR</button>
+        <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;flex-wrap:wrap">
+          <span style="font-size:11px;color:var(--t2);font-weight:600">기간</span>
+          <select id="adm-k-year" class="flt-sel" style="font-size:12px"></select>
+          <select id="adm-k-month" class="flt-sel" style="font-size:12px"><option value="-1">연간</option></select>
+          <div style="display:flex;gap:3px;margin-left:auto">
+            <button class="region-btn" id="adm-k-en" data-lang="en" onclick="setAdminRptLang('korea','en',this)" style="font-size:11px;padding:3px 10px">ENG</button>
+            <button class="region-btn active" id="adm-k-ko" data-lang="ko" onclick="setAdminRptLang('korea','ko',this)" style="font-size:11px;padding:3px 10px">KOR</button>
           </div>
         </div>
-        <div style="display:flex;gap:6px;flex-wrap:wrap">
-          <button class="btn btn-sm" style="flex:1;background:#059669;color:#fff;font-weight:700;border-radius:8px" onclick="adminReport('korea','download')">⬇ 다운로드</button>
-          <button class="btn btn-sm" style="flex:1;background:#0d9488;color:#fff;font-weight:700;border-radius:8px" onclick="adminReport('korea','preview')">👁 미리보기</button>
-          <button class="btn btn-sm" style="flex:1;background:#14b8a6;color:#fff;font-weight:700;border-radius:8px" onclick="adminReport('korea','email')">✉ 이메일</button>
+        <div style="display:flex;gap:5px">
+          <button class="btn btn-sm" style="flex:1;background:#059669;color:#fff;font-weight:700;border-radius:7px;font-size:11px" onclick="adminReport('korea','download')">⬇ 다운로드</button>
+          <button class="btn btn-sm" style="flex:1;background:#0d9488;color:#fff;font-weight:700;border-radius:7px;font-size:11px" onclick="adminReport('korea','preview')">👁 미리보기</button>
+          <button class="btn btn-sm" style="flex:1;background:#14b8a6;color:#fff;font-weight:700;border-radius:7px;font-size:11px" onclick="adminReport('korea','email')">✉ 이메일</button>
         </div>
         <div id="adm-k-status"></div>
       </div>
-
     </div>
   </div>
 
-  <!-- ══ 일일 현황 토글 ══ -->
-  <div class="card" style="margin-bottom:16px;padding:0;overflow:hidden">
-    <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px;cursor:pointer;user-select:none" onclick="(function(el){el.classList.toggle('open');var b=el.querySelector('.adm-toggle-body');b.style.display=b.style.display==='none'?'block':'none';if(b.style.display==='block')renderAdminDaily();})(this.closest('.card'))">
-      <div style="display:flex;align-items:center;gap:12px">
-        <span style="font-size:18px">📅</span>
-        <div>
-          <div style="font-size:14px;font-weight:800;color:var(--t0)">일일 현황</div>
-          <div style="font-size:11px;color:var(--t2);margin-top:2px">7개 지점 전체 · 오늘 발생 에러</div>
-        </div>
-      </div>
-      <span style="font-size:13px;color:var(--t2)">▾</span>
+  <!-- ══ 일일/월간 뷰 전환 버튼 ══ -->
+  <div style="display:flex;gap:8px;margin-bottom:20px">
+    <button id="adm-btn-daily" onclick="admSwitchView('daily')"
+      style="padding:9px 22px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;background:#534AB7;color:#fff;border:none;transition:all .2s">
+      📅 일일 현황
+    </button>
+    <button id="adm-btn-monthly" onclick="admSwitchView('monthly')"
+      style="padding:9px 22px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;background:var(--card);color:var(--t1);border:1px solid var(--border);transition:all .2s">
+      📊 월간 현황
+    </button>
+  </div>
+
+  <!-- ══ 일일 현황 뷰 ══ -->
+  <div id="adm-view-daily">
+
+    <!-- 리전 토글 (지점 위에) -->
+    <div class="region-toggle" id="adm-daily-region-toggle" style="margin-bottom:12px">
+      <button class="region-btn active" data-region="all" onclick="admSetDailyRegion('all',this)">🌐 전체</button>
+      <button class="region-btn" data-region="global" onclick="admSetDailyRegion('global',this)">🌍 글로벌</button>
+      <button class="region-btn" data-region="korea" onclick="admSetDailyRegion('korea',this)">🇰🇷 국내</button>
     </div>
-    <div class="adm-toggle-body" style="display:none;padding:0 20px 20px;border-top:1px solid var(--border)">
-      <!-- 지역 탭 -->
-      <div id="adm-daily-region-tabs" style="display:flex;gap:4px;margin:14px 0 12px;flex-wrap:wrap">
-        <button class="adm-rtab active" onclick="admSetDailyRegion('all',this)">🌐 전체 (7지점)</button>
-        <button class="adm-rtab" onclick="admSetDailyRegion('global',this)">🌍 글로벌 (3지점)</button>
-        <button class="adm-rtab" onclick="admSetDailyRegion('korea',this)">🇰🇷 국내 (4지점)</button>
+
+    <!-- 지점 버튼 (글로벌/국내 선택 시만 표시) -->
+    <div id="adm-daily-br-strip" style="display:none;gap:6px;margin-bottom:16px;flex-wrap:wrap"></div>
+
+    <!-- KPI -->
+    <div class="g4" id="adm-daily-kpi"></div>
+
+    <div class="section-divider"></div>
+
+    <!-- 차트 -->
+    <div class="g22">
+      <div class="card">
+        <div class="ctitle">주간 에러 추이 (7일)</div>
+        <div style="position:relative;height:260px"><canvas id="adm-daily-trend"></canvas></div>
       </div>
-      <!-- 지점 토글 -->
-      <div id="adm-daily-br-strip" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px"></div>
-      <!-- KPI -->
-      <div class="g4" id="adm-daily-kpi" style="margin-bottom:14px"></div>
-      <!-- 차트 -->
-      <div class="g22" style="margin-bottom:14px">
-        <div class="card"><div class="ctitle">7일 추이</div><div style="position:relative;height:180px"><canvas id="adm-daily-trend"></canvas></div></div>
-        <div class="card"><div class="ctitle">오늘 에러 목록</div>
-          <div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:12px">
-            <thead><tr style="background:var(--t0)">
-              <th style="color:#fff;padding:6px 8px;font-size:11px">#</th>
-              <th style="color:#fff;padding:6px 8px;font-size:11px">지점</th>
-              <th style="color:#fff;padding:6px 8px;font-size:11px">Zone</th>
-              <th style="color:#fff;padding:6px 8px;font-size:11px">유형</th>
-              <th style="color:#fff;padding:6px 8px;font-size:11px">내용</th>
-              <th style="color:#fff;padding:6px 8px;font-size:11px">난이도</th>
-            </tr></thead>
-            <tbody id="adm-daily-tbody"></tbody>
-          </table></div>
-        </div>
+      <div class="card">
+        <div class="ctitle">최다 발생 Zone (7일)</div>
+        <div id="adm-daily-topzone" style="padding:4px 0"></div>
       </div>
+    </div>
+    <div class="g22" style="margin-top:14px">
+      <div class="card">
+        <div class="ctitle">에러 유형 (SW / HW / 네트워크)</div>
+        <div style="position:relative;height:260px"><canvas id="adm-daily-cat"></canvas></div>
+      </div>
+      <div class="card">
+        <div class="ctitle">주요 유형</div>
+        <div id="adm-daily-topcat" style="padding:4px 0"></div>
+      </div>
+    </div>
+
+    <div class="section-divider"></div>
+
+    <!-- 에러 목록 -->
+    <div class="tbl-wrap">
+      <div class="tbl-hdr">
+        <div class="tbl-title">최근 7일 에러 목록</div>
+        <span id="adm-daily-cnt" class="rcnt"></span>
+      </div>
+      <div style="overflow-x:auto">
+        <table style="table-layout:fixed;width:100%">
+          <colgroup>
+            <col style="width:52px">
+            <col style="width:76px">
+            <col style="width:140px">
+            <col style="width:96px">
+            <col style="width:88px">
+            <col style="min-width:200px">
+            <col style="width:96px">
+            <col style="width:88px">
+          </colgroup>
+          <thead><tr>
+            <th>#</th>
+            <th>지점</th><th>Zone</th><th>일자</th>
+            <th>유형</th><th style="text-align:left">내용</th><th>처리방식</th><th>난이도</th>
+          </tr></thead>
+          <tbody id="adm-daily-tbody"></tbody>
+        </table>
+      </div>
+      <div id="adm-daily-pg"></div>
     </div>
   </div>
 
-  <!-- ══ 월간 현황 토글 ══ -->
-  <div class="card" style="padding:0;overflow:hidden">
-    <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px;cursor:pointer;user-select:none" onclick="(function(el){el.classList.toggle('open');var b=el.querySelector('.adm-toggle-body');b.style.display=b.style.display==='none'?'block':'none';if(b.style.display==='block')renderAdminMonthly();})(this.closest('.card'))">
-      <div style="display:flex;align-items:center;gap:12px">
-        <span style="font-size:18px">📊</span>
-        <div>
-          <div style="font-size:14px;font-weight:800;color:var(--t0)">월간 현황</div>
-          <div style="font-size:11px;color:var(--t2);margin-top:2px">7개 지점 전체 · 지점별 월간 통계</div>
-        </div>
-      </div>
-      <span style="font-size:13px;color:var(--t2)">▾</span>
+  <!-- ══ 월간 현황 뷰 ══ -->
+  <div id="adm-view-monthly" style="display:none">
+
+    <!-- 리전 토글 (지점 위에) -->
+    <div class="region-toggle" id="adm-monthly-region-toggle" style="margin-bottom:12px">
+      <button class="region-btn active" data-region="all" onclick="admSetMonthlyRegion('all',this)">🌐 전체</button>
+      <button class="region-btn" data-region="global" onclick="admSetMonthlyRegion('global',this)">🌍 글로벌</button>
+      <button class="region-btn" data-region="korea" onclick="admSetMonthlyRegion('korea',this)">🇰🇷 국내</button>
     </div>
-    <div class="adm-toggle-body" style="display:none;padding:0 20px 20px;border-top:1px solid var(--border)">
-      <!-- 지역 탭 -->
-      <div id="adm-monthly-region-tabs" style="display:flex;gap:4px;margin:14px 0 12px;flex-wrap:wrap">
-        <button class="adm-rtab active" onclick="admSetMonthlyRegion('all',this)">🌐 전체 (7지점)</button>
-        <button class="adm-rtab" onclick="admSetMonthlyRegion('global',this)">🌍 글로벌 (3지점)</button>
-        <button class="adm-rtab" onclick="admSetMonthlyRegion('korea',this)">🇰🇷 국내 (4지점)</button>
+
+    <!-- 지점 버튼 (글로벌/국내 선택시만) -->
+    <div id="adm-monthly-br-strip" style="display:none;gap:6px;margin-bottom:16px;flex-wrap:wrap"></div>
+
+    <!-- 기간 선택 -->
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px">
+      <span style="font-size:12px;font-weight:700;color:var(--t2)">기간</span>
+      <select id="adm-m-year" onchange="renderAdminMonthly()" aria-label="연도 선택"></select>
+      <select id="adm-m-month" onchange="renderAdminMonthly()" aria-label="월 선택"></select>
+      <span id="adm-monthly-date" style="font-size:12px;color:var(--t3);margin-left:4px"></span>
+    </div>
+
+    <!-- KPI -->
+    <div class="g4" id="adm-monthly-kpi" style="grid-template-columns:repeat(auto-fit,minmax(180px,1fr))"></div>
+
+    <div class="section-divider"></div>
+
+    <!-- 차트 -->
+    <div class="g31">
+      <div class="card">
+        <div class="ctitle">월별 에러 추이</div>
+        <div style="position:relative;height:280px"><canvas id="adm-monthly-trend"></canvas></div>
       </div>
-      <!-- 지점 토글 -->
-      <div id="adm-monthly-br-strip" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px"></div>
-      <!-- 기간 선택 -->
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;flex-wrap:wrap">
-        <span style="font-size:12px;font-weight:700;color:var(--t2)">기간</span>
-        <select id="adm-m-year" onchange="renderAdminMonthly()" style="padding:5px 8px;border-radius:6px;border:1px solid var(--border);background:var(--card);color:var(--t0);font-size:12px"></select>
-        <select id="adm-m-month" onchange="renderAdminMonthly()" style="padding:5px 8px;border-radius:6px;border:1px solid var(--border);background:var(--card);color:var(--t0);font-size:12px"></select>
+      <div class="card">
+        <div class="ctitle">Zone별 에러 현황</div>
+        <div id="adm-monthly-zone-hm"></div>
       </div>
-      <!-- KPI -->
-      <div class="g4" id="adm-monthly-kpi" style="margin-bottom:14px"></div>
-      <!-- 차트 -->
-      <div class="g22" style="margin-bottom:14px">
-        <div class="card"><div class="ctitle">월별 에러 추이</div><div style="position:relative;height:200px"><canvas id="adm-monthly-trend"></canvas></div></div>
-        <div class="card"><div class="ctitle">유형별 분포</div><div style="position:relative;height:200px"><canvas id="adm-monthly-cat"></canvas></div></div>
+    </div>
+
+    <div class="section-divider"></div>
+
+    <div class="g3">
+      <div class="card">
+        <div class="ctitle">에러 유형 (SW / HW / 네트워크)</div>
+        <div style="position:relative;height:260px"><canvas id="adm-monthly-cat"></canvas></div>
       </div>
-      <!-- 에러 목록 -->
-      <div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:12px">
-        <thead><tr style="background:var(--t0)">
-          <th style="color:#fff;padding:7px 8px;font-size:11px">#</th>
-          <th style="color:#fff;padding:7px 8px;font-size:11px">지점</th>
-          <th style="color:#fff;padding:7px 8px;font-size:11px">Zone</th>
-          <th style="color:#fff;padding:7px 8px;font-size:11px">일자</th>
-          <th style="color:#fff;padding:7px 8px;font-size:11px">내용</th>
-          <th style="color:#fff;padding:7px 8px;font-size:11px">난이도</th>
+      <div class="card">
+        <div class="ctitle">난이도 분포</div>
+        <div style="position:relative;height:260px"><canvas id="adm-monthly-diff"></canvas></div>
+      </div>
+      <div class="card">
+        <div class="ctitle">처리 방식</div>
+        <div style="position:relative;height:260px"><canvas id="adm-monthly-action"></canvas></div>
+      </div>
+    </div>
+
+    <div class="section-divider"></div>
+
+    <!-- Top Issues: top 5 -->
+    <div class="tbl-wrap">
+      <div class="tbl-hdr">
+        <div class="tbl-title">주요 반복 에러 Top 5</div>
+        <span id="adm-monthly-cnt" class="rcnt"></span>
+      </div>
+      <table style="table-layout:fixed;width:100%">
+        <colgroup>
+          <col style="width:44px">
+          <col style="width:72px">
+          <col style="width:140px">
+          <col style="width:88px">
+          <col><!-- 내용: 나머지 전부 -->
+          <col style="width:52px">
+        </colgroup>
+        <thead><tr>
+          <th style="white-space:nowrap">#</th>
+          <th style="white-space:nowrap">지점</th>
+          <th style="white-space:nowrap">Zone</th>
+          <th style="white-space:nowrap">유형</th>
+          <th>내용</th>
+          <th style="white-space:nowrap">건수</th>
         </tr></thead>
         <tbody id="adm-monthly-tbody"></tbody>
-      </table></div>
+      </table>
+    </div>
+
+    <div class="section-divider"></div>
+
+    <!-- 당월 전체 이슈 목록 (페이지네이션) -->
+    <div class="tbl-wrap">
+      <div class="tbl-hdr">
+        <div class="tbl-title">당월 전체 에러 목록</div>
+      </div>
+      <div style="overflow-x:auto">
+        <table style="table-layout:fixed;width:100%">
+          <colgroup>
+            <col style="width:52px">
+            <col style="width:76px">
+            <col style="width:140px">
+            <col style="width:96px">
+            <col style="width:88px">
+            <col style="min-width:200px">
+            <col style="width:96px">
+            <col style="width:88px">
+          </colgroup>
+          <thead><tr>
+            <th>#</th>
+            <th>지점</th><th>Zone</th><th>일자</th>
+            <th>유형</th><th style="text-align:left">내용</th><th>처리방식</th><th>난이도</th>
+          </tr></thead>
+          <tbody id="adm-monthly-issue-tbody"></tbody>
+        </table>
+      </div>
+      <div id="adm-monthly-pg"></div>
     </div>
   </div>
 
@@ -671,337 +760,51 @@ function copyEnvTemplate() {
   sec.innerHTML = [
     '<div class="section-divider"></div>',
     '<div style="margin-top:4px">',
-    '  <div style="font-size:13px;font-weight:800;color:var(--t0);margin-bottom:12px">📋 ',
-        (isKorea ? brLabel + ' 지점 리포트 생성' : br + ' Branch Report'),
+    '  <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">',
+    '    <span style="display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:10px;font-size:20px;background:'+(BR_COLORS[br]||'#534AB7')+'22">'+(BR_ICONS[br]||'📍')+'</span>',
+    '    <div>',
+    '      <div style="font-size:15px;font-weight:800;color:var(--t0)">' + (isKorea ? brLabel + ' 에러 리포트' : br + ' Error Report') + '</div>',
+    '      <div style="font-size:11px;color:var(--t2);margin-top:1px">' + (isKorea ? '해당 지점 에러만 포함 · 월간 리포트 생성' : 'Branch-specific errors only · Monthly report') + '</div>',
+    '    </div>',
     '  </div>',
-    // 코멘트 입력란
-    '  <div class="card card-elevated" style="border:1px solid rgba(83,74,183,0.15);margin-bottom:12px">',
-    '    <div style="font-size:12px;font-weight:700;color:var(--t1);margin-bottom:6px">',
-         (isKorea ? '📝 담당자 코멘트 / 비고 (선택)' : '📝 Manager Comment / Remarks (optional)'),
+    // 담당자 코멘트 / 비고
+    '  <div class="card card-elevated" style="border:1.5px solid rgba(83,74,183,0.15);margin-bottom:12px">',
+    '    <div style="text-align:center;margin-bottom:10px">',
+    '      <div style="font-size:13px;font-weight:800;color:var(--t0)">📝 ' + (isKorea ? '담당자 코멘트 / 비고' : 'Manager Comment / Remarks') + '</div>',
+    '      <div style="font-size:10px;color:var(--t3);margin-top:2px">' + (isKorea ? '선택사항' : 'Optional') + '</div>',
     '    </div>',
-    '    <div style="font-size:11px;color:var(--t3);margin-bottom:8px;line-height:1.6">',
+    '    <div style="font-size:11px;color:var(--t3);margin-bottom:10px;line-height:1.6;padding:8px 12px;background:var(--bg);border-radius:8px;text-align:left">',
          (isKorea
-           ? '개별 안내사항, 심각한 내용, 따로 보고할 추가 내용이 있으면 입력하세요.<br>입력된 내용은 리포트 상단에 게시됩니다.'
-           : 'Add any individual notes, serious issues, or additional information to report.<br>This content will be displayed at the top of the report.'),
+           ? '개별 안내사항, 심각한 내용, 따로 보고할 추가 내용이 있으면 입력하세요. 입력된 내용은 리포트 상단에 게시됩니다.'
+           : 'Add any individual notes, serious issues, or additional information. Content will be displayed at the top of the report.'),
     '    </div>',
-    '    <textarea id="branch-rpt-comment" rows="4"',
+    '    <textarea id="branch-rpt-comment" rows="3"',
     '      style="width:100%;padding:10px 12px;border-radius:8px;border:1.5px solid var(--border);background:var(--bg);color:var(--t0);font-family:var(--f,sans-serif);font-size:13px;resize:vertical;outline:none;transition:border-color .2s"',
+    '      onfocus="this.style.borderColor=\'var(--purple)\'" onblur="this.style.borderColor=\'var(--border)\'"',
     '      placeholder="' + (isKorea
-        ? '예: 3월 중 LED 모듈 이상 관련 추가 조사 필요. 벤더 미팅 일정 협의 중.'
-        : 'e.g. LED module anomaly in March requires further investigation. Vendor meeting being scheduled.') + '"',
+        ? '예: LED 모듈 이상 관련 추가 조사 필요.'
+        : 'e.g. LED module anomaly requires further investigation.') + '"',
     '    ></textarea>',
     '  </div>',
-    // 월간 리포트
-    '  <div class="card card-elevated" style="border:1px solid rgba(168,85,247,0.15);margin-bottom:12px">',
-    '    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">',
+    // 월간 리포트 (연간 삭제)
+    '  <div class="card card-elevated" style="border-left:4px solid '+(BR_COLORS[br]||'#534AB7')+';margin-bottom:12px">',
+    '    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">',
     '      <div style="display:flex;align-items:center;gap:8px">',
-    '        <span style="font-size:11px;font-weight:800;color:#fff;background:var(--purple);padding:2px 8px;border-radius:4px">MONTHLY</span>',
+    '        <span style="font-size:11px;font-weight:800;color:#fff;background:'+(BR_COLORS[br]||'#534AB7')+';padding:3px 10px;border-radius:5px">MONTHLY</span>',
     '        <div>',
     '          <div style="font-size:13px;font-weight:800;color:var(--t0)">' + (isKorea ? brLabel + ' 월간 에러 리포트' : br + ' Monthly Error Report') + '</div>',
-    '          <div style="font-size:11px;color:var(--t3);margin-top:1px">' + (isKorea ? '해당 지점 에러만 포함 · 한국어 리포트' : 'Branch errors only · English report') + '</div>',
+    '          <div style="font-size:11px;color:var(--t3);margin-top:1px">' + (isKorea ? '해당 지점 에러만 포함' : 'Branch errors only') + '</div>',
     '        </div>',
     '      </div>',
-    '      <div style="font-size:10px;font-weight:700;color:var(--t3);background:var(--sub);padding:3px 8px;border-radius:6px">' + (isKorea ? '🇰🇷' : '🌍') + ' ' + br + (isKorea ? ' · KOR' : ' · ENG') + '</div>',
+    '      <span style="font-size:10px;font-weight:700;color:var(--t3);background:var(--sub);padding:3px 10px;border-radius:20px;border:1px solid var(--border)">' + (isKorea ? '🇰🇷 KOR' : '🌍 ENG') + '</span>',
     '    </div>',
-    '    <div style="display:flex;gap:6px;flex-wrap:wrap">',
-    '      <button class="btn btn-sm" style="flex:1;background:var(--purple);color:#fff;font-weight:700;border-radius:8px" onclick="branchGenReport(\'download\',\'monthly\')">⬇ ' + (isKorea ? '다운로드' : 'Download') + '</button>',
-    '      <button class="btn btn-sm" style="flex:1;background:#2563eb;color:#fff;font-weight:700;border-radius:8px" onclick="branchGenReport(\'preview\',\'monthly\')">👁 ' + (isKorea ? '미리보기' : 'Preview') + '</button>',
+    '    <div style="display:flex;gap:8px">',
+    '      <button class="btn btn-sm" style="flex:1;background:'+(BR_COLORS[br]||'#534AB7')+';color:#fff;font-weight:700;border-radius:8px;padding:10px" onclick="branchGenReport(\'download\',\'monthly\')">' + (isKorea ? '⬇ 다운로드' : '⬇ Download') + '</button>',
+    '      <button class="btn btn-sm" style="flex:1;background:var(--card);color:var(--t1);border:1.5px solid var(--border);font-weight:700;border-radius:8px;padding:10px" onclick="branchGenReport(\'preview\',\'monthly\')">' + (isKorea ? '👁 미리보기' : '👁 Preview') + '</button>',
     '    </div>',
     '    <div id="br-monthly-status" style="margin-top:8px;display:none;padding:8px 12px;border-radius:6px;font-size:12px;"></div>',
-    '  </div>',
-    // 연간 리포트
-    '  <div class="card card-elevated" style="border:1px solid rgba(15,118,110,0.15)">',
-    '    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">',
-    '      <div style="display:flex;align-items:center;gap:8px">',
-    '        <span style="font-size:11px;font-weight:800;color:#fff;background:#0f766e;padding:2px 8px;border-radius:4px">ANNUAL</span>',
-    '        <div>',
-    '          <div style="font-size:13px;font-weight:800;color:var(--t0)">' + (isKorea ? brLabel + ' 연간 에러 리포트' : br + ' Annual Error Report') + '</div>',
-    '          <div style="font-size:11px;color:var(--t3);margin-top:1px">' + (isKorea ? '해당 지점 연간 누적' : 'Branch annual summary') + '</div>',
-    '        </div>',
-    '      </div>',
-    '    </div>',
-    '    <div style="display:flex;gap:6px;flex-wrap:wrap">',
-    '      <button class="btn btn-sm" style="flex:1;background:#0f766e;color:#fff;font-weight:700;border-radius:8px" onclick="branchGenReport(\'download\',\'annual\')">⬇ ' + (isKorea ? '다운로드' : 'Download') + '</button>',
-    '      <button class="btn btn-sm" style="flex:1;background:#0d9488;color:#fff;font-weight:700;border-radius:8px" onclick="branchGenReport(\'preview\',\'annual\')">👁 ' + (isKorea ? '미리보기' : 'Preview') + '</button>',
-    '    </div>',
-    '    <div id="br-annual-status" style="margin-top:8px;display:none;padding:8px 12px;border-radius:6px;font-size:12px;"></div>',
     '  </div>',
     '</div>'
   ].join('');
 
-  sec.style.display = 'block';
-
-  window.branchGenReport = function(action, type) {
-    var commentEl = document.getElementById('branch-rpt-comment');
-    var comment = commentEl ? commentEl.value : '';
-    var mSel = document.getElementById('monthSel');
-    var ySel = document.getElementById('yearSel');
-    var month = mSel ? parseInt(mSel.value) : (new Date().getMonth());
-    var year  = ySel ? parseInt(ySel.value)  : (new Date().getFullYear());
-    var statusId = type === 'annual' ? 'br-annual-status' : 'br-monthly-status';
-    var statusEl = document.getElementById(statusId);
-
-    if(statusEl) {
-      statusEl.style.display = 'block';
-      statusEl.style.background = '#eff6ff';
-      statusEl.style.color = '#1e40af';
-      statusEl.style.border = '1px solid #bfdbfe';
-      statusEl.innerHTML = '<span style="display:inline-block;width:12px;height:12px;border:2px solid rgba(30,64,175,.3);border-top-color:#1e40af;border-radius:50%;animation:spin .6s linear infinite;vertical-align:middle;margin-right:6px"></span>' + (isKorea ? '리포트 생성 중...' : 'Generating report...');
-    }
-
-    var endpoint = (type === 'annual') ? '/api/annual-report' : '/api/report';
-    var body = (type === 'annual')
-      ? { year:year, action:action, lang:defLang, region:region, comment:comment, branchFilter:br }
-      : { month:month, year:year, action:action, lang:defLang, reportType:'monthly', region:region, comment:comment, branchFilter:br };
-
-    fetch(endpoint, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body)
-    }).then(function(r){ return r.json(); }).then(function(d){
-      if(!d.ok) throw new Error(d.error || (isKorea ? '생성 실패' : 'Generation failed'));
-      if(statusEl) {
-        statusEl.style.background = '#f0fdf4';
-        statusEl.style.color = '#166534';
-        statusEl.style.border = '1px solid #bbf7d0';
-        statusEl.textContent = '✅ ' + d.message;
-      }
-      if(action === 'download' || action === 'preview') {
-        var bin = atob(d.pdfBase64), arr = new Uint8Array(bin.length);
-        for(var i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
-        var blob = new Blob([arr], { type: 'application/pdf' });
-        var url  = URL.createObjectURL(blob);
-        if(action === 'download') {
-          var a = document.createElement('a'); a.href = url; a.download = d.fileName; a.click();
-          setTimeout(function(){ URL.revokeObjectURL(url); }, 3000);
-        } else { window.open(url, '_blank'); }
-      }
-      if(typeof toast === 'function') toast(d.fileName + (isKorea ? ' 생성 완료' : ' generated'), 'success');
-    }).catch(function(e){
-      if(statusEl) {
-        statusEl.style.background = '#fef2f2';
-        statusEl.style.color = '#991b1b';
-        statusEl.style.border = '1px solid #fecaca';
-        statusEl.textContent = '❌ ' + e.message;
-      }
-      if(typeof toast === 'function') toast((isKorea ? '리포트 생성 실패: ' : 'Report failed: ') + e.message, 'error');
-    });
-  };
-})();
-
-// Update footer sync time
-function updateFooterSyncTime() {
-  const now = new Date();
-  const timeStr = now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', second: '2-digit', hour12: true });
-  const dateStr = now.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-  document.getElementById('footer-sync-time').textContent = `${dateStr} ${timeStr}`;
-}
-
-setInterval(updateFooterSyncTime, 60000);
-updateFooterSyncTime();
-
-// Export errors as CSV — exports ALL filtered data, not just current page
-function exportErrorsCSV() {
-  // Use _p1Data which contains all filtered records (not just current page)
-  if(typeof _p1Data === 'undefined' || !Array.isArray(_p1Data)) {
-    toast(typeof t==='function'?t('noDataExport'):'No data available to export', 'error');
-    return;
-  }
-
-  var _t = typeof t==='function'?t:function(k){return k;};
-  let csv = _t('csvBranch')+','+_t('csvZone')+','+_t('csvDate')+','+_t('csvSolvedBy')+','+_t('csvCategory')+','+_t('csvIssue')+','+_t('csvAction')+','+_t('csvDuration')+','+_t('csvDiff')+'\n';
-
-  _p1Data.forEach(function(row) {
-    var branch = (row.Branch || '').replace(/"/g, '""');
-    var zone = (row.Zone || '').replace(/"/g, '""');
-    var date = (row.Date || '').replace(/"/g, '""');
-    var solvedBy = (row.SolvedBy || '').replace(/"/g, '""');
-    var category = (row.Category || '').replace(/"/g, '""');
-    var issue = (row.IssueDetail || '').replace(/"/g, '""');
-    var action = (row.ActionTaken || '').replace(/"/g, '""');
-    var duration = (row.TimeTaken || '').replace(/"/g, '""');
-    var difficulty = (row.Difficulty || '');
-    csv += '"'+branch+'","'+zone+'","'+date+'","'+solvedBy+'","'+category+'","'+issue+'","'+action+'","'+duration+'","'+difficulty+'"\n';
-  });
-
-  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-  const url = window.URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `errors_${new Date().toISOString().split('T')[0]}.csv`;
-  a.click();
-  window.URL.revokeObjectURL(url);
-  toast(_p1Data.length + ' ' + (typeof t === 'function' ? t('errors') : 'errors') + ' ' + (typeof t === 'function' ? t('exported') : 'exported'), 'success');
-}
-
-// Clear search + filters (Past History)
-function clearHistSearch() {
-  var inp = document.getElementById('hist-s-main');
-  if (inp) inp.value = '';
-  var zn = document.getElementById('hist-zn');
-  if (zn) zn.value = '';
-  var ca = document.getElementById('hist-ca');
-  if (ca) ca.value = '';
-  if (typeof debouncedHist === 'function') debouncedHist();
-  else if (typeof renderHist === 'function') renderHist();
-}
-
-// Mobile navigation
-function toggleMobileNav() {
-  var nav = document.getElementById('mobileNav');
-  var overlay = document.getElementById('mobileOverlay');
-  var isOpen = nav.classList.contains('active');
-  if (isOpen) { closeMobileNav(); } else {
-    nav.classList.add('active');
-    overlay.classList.add('active');
-    document.body.style.overflow = 'hidden';
-  }
-}
-function closeMobileNav() {
-  document.getElementById('mobileNav').classList.remove('active');
-  document.getElementById('mobileOverlay').classList.remove('active');
-  document.body.style.overflow = '';
-}
-function mobileGoPage(i) {
-  closeMobileNav();
-  goPage(i, document.querySelectorAll('.ntab')[i]);
-  // Update active state
-  document.querySelectorAll('.mobile-nav-item').forEach(function(btn, idx) {
-    btn.classList.toggle('active', idx === i);
-  });
-}
-// Close mobile nav on escape key
-document.addEventListener('keydown', function(e) {
-  if (e.key === 'Escape') closeMobileNav();
-});
-// Close mobile nav on resize to desktop
-window.addEventListener('resize', function() {
-  if (window.innerWidth > 768) closeMobileNav();
-});
-
-// Mobile bottom tab bar
-function mobileTabGo(i, btn) {
-  _currentMobilePage = i;
-  goPage(i, document.querySelectorAll('.ntab')[i]);
-  // Update bottom nav active state
-  document.querySelectorAll('#mobileBottomNav button').forEach(function(b, idx) {
-    b.classList.toggle('bnav-active', idx === i);
-  });
-  // Also update drawer nav
-  document.querySelectorAll('.mobile-nav-item').forEach(function(b, idx) {
-    b.classList.toggle('active', idx === i);
-  });
-  // Scroll to top
-  window.scrollTo({ top: 0, behavior: 'smooth' });
-  // Mobile app: render mobile-specific content
-  if(typeof renderMobilePage === 'function') setTimeout(function(){ renderMobilePage(i); }, 100);
-}
-
-// ══════ GLOBAL ERROR HANDLING ══════
-window.onerror = function(message, source, lineno, colno, error) {
-  var errMsg = (message || 'Unknown error').slice(0, 80);
-  console.error('[G-ATIS] Error:', message, 'at', source, ':', lineno, ':', colno);
-  toast('Error: ' + errMsg + '...', 'error');
-  // Return true to suppress default error handling
-  return true;
-};
-
-// Handle unhandled promise rejections
-window.addEventListener('unhandledrejection', function(event) {
-  var reason = event.reason || 'Unknown promise rejection';
-  var errMsg = (String(reason).slice ? String(reason).slice(0, 80) : 'Unknown error');
-  console.error('[G-ATIS] Unhandled promise rejection:', reason);
-  toast('Unexpected error: ' + errMsg, 'error');
-  // Don't prevent default - just log
-});
-
-// ══════ PWA Service Worker + Update Detection ══════
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', function() {
-    navigator.serviceWorker.register('/sw.js').then(function(reg) {
-      console.log('[PWA] SW registered:', reg.scope);
-
-      // Check for updates every 30 minutes
-      setInterval(function() { reg.update(); }, 30 * 60 * 1000);
-
-      // Detect waiting worker (new version ready)
-      reg.addEventListener('updatefound', function() {
-        var newWorker = reg.installing;
-        if (!newWorker) return;
-        newWorker.addEventListener('statechange', function() {
-          if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-            showUpdateBanner(reg);
-          }
-        });
-      });
-    }).catch(function(err) {
-      console.warn('[PWA] SW registration failed:', err);
-    });
-
-    // Listen for SW_UPDATED message
-    navigator.serviceWorker.addEventListener('message', function(e) {
-      if (e.data && e.data.type === 'SW_UPDATED') {
-        console.log('[PWA] New version activated:', e.data.version);
-      }
-    });
-  });
-}
-
-// Update available banner
-function showUpdateBanner(reg) {
-  var banner = document.createElement('div');
-  banner.id = 'pwa-update-banner';
-  banner.style.cssText = 'position:fixed;bottom:70px;left:50%;transform:translateX(-50%);z-index:9999;background:#534AB7;color:#fff;padding:12px 20px;border-radius:12px;font-size:13px;font-weight:600;font-family:var(--f,sans-serif);display:flex;align-items:center;gap:12px;box-shadow:0 8px 32px rgba(83,74,183,0.3);animation:slideUpBanner 0.4s ease-out;max-width:calc(100vw - 32px)';
-  banner.innerHTML = '<span>New version available</span><button onclick=\"applyUpdate()\" style=\"background:#fff;color:#534AB7;border:none;padding:6px 14px;border-radius:8px;font-weight:700;font-size:12px;cursor:pointer\">Update</button><button onclick=\"this.parentElement.remove()\" style=\"background:none;border:none;color:rgba(255,255,255,0.7);font-size:18px;cursor:pointer;padding:0 4px\">×</button>';
-  document.body.appendChild(banner);
-}
-function applyUpdate() {
-  if (navigator.serviceWorker.controller) {
-    navigator.serviceWorker.ready.then(function(reg) {
-      if (reg.waiting) { reg.waiting.postMessage({ type: 'SKIP_WAITING' }); }
-    });
-  }
-  var b = document.getElementById('pwa-update-banner');
-  if (b) b.remove();
-  setTimeout(function() { location.reload(); }, 300);
-}
-
-// ══════ PWA Install Prompt ══════
-var _deferredInstallPrompt = null;
-window.addEventListener('beforeinstallprompt', function(e) {
-  e.preventDefault();
-  _deferredInstallPrompt = e;
-  showInstallHint();
-});
-function showInstallHint() {
-  // Only show on mobile, and only once per session
-  if (window.innerWidth > 768 || sessionStorage.getItem('pwa-hint-shown')) return;
-  sessionStorage.setItem('pwa-hint-shown', '1');
-  var hint = document.createElement('div');
-  hint.id = 'pwa-install-hint';
-  hint.style.cssText = 'position:fixed;bottom:70px;left:50%;transform:translateX(-50%);z-index:9998;background:#1a1a18;color:#fff;padding:14px 20px;border-radius:12px;font-size:13px;font-weight:500;font-family:var(--f,sans-serif);display:flex;align-items:center;gap:12px;box-shadow:0 8px 32px rgba(0,0,0,0.2);animation:slideUpBanner 0.4s ease-out;max-width:calc(100vw - 32px)';
-  hint.innerHTML = '<span style="font-size:20px">📲</span><span>Install as app for faster access</span><button onclick=\"installPWA()\" style=\"background:#534AB7;color:#fff;border:none;padding:8px 16px;border-radius:8px;font-weight:700;font-size:12px;cursor:pointer;white-space:nowrap\">Install</button><button onclick=\"this.parentElement.remove()\" style=\"background:none;border:none;color:rgba(255,255,255,0.5);font-size:18px;cursor:pointer;padding:0 4px\">×</button>';
-  document.body.appendChild(hint);
-  // Auto-dismiss after 8 seconds
-  setTimeout(function() { var h = document.getElementById('pwa-install-hint'); if(h) h.remove(); }, 8000);
-}
-function installPWA() {
-  if (_deferredInstallPrompt) {
-    _deferredInstallPrompt.prompt();
-    _deferredInstallPrompt.userChoice.then(function(result) {
-      console.log('[PWA] Install:', result.outcome);
-      _deferredInstallPrompt = null;
-    });
-  }
-  var h = document.getElementById('pwa-install-hint');
-  if (h) h.remove();
-}
-window.addEventListener('appinstalled', function() {
-  console.log('[PWA] App installed successfully');
-  _deferredInstallPrompt = null;
-  toast('App installed! Open from home screen.', 'success');
-})
-</script>
-
-</body>
-</html>
+  sec.style.display = '
