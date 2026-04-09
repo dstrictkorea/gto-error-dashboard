@@ -4,7 +4,7 @@ var G={logs:[],history:[],assets:[],meta:{}}, curBranch='ALL', _timer=null;
 var MONTHS=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 var NOW=new Date(), CY=NOW.getFullYear(), CM=NOW.getMonth();
 
-/* ── Account info from cookie (set by server on login) ── */
+/* ?�?� Account info from cookie (set by server on login) ?�?� */
 var _acctInfo = (function(){
   try {
     var m = document.cookie.match(/(?:^|;\s*)dse_acct=([^;]*)/);
@@ -15,7 +15,7 @@ var _acctInfo = (function(){
 var _loggedBranch = _acctInfo.branch;  // null = HQ (all access), 'AMDB' = Dubai only, etc.
 var _loggedId = _acctInfo.id;           // 'gto', 'amdb', 'amlv', etc.
 
-/* ── Branch / Region Registry (Frontend) ── */
+/* ?�?� Branch / Region Registry (Frontend) ?�?� */
 var BR_NAMES={AMGN:'Gangneung',AMYS:'Yeosu',AMBS:'Busan',AMJJ:'Jeju',AMNY:'New York',AMLV:'Las Vegas',AMDB:'Dubai'};
 var BR_COLORS_MAP={AMGN:'#0891b2',AMYS:'#059669',AMBS:'#2563eb',AMJJ:'#7c3aed',AMNY:'#185FA5',AMLV:'#993C1D',AMDB:'#534AB7'};
 var BR_REGIONS={AMGN:'Korea',AMYS:'Korea',AMBS:'Korea',AMJJ:'Korea',AMNY:'Global',AMLV:'Global',AMDB:'Global'};
@@ -24,7 +24,7 @@ var GLOBAL_BRANCHES=['AMNY','AMLV','AMDB'];
 var ALL_BRANCHES=KOREA_BRANCHES.concat(GLOBAL_BRANCHES);
 
 /* Current region toggle state: 'korea' or 'global' */
-/* URL-based locale: /kr → Korea+한글, /en → Global+English, / → Global+English */
+/* URL-based locale: /kr ??Korea+?��?, /en ??Global+English, / ??Global+English */
 var _urlLocale = (function(){
   var p = location.pathname.toLowerCase();
   if (p === '/kr') return 'kr';
@@ -73,7 +73,7 @@ function debounce(fn,ms){var t;return function(){clearTimeout(t);t=setTimeout(fn
 function throttle(fn,ms){var last=0;return function(){var now=Date.now();if(now-last>=ms){fn();last=now}}}
 function brBadge(b){return'<span class="bp bp-'+b.toLowerCase()+'">'+b+'</span>'}
 function catBadge(c){return({Software:'<span class="cat-sw">SW</span>',Hardware:'<span class="cat-hw">HW</span>',Network:'<span class="cat-net">Net</span>'}[c]||'<span class="cat-sw">'+esc(c)+'</span>')}
-function catFull(c){var ko=typeof _lang!=='undefined'&&_lang==='ko';return({Software:'<span class="cat-sw">'+(ko?'소프트웨어':'Software')+'</span>',Hardware:'<span class="cat-hw">'+(ko?'하드웨어':'Hardware')+'</span>',Network:'<span class="cat-net">'+(ko?'네트워크':'Network')+'</span>'}[c]||esc(c))}
+function catFull(c){var ko=typeof _lang!=='undefined'&&_lang==='ko';return({Software:'<span class="cat-sw">'+(ko?'?�프?�웨??:'Software')+'</span>',Hardware:'<span class="cat-hw">'+(ko?'?�드?�어':'Hardware')+'</span>',Network:'<span class="cat-net">'+(ko?'?�트?�크':'Network')+'</span>'}[c]||esc(c))}
 function tmBadge(t){return t&&t.indexOf('15')>=0?'<span class="tm-fast">'+esc(t)+'</span>':'<span class="tm-slow">'+(esc(t)||'\u2014')+'</span>'}
 function stars(n){n=Math.min(5,Math.max(1,n||1));return'<span class="diff-stars" style="color:#f59e0b">'+'\u2605'.repeat(n)+'</span><span class="diff-stars" style="color:#e2e8f0">'+'\u2605'.repeat(5-n)+'</span>'}
 var _toastTimeoutUtils=null;
@@ -82,3 +82,19 @@ function toast(m,t){var e=el('toast');if(!e)return;if(_toastTimeoutUtils){clearT
 function getByMonth(m,y){return G.logs.filter(function(r){var d=new Date(r.Date);return d.getMonth()===m&&d.getFullYear()===y})}
 function getByBranch(b){return G.logs.filter(function(r){return r.Branch===b}).sort(function(a,c){return new Date(c.Date)-new Date(a.Date)})}
 
+
+
+// Logout
+function doLogout() {
+  fetch('/logout').then(() => { window.location.href = '/login'; });
+}
+
+// Logout
+function doLogout() {
+  fetch('/logout').then(() => { window.location.href = '/login'; });
+}
+
+// Logout
+function doLogout() {
+  fetch('/logout').then(() => { window.location.href = '/login'; });
+}
