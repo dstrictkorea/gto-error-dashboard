@@ -97,6 +97,7 @@
       <button class="ntab" onclick="goPage(2,this)" role="tab" aria-selected="false" aria-controls="p1" tabindex="-1">Error Log</button>
       <button class="ntab" onclick="goPage(3,this)" role="tab" aria-selected="false" aria-controls="p2" tabindex="-1">Branches</button>
       <button class="ntab" onclick="goPage(4,this)" role="tab" aria-selected="false" aria-controls="p3" tabindex="-1">Search</button>
+      <button class="ntab" id="adminTab" onclick="goPage(-1,this)" role="tab" aria-selected="false" tabindex="-1" style="display:none;color:#534AB7;font-weight:800">⚙ Admin</button>
     </div>
   </div>
   <div class="t-r">
@@ -371,7 +372,183 @@
   </div>
 </div>
 
-<!-- FOOTER — Minimal footer with version, copyright, and last sync time -->
+<!-- PAGE: ADMIN (gto 전용) -->
+<div id="pAdmin" style="display:none;padding:0 0 48px">
+
+  <style>
+  .adm-rpt-card{background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:0}
+  .adm-lang-btn{padding:5px 12px;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;border:1.5px solid var(--border);background:var(--card);color:var(--t2);transition:all .2s}
+  .adm-lang-btn.active{border-color:var(--purple);background:var(--purple);color:#fff}
+  .adm-rtab{padding:6px 14px;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer;border:none;background:transparent;color:var(--t2);transition:all .2s}
+  .adm-rtab.active{background:var(--purple);color:#fff}
+  .adm-br-btn{padding:7px 13px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;border:1.5px solid var(--border);background:var(--card);color:var(--t1);transition:all .2s;display:inline-flex;align-items:center;gap:4px}
+  .adm-br-btn:hover:not(.adm-br-active){background:var(--bg)}
+  </style>
+
+  <div class="ph">
+    <div><div class="ph-title" style="color:var(--purple)">⚙ Admin Dashboard</div>
+    <div class="ph-sub">전체 7지점 통합 관리 · gto 전용</div></div>
+  </div>
+
+  <!-- ══ 리포트 생성 ══ -->
+  <div class="card" style="border:1.5px solid rgba(83,74,183,0.2);margin-bottom:20px">
+    <div style="font-size:13px;font-weight:800;color:var(--purple);margin-bottom:16px">📋 리포트 생성 — 글로벌 · 국내 지점</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+
+      <!-- 글로벌 -->
+      <div class="adm-rpt-card">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
+          <span style="padding:3px 9px;border-radius:5px;font-size:11px;font-weight:800;color:#fff;background:#185FA5">🌍 GLOBAL</span>
+          <span style="font-size:12px;font-weight:700;color:var(--t1)">AMNY · AMLV · AMDB</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap">
+          <span style="font-size:11px;font-weight:700;color:var(--t2)">기간</span>
+          <select id="adm-g-year" style="padding:4px 8px;border-radius:6px;border:1px solid var(--border);background:var(--card);color:var(--t0);font-size:12px"></select>
+          <select id="adm-g-month" style="padding:4px 8px;border-radius:6px;border:1px solid var(--border);background:var(--card);color:var(--t0);font-size:12px">
+            <option value="-1">연간(Annual)</option>
+          </select>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+          <span style="font-size:11px;font-weight:700;color:var(--t2)">언어</span>
+          <div id="adm-g-lang-toggle" style="display:flex;gap:4px">
+            <button class="adm-lang-btn active" data-lang="en" onclick="setAdminRptLang('global','en',this)">ENG</button>
+            <button class="adm-lang-btn" data-lang="ko" onclick="setAdminRptLang('global','ko',this)">KOR</button>
+          </div>
+        </div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap">
+          <button class="btn btn-sm" style="flex:1;background:#185FA5;color:#fff;font-weight:700;border-radius:8px" onclick="adminReport('global','download')">⬇ 다운로드</button>
+          <button class="btn btn-sm" style="flex:1;background:#2563eb;color:#fff;font-weight:700;border-radius:8px" onclick="adminReport('global','preview')">👁 미리보기</button>
+          <button class="btn btn-sm" style="flex:1;background:#059669;color:#fff;font-weight:700;border-radius:8px" onclick="adminReport('global','email')">✉ 이메일</button>
+        </div>
+        <div id="adm-g-status"></div>
+      </div>
+
+      <!-- 국내 -->
+      <div class="adm-rpt-card">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
+          <span style="padding:3px 9px;border-radius:5px;font-size:11px;font-weight:800;color:#fff;background:#059669">🇰🇷 KOREA</span>
+          <span style="font-size:12px;font-weight:700;color:var(--t1)">AMGN · AMYS · AMBS · AMJJ</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap">
+          <span style="font-size:11px;font-weight:700;color:var(--t2)">기간</span>
+          <select id="adm-k-year" style="padding:4px 8px;border-radius:6px;border:1px solid var(--border);background:var(--card);color:var(--t0);font-size:12px"></select>
+          <select id="adm-k-month" style="padding:4px 8px;border-radius:6px;border:1px solid var(--border);background:var(--card);color:var(--t0);font-size:12px">
+            <option value="-1">연간(Annual)</option>
+          </select>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+          <span style="font-size:11px;font-weight:700;color:var(--t2)">언어</span>
+          <div id="adm-k-lang-toggle" style="display:flex;gap:4px">
+            <button class="adm-lang-btn" data-lang="en" onclick="setAdminRptLang('korea','en',this)">ENG</button>
+            <button class="adm-lang-btn active" data-lang="ko" onclick="setAdminRptLang('korea','ko',this)">KOR</button>
+          </div>
+        </div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap">
+          <button class="btn btn-sm" style="flex:1;background:#059669;color:#fff;font-weight:700;border-radius:8px" onclick="adminReport('korea','download')">⬇ 다운로드</button>
+          <button class="btn btn-sm" style="flex:1;background:#0d9488;color:#fff;font-weight:700;border-radius:8px" onclick="adminReport('korea','preview')">👁 미리보기</button>
+          <button class="btn btn-sm" style="flex:1;background:#14b8a6;color:#fff;font-weight:700;border-radius:8px" onclick="adminReport('korea','email')">✉ 이메일</button>
+        </div>
+        <div id="adm-k-status"></div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ══ 일일 현황 토글 ══ -->
+  <div class="card" style="margin-bottom:16px;padding:0;overflow:hidden">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px;cursor:pointer;user-select:none" onclick="(function(el){el.classList.toggle('open');var b=el.querySelector('.adm-toggle-body');b.style.display=b.style.display==='none'?'block':'none';if(b.style.display==='block')renderAdminDaily();})(this.closest('.card'))">
+      <div style="display:flex;align-items:center;gap:12px">
+        <span style="font-size:18px">📅</span>
+        <div>
+          <div style="font-size:14px;font-weight:800;color:var(--t0)">일일 현황</div>
+          <div style="font-size:11px;color:var(--t2);margin-top:2px">7개 지점 전체 · 오늘 발생 에러</div>
+        </div>
+      </div>
+      <span style="font-size:13px;color:var(--t2)">▾</span>
+    </div>
+    <div class="adm-toggle-body" style="display:none;padding:0 20px 20px;border-top:1px solid var(--border)">
+      <!-- 지역 탭 -->
+      <div id="adm-daily-region-tabs" style="display:flex;gap:4px;margin:14px 0 12px;flex-wrap:wrap">
+        <button class="adm-rtab active" onclick="admSetDailyRegion('all',this)">🌐 전체 (7지점)</button>
+        <button class="adm-rtab" onclick="admSetDailyRegion('global',this)">🌍 글로벌 (3지점)</button>
+        <button class="adm-rtab" onclick="admSetDailyRegion('korea',this)">🇰🇷 국내 (4지점)</button>
+      </div>
+      <!-- 지점 토글 -->
+      <div id="adm-daily-br-strip" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px"></div>
+      <!-- KPI -->
+      <div class="g4" id="adm-daily-kpi" style="margin-bottom:14px"></div>
+      <!-- 차트 -->
+      <div class="g22" style="margin-bottom:14px">
+        <div class="card"><div class="ctitle">7일 추이</div><div style="position:relative;height:180px"><canvas id="adm-daily-trend"></canvas></div></div>
+        <div class="card"><div class="ctitle">오늘 에러 목록</div>
+          <div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:12px">
+            <thead><tr style="background:var(--t0)">
+              <th style="color:#fff;padding:6px 8px;font-size:11px">#</th>
+              <th style="color:#fff;padding:6px 8px;font-size:11px">지점</th>
+              <th style="color:#fff;padding:6px 8px;font-size:11px">Zone</th>
+              <th style="color:#fff;padding:6px 8px;font-size:11px">유형</th>
+              <th style="color:#fff;padding:6px 8px;font-size:11px">내용</th>
+              <th style="color:#fff;padding:6px 8px;font-size:11px">난이도</th>
+            </tr></thead>
+            <tbody id="adm-daily-tbody"></tbody>
+          </table></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ 월간 현황 토글 ══ -->
+  <div class="card" style="padding:0;overflow:hidden">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px;cursor:pointer;user-select:none" onclick="(function(el){el.classList.toggle('open');var b=el.querySelector('.adm-toggle-body');b.style.display=b.style.display==='none'?'block':'none';if(b.style.display==='block')renderAdminMonthly();})(this.closest('.card'))">
+      <div style="display:flex;align-items:center;gap:12px">
+        <span style="font-size:18px">📊</span>
+        <div>
+          <div style="font-size:14px;font-weight:800;color:var(--t0)">월간 현황</div>
+          <div style="font-size:11px;color:var(--t2);margin-top:2px">7개 지점 전체 · 지점별 월간 통계</div>
+        </div>
+      </div>
+      <span style="font-size:13px;color:var(--t2)">▾</span>
+    </div>
+    <div class="adm-toggle-body" style="display:none;padding:0 20px 20px;border-top:1px solid var(--border)">
+      <!-- 지역 탭 -->
+      <div id="adm-monthly-region-tabs" style="display:flex;gap:4px;margin:14px 0 12px;flex-wrap:wrap">
+        <button class="adm-rtab active" onclick="admSetMonthlyRegion('all',this)">🌐 전체 (7지점)</button>
+        <button class="adm-rtab" onclick="admSetMonthlyRegion('global',this)">🌍 글로벌 (3지점)</button>
+        <button class="adm-rtab" onclick="admSetMonthlyRegion('korea',this)">🇰🇷 국내 (4지점)</button>
+      </div>
+      <!-- 지점 토글 -->
+      <div id="adm-monthly-br-strip" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px"></div>
+      <!-- 기간 선택 -->
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;flex-wrap:wrap">
+        <span style="font-size:12px;font-weight:700;color:var(--t2)">기간</span>
+        <select id="adm-m-year" onchange="renderAdminMonthly()" style="padding:5px 8px;border-radius:6px;border:1px solid var(--border);background:var(--card);color:var(--t0);font-size:12px"></select>
+        <select id="adm-m-month" onchange="renderAdminMonthly()" style="padding:5px 8px;border-radius:6px;border:1px solid var(--border);background:var(--card);color:var(--t0);font-size:12px"></select>
+      </div>
+      <!-- KPI -->
+      <div class="g4" id="adm-monthly-kpi" style="margin-bottom:14px"></div>
+      <!-- 차트 -->
+      <div class="g22" style="margin-bottom:14px">
+        <div class="card"><div class="ctitle">월별 에러 추이</div><div style="position:relative;height:200px"><canvas id="adm-monthly-trend"></canvas></div></div>
+        <div class="card"><div class="ctitle">유형별 분포</div><div style="position:relative;height:200px"><canvas id="adm-monthly-cat"></canvas></div></div>
+      </div>
+      <!-- 에러 목록 -->
+      <div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:12px">
+        <thead><tr style="background:var(--t0)">
+          <th style="color:#fff;padding:7px 8px;font-size:11px">#</th>
+          <th style="color:#fff;padding:7px 8px;font-size:11px">지점</th>
+          <th style="color:#fff;padding:7px 8px;font-size:11px">Zone</th>
+          <th style="color:#fff;padding:7px 8px;font-size:11px">일자</th>
+          <th style="color:#fff;padding:7px 8px;font-size:11px">내용</th>
+          <th style="color:#fff;padding:7px 8px;font-size:11px">난이도</th>
+        </tr></thead>
+        <tbody id="adm-monthly-tbody"></tbody>
+      </table></div>
+    </div>
+  </div>
+
+</div>
+
+<!-- FOOTER -->
 <footer style="background:var(--sub);border-top:1px solid var(--border);padding:16px 32px;margin-top:48px;color:var(--t3);font-size:12px;text-align:center">
   <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px">
     <div>
@@ -408,6 +585,7 @@
 <script defer src="/js/search.js?v=5.6.0"></script>
 <script defer src="/js/report.js?v=5.6.0"></script>
 <script defer src="/js/ai.js?v=5.6.0"></script>
+<script defer src="/js/admin.js?v=5.6.0"></script>
 <script defer src="/js/mobile-app.js?v=5.6.0"></script>
 <script defer src="/js/nav.js?v=5.6.0"></script>
 
