@@ -23,9 +23,9 @@ app.use(cors({
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: false, limit: '10mb' }));
 
-// ?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═
-//  Request Logging ??lightweight access log
-// ?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═
+// ══════════════════════════════════════════════
+//  Request Logging — lightweight access log
+// ══════════════════════════════════════════════
 app.use((req, res, next) => {
   const start = Date.now();
   res.on('finish', () => {
@@ -37,9 +37,9 @@ app.use((req, res, next) => {
   next();
 });
 
-// ?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═
-//  Rate Limiting ??API ?�용 방�?
-// ?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═
+// ══════════════════════════════════════════════
+//  Rate Limiting — API 남용 방지
+// ══════════════════════════════════════════════
 const apiLimiter = rateLimit({
   windowMs: 1 * 60 * 1000,  // 1 minute window
   max: 60,                    // 60 requests per minute per IP
@@ -57,9 +57,9 @@ const authLimiter = rateLimit({
 app.use('/api/', apiLimiter);
 app.use('/login', authLimiter);
 
-// ?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═
-//  CSRF Protection ??Origin check for POST requests
-// ?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═
+// ══════════════════════════════════════════════
+//  CSRF Protection — Origin check for POST requests
+// ══════════════════════════════════════════════
 app.use((req, res, next) => {
   if (req.method !== 'POST') return next();
   const origin = req.headers.origin || '';
@@ -71,17 +71,17 @@ app.use((req, res, next) => {
     const originHost = new URL(origin).host;
     if (originHost === host) return next();
   } catch(e) { console.warn('Malformed origin header:', e.message); }
-  console.warn(`?�️  CSRF blocked: origin=${origin} host=${host} path=${req.path}`);
-  return res.status(403).json({ error: 'Forbidden ??origin mismatch' });
+  console.warn(`⚠️  CSRF blocked: origin=${origin} host=${host} path=${req.path}`);
+  return res.status(403).json({ error: 'Forbidden — origin mismatch' });
 });
 
-// ?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═
+// ══════════════════════════════════════════════
 //  Multi-Account Authentication (ID + Password)
-// ?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═
+// ══════════════════════════════════════════════
 const AUTH_SECRET = crypto.randomBytes(32).toString('hex');
 function makeToken(id) { return crypto.createHmac('sha256', AUTH_SECRET).update(id || 'gto').digest('hex'); }
 
-// Account registry: id ??{ pwd, branch, locale, region }
+// Account registry: id → { pwd, branch, locale, region }
 // branch=null means HQ (full access)
 const ACCOUNTS = {
   gto:  { pwd: process.env.APP_PASSWORD || 'dst1234', branch: null,   locale: '',   region: null },
@@ -98,7 +98,7 @@ const ACCOUNTS = {
 const VALID_TOKENS = {};
 Object.keys(ACCOUNTS).forEach(id => { VALID_TOKENS[id] = makeToken(id); });
 
-// Login page HTML generator ??locale param for /en, /kr redirect after login
+// Login page HTML generator — locale param for /en, /kr redirect after login
 function buildLoginHTML(locale) {
   const actionUrl = '/login';
   return `<!DOCTYPE html>
@@ -142,10 +142,10 @@ button:hover{background:#4339a0}
 <input class="field field-pw" type="password" name="password" id="loginPw" placeholder="Password" autocomplete="current-password">
 <div class="remember-row">
 <input type="checkbox" id="rememberMe" name="remember">
-<label for="rememberMe">ID / Password ?�??/label>
+<label for="rememberMe">ID / Password 저장</label>
 </div>
 <button type="submit">Sign In</button>
-<div class="err" id="err">ID ?�는 비�?번호가 ?�바르�? ?�습?�다.</div>
+<div class="err" id="err">ID 또는 비밀번호가 올바르지 않습니다.</div>
 </form>
 </div>
 <script>
@@ -170,7 +170,7 @@ button:hover{background:#4339a0}
 }
 const LOGIN_HTML = buildLoginHTML('');
 
-// Cookie parser (lightweight, no dependency) ??must be before auth
+// Cookie parser (lightweight, no dependency) — must be before auth
 app.use((req, res, next) => {
   if (!req.cookies) {
     req.cookies = {};
@@ -188,7 +188,7 @@ app.use((req, res, next) => {
 
 const IS_PROD = process.env.NODE_ENV === 'production';
 const USE_HTTPS = process.env.USE_HTTPS === 'true';  // Only enable secure cookie when HTTPS is configured
-const COOKIE_OPTS = { httpOnly: true, sameSite: 'lax', secure: USE_HTTPS, path: '/', maxAge: 60 * 60 * 1000 }; // 1-hour persistent cookie ??survives PWA background/tab switch
+const COOKIE_OPTS = { httpOnly: true, sameSite: 'lax', secure: USE_HTTPS, path: '/', maxAge: 60 * 60 * 1000 }; // 1-hour persistent cookie → survives PWA background/tab switch
 
 // Auth routes (no middleware applied)
 app.get('/login', (req, res) => {
@@ -203,14 +203,14 @@ app.post('/login', (req, res) => {
   }
   const account = ACCOUNTS[uid];
   if (!account) {
-    console.warn(`?�️  Unknown account "${uid}" at ${new Date().toISOString()}`);
+    console.warn(`⚠️  Unknown account "${uid}" at ${new Date().toISOString()}`);
     return res.redirect('/login?fail=1');
   }
   // Timing-safe comparison
   const a = Buffer.from(pw.padEnd(256, '\0'));
   const b = Buffer.from(account.pwd.padEnd(256, '\0'));
   if (a.length === b.length && crypto.timingSafeEqual(a, b)) {
-    console.log(`??Login [${uid}] at ${new Date().toISOString()}`);
+    console.log(`✅ Login [${uid}] at ${new Date().toISOString()}`);
     res.cookie('dse_auth', VALID_TOKENS[uid], COOKIE_OPTS);
     // Store account info in a non-httpOnly cookie so frontend JS can read it
     const acctInfo = JSON.stringify({ id: uid, branch: account.branch, region: account.region });
@@ -221,7 +221,7 @@ app.post('/login', (req, res) => {
     if (locale === 'en') return res.redirect('/en');
     return res.redirect('/');
   }
-  console.warn(`?�️  Failed login [${uid}] at ${new Date().toISOString()}`);
+  console.warn(`⚠️  Failed login [${uid}] at ${new Date().toISOString()}`);
   res.redirect('/login?fail=1');
 });
 app.get('/logout', (req, res) => {
@@ -232,12 +232,12 @@ app.get('/logout', (req, res) => {
 
 // Health check (no auth required)
 app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok', version: '5.6.0', uptime: Math.floor(process.uptime()), timestamp: new Date().toISOString() });
+  res.json({ status: 'ok', version: '5.1.2', uptime: Math.floor(process.uptime()), timestamp: new Date().toISOString() });
 });
 
-// ?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═
+// ══════════════════════════════════════════════
 //  Security Headers (CSP, X-Frame, etc.)
-// ?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═
+// ══════════════════════════════════════════════
 app.use((req, res, next) => {
   res.setHeader('X-Content-Type-Options', 'nosniff');
   res.setHeader('X-Frame-Options', 'DENY');
@@ -256,16 +256,16 @@ app.use((req, res, next) => {
   next();
 });
 
-// ?�?� Service-Worker-Allowed header for scoped SWs ?�?�
+// ── Service-Worker-Allowed header for scoped SWs ──
 app.get('/en/sw.js', (req, res, next) => { res.setHeader('Service-Worker-Allowed', '/en'); next(); });
 app.get('/kr/sw.js', (req, res, next) => { res.setHeader('Service-Worker-Allowed', '/kr'); next(); });
 
-// ?�?� Static assets BEFORE auth ??JS/CSS/images/fonts served without login ?�?�
-// index: false prevents serving index.html for '/' ??that stays behind auth
+// ── Static assets BEFORE auth — JS/CSS/images/fonts served without login ──
+// index: false prevents serving index.html for '/' — that stays behind auth
 const PUBLIC_DIR = path.join(__dirname, 'public');
 app.use(express.static(PUBLIC_DIR, { maxAge: IS_PROD ? '1d' : 0, etag: true, index: false }));
 
-// Auth middleware ??protect pages and API (static assets already served above)
+// Auth middleware — protect pages and API (static assets already served above)
 app.use((req, res, next) => {
   if (req.path === '/login' || req.path === '/favicon.ico') return next();
   const authToken = req.cookies.dse_auth || '';
@@ -279,13 +279,13 @@ app.use((req, res, next) => {
   res.redirect('/login');
 });
 
-// ?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═
-//  /api/data ??SharePoint data fetch
-// ?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═
+// ══════════════════════════════════════════════
+//  /api/data — SharePoint data fetch
+// ══════════════════════════════════════════════
 app.get('/api/data', async (req, res) => {
   const t0 = Date.now();
   try {
-    console.log('\n?�� SharePoint ?�이???�청 (Table_HQ + Past_History + Asset_List)...');
+    console.log('\n📡 SharePoint 데이터 요청 (Table_HQ + Past_History + Asset_List)...');
     const results = await Promise.allSettled([
       getSheet(C.sheets.hq), getSheet(C.sheets.history), getSheet(C.sheets.assets)
     ]);
@@ -294,10 +294,10 @@ app.get('/api/data', async (req, res) => {
     const hq = results[0].value;
     const hist = results[1].status === 'fulfilled' ? results[1].value : [];
     const assetRaw = results[2].status === 'fulfilled' ? results[2].value : [];
-    if (results[1].status === 'rejected') console.warn('?�️  History fetch failed:', results[1].reason.message);
-    if (results[2].status === 'rejected') console.warn('?�️  Assets fetch failed:', results[2].reason.message);
+    if (results[1].status === 'rejected') console.warn('⚠️  History fetch failed:', results[1].reason.message);
+    if (results[2].status === 'rejected') console.warn('⚠️  Assets fetch failed:', results[2].reason.message);
 
-    // All logs come from Table_HQ ??branch is extracted from each row
+    // All logs come from Table_HQ — branch is extracted from each row
     const logs = hq.map(r => {
       const branch = String(fg(r,'Branch','branch','Site','Location')).toUpperCase();
       const validBranch = ALL_BRANCHES.includes(branch) ? branch : 'AMGN';
@@ -309,13 +309,13 @@ app.get('/api/data', async (req, res) => {
     const assets = assetRaw.map(normAsset).filter(a=>a.Name);
 
     const ms = Date.now()-t0;
-    console.log(`??logs ${logs.length} (from Table_HQ), history ${allHistory.length}, assets ${assets.length} (${ms}ms)`);
+    console.log(`✅ logs ${logs.length} (from Table_HQ), history ${allHistory.length}, assets ${assets.length} (${ms}ms)`);
     res.json({ logs, history: allHistory, assets,
       meta:{ lastSync:new Date().toLocaleString('ko-KR',{timeZone:'Asia/Seoul'}),
         counts:{logs:logs.length,history:allHistory.length,assets:assets.length}, elapsed:`${ms}ms` }
     });
   } catch(e) {
-    console.error('??,e.message);
+    console.error('❌',e.message);
     const code = e.message.includes('Graph 401') || e.message.includes('AADSTS') ? 401
       : e.message.includes('Graph 403') ? 403
       : e.message.includes('Graph 404') ? 404
@@ -331,9 +331,9 @@ app.get('/api/data', async (req, res) => {
   }
 });
 
-// ?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═
-//  /api/status ??Auth check
-// ?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═
+// ══════════════════════════════════════════════
+//  /api/status — Auth check
+// ══════════════════════════════════════════════
 app.get('/api/status', async (req,res) => {
   try { await getToken(); res.json({ok:true}); }
   catch(e) {
@@ -342,14 +342,14 @@ app.get('/api/status', async (req,res) => {
   }
 });
 
-// ?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═
+// ══════════════════════════════════════════════
 //  AI Routes (mounted from ai.js)
-// ?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═
+// ══════════════════════════════════════════════
 app.use('/api', aiRouter);
 
-// ?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═
-//  /api/report ??PDF generation
-// ?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═
+// ══════════════════════════════════════════════
+//  /api/report — PDF generation
+// ══════════════════════════════════════════════
 app.post('/api/report', async (req, res) => {
   const t0 = Date.now();
   try {
@@ -365,7 +365,7 @@ app.post('/api/report', async (req, res) => {
     const safeType = validTypes.includes(reportType) ? reportType : 'monthly';
     const safeRegion = validRegions.includes(region) ? region : 'global';
     const regionBranches = safeRegion === 'korea' ? KOREA_BRANCHES : GLOBAL_BRANCHES;
-    console.log(`\n?�� Report: ${MONTHS_EN[month]} ${year} (${action}) lang=${safeLang} type=${safeType} region=${safeRegion}`);
+    console.log(`\n📄 Report: ${MONTHS_EN[month]} ${year} (${action}) lang=${safeLang} type=${safeType} region=${safeRegion}`);
 
     const [hq, hist, assetRaw] = await Promise.all([
       getSheet(C.sheets.hq), getSheet(C.sheets.history), getSheet(C.sheets.assets)
@@ -389,7 +389,7 @@ app.post('/api/report', async (req, res) => {
     const regionTag = safeRegion === 'korea' ? 'Korea' : 'Global';
     const fileName = `${langTag}_${regionTag}_${mm}${year}_Monthly Error Report.pdf`;
     const ms = Date.now() - t0;
-    console.log(`??PDF: ${fileName} (${(pdfBuffer.length/1024).toFixed(0)}KB, ${ms}ms)`);
+    console.log(`✅ PDF: ${fileName} (${(pdfBuffer.length/1024).toFixed(0)}KB, ${ms}ms)`);
 
     res.json({
       ok: true, action: action || 'download',
@@ -397,14 +397,14 @@ app.post('/api/report', async (req, res) => {
       message: `${fileName} (${(pdfBuffer.length/1024).toFixed(0)}KB)`
     });
   } catch (e) {
-    console.error('??Report error:', e.message);
+    console.error('❌ Report error:', e.message);
     res.status(500).json({ error: 'Report generation failed. Check server logs.' });
   }
 });
 
-// ?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═
-//  /api/annual-report ??Annual PDF generation
-// ?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═
+// ══════════════════════════════════════════════
+//  /api/annual-report — Annual PDF generation
+// ══════════════════════════════════════════════
 app.post('/api/annual-report', async (req, res) => {
   const t0 = Date.now();
   try {
@@ -417,7 +417,7 @@ app.post('/api/annual-report', async (req, res) => {
     const safeLang = validLangs.includes(lang) ? lang : 'en';
     const safeRegion = validRegions.includes(region) ? region : 'global';
     const regionBranches = safeRegion === 'korea' ? KOREA_BRANCHES : GLOBAL_BRANCHES;
-    console.log(`\n?�� Annual Report: ${year} (${action}) lang=${safeLang} region=${safeRegion}`);
+    console.log(`\n📄 Annual Report: ${year} (${action}) lang=${safeLang} region=${safeRegion}`);
 
     const [hq, hist, assetRaw] = await Promise.all([
       getSheet(C.sheets.hq), getSheet(C.sheets.history), getSheet(C.sheets.assets)
@@ -439,7 +439,7 @@ app.post('/api/annual-report', async (req, res) => {
     const regionTag = safeRegion === 'korea' ? 'Korea' : 'Global';
     const fileName = `${langTag}_${regionTag}_${year}_Annual Error Report.pdf`;
     const ms = Date.now() - t0;
-    console.log(`??Annual PDF: ${fileName} (${(pdfBuffer.length/1024).toFixed(0)}KB, ${ms}ms)`);
+    console.log(`✅ Annual PDF: ${fileName} (${(pdfBuffer.length/1024).toFixed(0)}KB, ${ms}ms)`);
 
     res.json({
       ok: true, action: action || 'download',
@@ -447,30 +447,30 @@ app.post('/api/annual-report', async (req, res) => {
       message: `${fileName} (${(pdfBuffer.length/1024).toFixed(0)}KB)`
     });
   } catch (e) {
-    console.error('??Annual Report error:', e.message);
+    console.error('❌ Annual Report error:', e.message);
     res.status(500).json({ error: 'Annual report generation failed. Check server logs.' });
   }
 });
 
-// ?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═
-//  Error Handling ??API 404 (MUST come BEFORE SPA fallback)
-// ?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═
+// ══════════════════════════════════════════════
+//  Error Handling — API 404 (MUST come BEFORE SPA fallback)
+// ══════════════════════════════════════════════
 app.all('/api/*', (req, res) => {
   res.status(404).json({ error: 'API endpoint not found', path: req.path });
 });
 
-// ?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═
+// ══════════════════════════════════════════════
 //  SPA fallback (static already served above auth middleware)
-// ?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═
-// Form app ??separate SPA
+// ══════════════════════════════════════════════
+// Form app — separate SPA
 app.get('/form', (req,res) => res.sendFile(path.join(PUBLIC_DIR, 'form', 'index.html')));
 app.get('/form/*', (req,res) => {
   const filePath = path.resolve(path.join(PUBLIC_DIR, req.path));
-  // Prevent path traversal ??ensure resolved path stays inside PUBLIC_DIR
+  // Prevent path traversal — ensure resolved path stays inside PUBLIC_DIR
   if (!filePath.startsWith(path.resolve(PUBLIC_DIR))) return res.status(403).send('Forbidden');
   res.sendFile(filePath, err => { if(err && !res.headersSent) res.sendFile(path.join(PUBLIC_DIR, 'form', 'index.html')); });
 });
-// Locale-specific routes ??serve index.html with locale manifest/SW injected
+// Locale-specific routes — serve index.html with locale manifest/SW injected
 app.get('/en', (req,res) => {
   const fs = require('fs');
   let html = fs.readFileSync(path.join(PUBLIC_DIR, 'index.html'), 'utf8');
@@ -493,28 +493,28 @@ app.use((err, req, res, _next) => {
   res.status(500).json({ error: IS_PROD ? 'Internal server error' : err.message });
 });
 
-// ?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═
+// ══════════════════════════════════════════════
 //  Server startup
-// ?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═
+// ══════════════════════════════════════════════
 const PORT = process.env.PORT || 3000;
 
-// ?�?� SERVER START (pm2 managed) ?�?�
+// ── SERVER START (pm2 managed) ──
 const server = app.listen(PORT, async () => {
-  console.log(`\n?? d'strict Error Dashboard v5.6.0 ??http://localhost:${PORT} (PID ${process.pid})`);
-  console.log('?�� SharePoint Excel ?�동 (?�이지 ?�속/?�로고침 ??로드)\n');
+  console.log(`\n🚀 d'strict Error Dashboard v5.5.0 → http://localhost:${PORT} (PID ${process.pid})`);
+  console.log('📊 SharePoint Excel 연동 (페이지 접속/새로고침 시 로드)\n');
   validateConfig();
-  try { await getToken(); console.log('??Azure AD ?�증 ?�료\n'); }
-  catch(e) { console.error('?�️  ?�증 ?�패:',e.message,'\n   ??AZURE_SECRET???�인?�세??n'); }
+  try { await getToken(); console.log('✅ Azure AD 인증 완료\n'); }
+  catch(e) { console.error('⚠️  인증 실패:',e.message,'\n   → AZURE_SECRET을 확인하세요\n'); }
 });
 
 server.on('error', function(err) {
-  console.error('???�버 ?�작 ?�패:', err.code, err.message);
+  console.error('❌ 서버 시작 실패:', err.code, err.message);
   process.exit(1);
 });
 
 // Graceful shutdown (pm2 sends SIGINT)
 function shutdown(sig) {
-  console.log(`\n${sig} received ??shutting down??(PID ${process.pid})`);
+  console.log(`\n${sig} received — shutting down… (PID ${process.pid})`);
   server.close(() => { console.log('Server closed'); process.exit(0); });
   setTimeout(() => process.exit(1), 10000);
 }

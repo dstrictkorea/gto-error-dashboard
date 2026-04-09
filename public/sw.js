@@ -1,14 +1,16 @@
-// ?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═??// D'strict Error Dashboard ??Service Worker v5.4
+// ═══════════════════════════════════════════
+// D'strict Error Dashboard — Service Worker v5.4
 // PWA Offline + Cache Strategy + Update Notify
-// ?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═??
+// ═══════════════════════════════════════════
+
 // Cache versioning: update this when assets change to bust old caches
 // Format: YYYY.MM.DD or semantic v#.#.#
-const CACHE_VERSION = 'v5.6.1-Apr2026';
+const CACHE_VERSION = 'v5.6.0-Apr2026';
 const CACHE_STATIC = 'dstrict-static-' + CACHE_VERSION;
 const CACHE_DYNAMIC = 'dstrict-dynamic-' + CACHE_VERSION;
 const CACHE_CDN = 'dstrict-cdn-' + CACHE_VERSION;
 
-// ?�?� Core static assets (App Shell) ?�?�
+// ── Core static assets (App Shell) ──
 const APP_SHELL = [
   '/',
   '/index.html',
@@ -34,13 +36,13 @@ const APP_SHELL = [
   '/manifest.json'
 ];
 
-// ?�?� CDN assets (cached separately, longer TTL) ?�?�
+// ── CDN assets (cached separately, longer TTL) ──
 const CDN_PATTERNS = [
   'cdn.jsdelivr.net',
   'cdnjs.cloudflare.com'
 ];
 
-// ?�═?�═?�═?�═?�═ INSTALL ?�═?�═?�═?�═?�═
+// ══════════ INSTALL ══════════
 self.addEventListener('install', event => {
   console.log('[SW] Installing ' + CACHE_VERSION);
   event.waitUntil(
@@ -59,7 +61,7 @@ self.addEventListener('install', event => {
   );
 });
 
-// ?�═?�═?�═?�═?�═ ACTIVATE ?�═?�═?�═?�═?�═
+// ══════════ ACTIVATE ══════════
 self.addEventListener('activate', event => {
   console.log('[SW] Activating ' + CACHE_VERSION);
   event.waitUntil(
@@ -88,7 +90,7 @@ self.addEventListener('activate', event => {
   );
 });
 
-// ?�═?�═?�═?�═?�═ FETCH STRATEGIES ?�═?�═?�═?�═?�═
+// ══════════ FETCH STRATEGIES ══════════
 self.addEventListener('fetch', event => {
   const url = new URL(event.request.url);
   const request = event.request;
@@ -96,34 +98,34 @@ self.addEventListener('fetch', event => {
   // Skip non-GET requests
   if (request.method !== 'GET') return;
 
-  // ?�?� Strategy 1: API calls ??Network Only (data must be live) ?�?�
+  // ── Strategy 1: API calls → Network Only (data must be live) ──
   if (url.pathname.startsWith('/api/')) {
     event.respondWith(networkOnlyWithOfflineFallback(request));
     return;
   }
 
-  // ?�?� Strategy 2: CDN resources ??Cache First (long-lived) ?�?�
+  // ── Strategy 2: CDN resources → Cache First (long-lived) ──
   if (CDN_PATTERNS.some(p => url.hostname.includes(p))) {
     event.respondWith(cacheFirstCDN(request));
     return;
   }
 
-  // ?�?� Strategy 3: Navigation requests ??Network First with offline page ?�?�
+  // ── Strategy 3: Navigation requests → Network First with offline page ──
   if (request.mode === 'navigate') {
     event.respondWith(networkFirstNavigation(request));
     return;
   }
 
-  // ?�?� Strategy 4: Static assets ??Network First (ensure fresh content) ?�?�
+  // ── Strategy 4: Static assets → Network First (ensure fresh content) ──
   event.respondWith(networkFirstStatic(request));
 });
 
-// ?�?� Network Only with offline JSON fallback (API) ?�?�
+// ── Network Only with offline JSON fallback (API) ──
 async function networkOnlyWithOfflineFallback(request) {
   try {
     return await fetch(request);
   } catch (err) {
-    // API offline ??return error JSON
+    // API offline → return error JSON
     return new Response(
       JSON.stringify({
         error: 'offline',
@@ -141,7 +143,7 @@ async function networkOnlyWithOfflineFallback(request) {
   }
 }
 
-// ?�?� Cache First for CDN (fonts, Chart.js, Pretendard CSS) ?�?�
+// ── Cache First for CDN (fonts, Chart.js, Pretendard CSS) ──
 async function cacheFirstCDN(request) {
   const cached = await caches.match(request);
   if (cached) return cached;
@@ -158,7 +160,7 @@ async function cacheFirstCDN(request) {
   }
 }
 
-// ?�?� Network First for navigation (HTML pages) ?�?�
+// ── Network First for navigation (HTML pages) ──
 async function networkFirstNavigation(request) {
   try {
     const response = await fetch(request);
@@ -181,7 +183,7 @@ async function networkFirstNavigation(request) {
   }
 }
 
-// ?�?� Network First for static assets (CSS/JS always fresh) ?�?�
+// ── Network First for static assets (CSS/JS always fresh) ──
 async function networkFirstStatic(request) {
   try {
     const response = await fetch(request);
@@ -192,14 +194,14 @@ async function networkFirstStatic(request) {
     }
     return response;
   } catch (err) {
-    // Network failed ??fall back to cache
+    // Network failed → fall back to cache
     const cached = await caches.match(request);
     if (cached) return cached;
     return new Response('', { status: 504 });
   }
 }
 
-// ?�?� Offline fallback page ?�?�
+// ── Offline fallback page ──
 function offlinePage() {
   return new Response(`
     <!DOCTYPE html>
@@ -208,7 +210,7 @@ function offlinePage() {
       <meta charset="UTF-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
       <meta name="theme-color" content="#534AB7">
-      <title>D'strict Error Dashboard ??Offline</title>
+      <title>D'strict Error Dashboard — Offline</title>
       <style>
         * { margin:0; padding:0; box-sizing:border-box; }
         body {
@@ -243,10 +245,10 @@ function offlinePage() {
     </head>
     <body>
       <div class="card">
-        <div class="icon">?��</div>
+        <div class="icon">📡</div>
         <h1>You're Offline</h1>
         <p>The dashboard requires an internet connection to load live error data from SharePoint. Please check your network and try again.</p>
-        <button class="btn" onclick="location.reload()">??Retry Connection</button>
+        <button class="btn" onclick="location.reload()">↻ Retry Connection</button>
         <div class="status"><div class="dot"></div>No network connection</div>
       </div>
     </body>
@@ -257,7 +259,7 @@ function offlinePage() {
   });
 }
 
-// ?�═?�═?�═?�═?�═ PERIODIC BACKGROUND SYNC ?�═?�═?�═?�═?�═
+// ══════════ PERIODIC BACKGROUND SYNC ══════════
 self.addEventListener('periodicsync', event => {
   if (event.tag === 'sync-error-data') {
     event.waitUntil(
@@ -271,7 +273,7 @@ self.addEventListener('periodicsync', event => {
   }
 });
 
-// ?�═?�═?�═?�═?�═ BACKGROUND SYNC ?�═?�═?�═?�═?�═
+// ══════════ BACKGROUND SYNC ══════════
 self.addEventListener('sync', event => {
   if (event.tag === 'sync-pending') {
     event.waitUntil(
@@ -290,7 +292,7 @@ self.addEventListener('sync', event => {
   }
 });
 
-// ?�═?�═?�═?�═?�═ PUSH NOTIFICATIONS ?�═?�═?�═?�═?�═
+// ══════════ PUSH NOTIFICATIONS ══════════
 self.addEventListener('push', event => {
   const data = event.data ? event.data.json() : {};
   const title = data.title || "d'strict Error Alert";
@@ -317,7 +319,7 @@ self.addEventListener('notificationclick', event => {
   );
 });
 
-// ?�═?�═?�═?�═?�═ MESSAGE HANDLING ?�═?�═?�═?�═?�═
+// ══════════ MESSAGE HANDLING ══════════
 self.addEventListener('message', event => {
   if (event.data && event.data.type === 'SKIP_WAITING') {
     self.skipWaiting();
