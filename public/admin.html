@@ -7,7 +7,7 @@
 <title>Admin — d'strict Error Dashboard</title>
 <link rel="icon" type="image/png" sizes="192x192" href="/fonts/icon-192.png">
 <link rel="manifest" href="/manifest.json">
-<link rel="stylesheet" href="/css/style.css?v=5.6.0">
+<link rel="stylesheet" href="/css/style.css?v=5.7.0">
 <link rel="preload" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
 <noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css"></noscript>
 <script defer src="/js/vendor/chart.umd.min.js?v=5.6.0"></script>
@@ -188,6 +188,141 @@ body{font-family:var(--f);background:var(--adm-bg);color:var(--adm-t0);min-heigh
 ::-webkit-scrollbar-track{background:transparent;}
 ::-webkit-scrollbar-thumb{background:var(--adm-border);border-radius:3px;}
 ::-webkit-scrollbar-thumb:hover{background:var(--adm-t3);}
+
+/* ══════════════════════════════════════
+   RESPONSIVE — Tablet (≤1024px)
+   ══════════════════════════════════════ */
+@media(max-width:1024px){
+  .adm-main{padding:24px 20px 80px;}
+  .adm-topbar{padding:0 20px;}
+  .adm-kpi-grid{grid-template-columns:repeat(auto-fit,minmax(140px,1fr));}
+}
+
+/* ══════════════════════════════════════
+   RESPONSIVE — Mobile (≤768px)
+   ══════════════════════════════════════ */
+@media(max-width:768px){
+  /* Topbar */
+  .adm-topbar{padding:0 12px;height:52px;}
+  .adm-title{font-size:13px;letter-spacing:-0.2px;}
+  .adm-badge{display:none;}
+  #adm-sync-info{display:none;}
+  #adm-clock{font-size:10px;padding:4px 8px;}
+  .adm-pill.live{font-size:10px;padding:4px 10px;}
+  .adm-btn{font-size:11px;padding:6px 10px;}
+  .adm-theme-btn{font-size:14px;padding:5px 8px;}
+
+  /* Main layout */
+  .adm-main{padding:16px 12px 80px;}
+
+  /* Report section */
+  .adm-report-section{padding:16px;border-radius:12px;margin-bottom:16px;}
+  .adm-report-section-title{font-size:13px;margin-bottom:14px;}
+  .adm-report-grid{grid-template-columns:1fr;gap:12px;}
+  .adm-rpt-card{padding:14px;border-radius:10px;}
+  .adm-rpt-buttons{gap:6px;}
+  .adm-rpt-btn{padding:10px 8px;font-size:12px;}
+  .adm-rpt-type-row{flex-wrap:wrap;gap:6px;}
+
+  /* Section headers */
+  .adm-section{border-radius:12px;margin-bottom:12px;}
+  .adm-section-header{padding:14px 16px;}
+  .adm-section-icon{font-size:18px;}
+  .adm-section-title{font-size:14px;}
+  .adm-section-sub{font-size:10px;}
+  .adm-section-body{padding:0 12px 16px;}
+
+  /* Region tabs: horizontal scroll (no wrap) */
+  .adm-region-tabs{
+    overflow-x:auto;flex-wrap:nowrap;
+    scrollbar-width:none;-webkit-overflow-scrolling:touch;
+    border-bottom-width:1px;padding-bottom:6px;margin-bottom:12px;
+  }
+  .adm-region-tabs::-webkit-scrollbar{display:none;}
+  .adm-rtab{flex-shrink:0;white-space:nowrap;padding:6px 14px;font-size:11px;}
+
+  /* Branch strip: horizontal scroll */
+  .adm-branch-strip{
+    overflow-x:auto;flex-wrap:nowrap;
+    scrollbar-width:none;-webkit-overflow-scrolling:touch;
+    padding-bottom:6px;margin-bottom:14px;
+    scroll-snap-type:x mandatory;
+  }
+  .adm-branch-strip::-webkit-scrollbar{display:none;}
+  .adm-br-btn{flex-shrink:0;white-space:nowrap;scroll-snap-align:start;padding:7px 12px;font-size:11px;}
+
+  /* Period row */
+  .adm-period-row{gap:8px;margin-bottom:14px;}
+  .adm-year-sel,.adm-month-sel{font-size:11px;padding:5px 8px;}
+
+  /* KPI grid: 2×2 */
+  .adm-kpi-grid{grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:14px;}
+  .adm-kpi{padding:12px 14px;border-radius:10px;}
+  .adm-kpi-label{font-size:9px;}
+  .adm-kpi-value{font-size:22px;}
+  .adm-kpi-sub{font-size:9px;}
+
+  /* Charts: full width */
+  .adm-chart-grid{grid-template-columns:1fr;gap:10px;margin-bottom:14px;}
+  .adm-chart-card{padding:12px;border-radius:10px;}
+  .adm-chart-title{font-size:10px;margin-bottom:10px;}
+  .adm-canvas-wrap{height:180px;}
+
+  /* Error table: horizontal scroll */
+  .adm-err-list{overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:10px;}
+  .adm-err-list table{min-width:540px;}
+  .adm-err-list th{padding:9px 10px;font-size:10px;}
+  .adm-err-list td{padding:8px 10px;font-size:11px;}
+
+  /* Content area */
+  .adm-content-area{padding:12px;border-radius:10px;}
+
+  /* Selects */
+  .adm-toggle-btn{font-size:11px;padding:5px 10px;}
+
+  /* Footer */
+  .adm-footer{font-size:10px;padding:16px 0 12px;}
+}
+
+/* ══════════════════════════════════════
+   RESPONSIVE — Small Phone (≤480px)
+   ══════════════════════════════════════ */
+@media(max-width:480px){
+  .adm-topbar{padding:0 10px;height:48px;}
+  .adm-logo-ci{height:15px;}
+  .adm-title{font-size:12px;}
+  #adm-clock{display:none;}
+  .adm-btn-danger{font-size:10px;padding:5px 8px;}
+
+  .adm-main{padding:12px 10px 70px;}
+
+  /* KPI: single column on very small screens */
+  .adm-kpi-grid{grid-template-columns:1fr;}
+  .adm-kpi{padding:10px 12px;}
+  .adm-kpi-value{font-size:26px;}
+
+  .adm-report-section{padding:12px;}
+  .adm-report-section-title{font-size:12px;}
+  .adm-section-header{padding:12px;}
+
+  .adm-canvas-wrap{height:160px;}
+  .adm-err-list table{min-width:480px;}
+}
+
+/* ══════════════════════════════════════
+   SAFE AREA — Notched phones (iPhone X+)
+   ══════════════════════════════════════ */
+@supports(padding:max(0px)){
+  .adm-topbar{
+    padding-left:max(12px,env(safe-area-inset-left));
+    padding-right:max(12px,env(safe-area-inset-right));
+  }
+  .adm-main{
+    padding-left:max(12px,env(safe-area-inset-left));
+    padding-right:max(12px,env(safe-area-inset-right));
+    padding-bottom:max(80px,calc(env(safe-area-inset-bottom) + 60px));
+  }
+}
 </style>
 </head>
 <body>

@@ -2621,3 +2621,36 @@ html.dark-mode .section-divider {
   .card, .tbl-wrap { page-break-inside: avoid; }
   h1, h2 { page-break-after: avoid; }
 }
+
+/* ══════════════════════════════════════
+   BRANCH REPORT — Mobile Enhancements
+   ══════════════════════════════════════ */
+/* 브랜치 리포트 버튼 행: 모바일에서 세로 스택 */
+@media (max-width: 480px) {
+  .branch-rpt-btn-row {
+    flex-direction: column !important;
+  }
+  .branch-rpt-btn-row .btn { width: 100% !important; }
+}
+
+/* 텍스트에어리아: 모바일 iOS 확대 방지 */
+@media (max-width: 768px) {
+  #branch-rpt-comment {
+    font-size: 16px !important; /* iOS 자동 확대 방지 */
+  }
+}
+
+/* ══════════════════════════════════════
+   GLOBAL TOUCH TARGETS — 44px minimum
+   ══════════════════════════════════════ */
+@media (pointer: coarse) {
+  .btn, .b-btn, .ntab { min-height: 44px; }
+  select { min-height: 44px; }
+  #branch-rpt-comment { min-height: 80px; }
+}
+
+/* ══════════════════════════════════════
+   ADMIN PAGE — Version bump anchor
+   (admin.html uses inline <style>, not this file)
+   Last updated: v5.7.0-Apr2026
+   ══════════════════════════════════════ */

@@ -845,10 +845,12 @@ function initBranchReport(){
   sec.innerHTML=[
     '<div class="section-divider"></div>',
     '<div style="margin-top:4px">',
-    '<div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">',
-    '<span style="display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:10px;font-size:20px;background:'+brCol+'22">'+brIcon+'</span>',
+    // 헤더: flex-wrap으로 모바일 대응
+    '<div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;flex-wrap:wrap">',
+    '<span style="display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:10px;font-size:20px;flex-shrink:0;background:'+brCol+'22">'+brIcon+'</span>',
     '<div><div style="font-size:15px;font-weight:800;color:var(--t0)">'+(isKorea?brName+' 에러 리포트':br+' Error Report')+'</div>',
     '<div style="font-size:11px;color:var(--t2);margin-top:1px">'+(isKorea?'해당 지점 에러만 포함 · 월간 리포트 생성':'Branch-specific errors only · Monthly report')+'</div></div></div>',
+    // 코멘트 카드
     '<div class="card" style="border:1.5px solid rgba(83,74,183,0.15);margin-bottom:12px">',
     '<div style="text-align:center;margin-bottom:10px">',
     '<div style="font-size:13px;font-weight:800;color:var(--t0)">📝 '+(isKorea?'담당자 코멘트 / 비고':'Manager Comment / Remarks')+'</div>',
@@ -858,21 +860,22 @@ function initBranchReport(){
           :'Add any individual notes, serious issues, or additional information. Content will appear at the top of the report.',
     '</div>',
     '<textarea id="branch-rpt-comment" rows="3"',
-    ' style="width:100%;padding:10px 12px;border-radius:8px;border:1.5px solid var(--border);background:var(--bg);color:var(--t0);font-family:var(--f,sans-serif);font-size:13px;resize:vertical;outline:none;transition:border-color .2s"',
+    ' style="width:100%;padding:10px 12px;border-radius:8px;border:1.5px solid var(--border);background:var(--bg);color:var(--t0);font-family:var(--f,sans-serif);font-size:13px;resize:vertical;outline:none;transition:border-color .2s;-webkit-appearance:none"',
     ' onfocus="this.style.borderColor=\'#534AB7\'" onblur="this.style.borderColor=\'var(--border)\'"',
     ' placeholder="'+(isKorea?'예: LED 모듈 이상 관련 추가 조사 필요.':'e.g. LED module anomaly requires further investigation.')+'"',
     '></textarea></div>',
+    // 월간 리포트 카드
     '<div class="card" style="border-left:4px solid '+brCol+'">',
-    '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">',
-    '<div style="display:flex;align-items:center;gap:8px">',
-    '<span style="font-size:11px;font-weight:800;color:#fff;background:'+brCol+';padding:3px 10px;border-radius:5px">MONTHLY</span>',
-    '<div><div style="font-size:13px;font-weight:800;color:var(--t0)">'+(isKorea?brName+' 월간 에러 리포트':br+' Monthly Error Report')+'</div>',
+    '<div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:12px;gap:8px;flex-wrap:wrap">',
+    '<div style="display:flex;align-items:center;gap:8px;min-width:0">',
+    '<span style="font-size:11px;font-weight:800;color:#fff;background:'+brCol+';padding:3px 10px;border-radius:5px;flex-shrink:0">MONTHLY</span>',
+    '<div style="min-width:0"><div style="font-size:13px;font-weight:800;color:var(--t0);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+(isKorea?brName+' 월간 에러 리포트':br+' Monthly Error Report')+'</div>',
     '<div style="font-size:11px;color:var(--t3);margin-top:1px">'+(isKorea?'해당 지점 에러만 포함':'Branch errors only')+'</div></div></div>',
-    '<span style="font-size:10px;font-weight:700;color:var(--t3);background:var(--sub);padding:3px 10px;border-radius:20px;border:1px solid var(--border)">'+(isKorea?'🇰🇷 KOR':'🌍 ENG')+'</span></div>',
-    '<div style="display:flex;gap:8px">',
-    '<button class="btn btn-sm" style="flex:1;background:'+brCol+';color:#fff;font-weight:700;border-radius:8px;padding:10px" onclick="branchReport(\'download\',\'monthly\')">'+(isKorea?'⬇ 다운로드':'⬇ Download')+'</button>',
-    '<button class="btn btn-sm" style="flex:1;background:var(--card);color:var(--t1);border:1.5px solid var(--border);font-weight:700;border-radius:8px;padding:10px" onclick="branchReport(\'preview\',\'monthly\')">'+(isKorea?'👁 미리보기':'👁 Preview')+'</button>',
-    '</div><div id="br-monthly-status"></div></div></div>'
+    '<span style="font-size:10px;font-weight:700;color:var(--t3);background:var(--sub);padding:3px 10px;border-radius:20px;border:1px solid var(--border);flex-shrink:0;align-self:flex-start">'+(isKorea?'🇰🇷 KOR':'🌍 ENG')+'</span></div>',
+    '<div class="branch-rpt-btn-row" style="display:flex;gap:8px">',
+    '<button class="btn btn-sm" style="flex:1;background:'+brCol+';color:#fff;font-weight:700;border-radius:8px;padding:10px;min-height:44px" onclick="branchReport(\'download\',\'monthly\')">'+(isKorea?'⬇ 다운로드':'⬇ Download')+'</button>',
+    '<button class="btn btn-sm" style="flex:1;background:var(--card);color:var(--t1);border:1.5px solid var(--border);font-weight:700;border-radius:8px;padding:10px;min-height:44px" onclick="branchReport(\'preview\',\'monthly\')">'+(isKorea?'👁 미리보기':'👁 Preview')+'</button>',
+    '</div><div id="br-monthly-status" style="margin-top:8px"></div></div></div>'
   ].join('');
   sec.style.display='block';
 }
@@ -986,4 +989,11 @@ window._onAdminGLoaded = function(){
     initAdminPage();
     initBranchReport();
     // G.logs 준비 후 Admin 페이지가 활성화되어 있으면 즉시 렌더링
+  }
+  if(document.readyState==='loading'){
+    document.addEventListener('DOMContentLoaded',_i);
+  } else {
+    _i();
+  }
+})();
     // goPage(-1) 호출 시점에 G가 �
