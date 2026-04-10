@@ -2,7 +2,7 @@
 
 const PDFDocument = require('pdfkit');
 const path = require('path');
-const { MONTHS_EN, BR_NAMES, BR_COLORS } = require('./config');
+const { MONTHS_EN, BR_NAMES, BR_COLORS, KOREA_BRANCHES, GLOBAL_BRANCHES } = require('./config');
 const { normHist } = require('./normalize');
 
 const FONT_DIR = path.join(__dirname, 'fonts');
