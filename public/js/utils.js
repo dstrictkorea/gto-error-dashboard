@@ -73,7 +73,15 @@ function debounce(fn,ms){var t;return function(){clearTimeout(t);t=setTimeout(fn
 function throttle(fn,ms){var last=0;return function(){var now=Date.now();if(now-last>=ms){fn();last=now}}}
 function brBadge(b){return'<span class="bp bp-'+b.toLowerCase()+'">'+b+'</span>'}
 function catBadge(c){return({Software:'<span class="cat-sw">소프트웨어</span>',Hardware:'<span class="cat-hw">하드웨어</span>',Network:'<span class="cat-net">네트워크</span>','소프트웨어':'<span class="cat-sw">소프트웨어</span>','하드웨어':'<span class="cat-hw">하드웨어</span>','네트워크':'<span class="cat-net">네트워크</span>'}[c]||'<span class="cat-sw">'+esc(c)+'</span>')}
-function catFull(c){var ko=typeof _lang!=='undefined'&&_lang==='ko';return({Software:'<span class="cat-sw">'+(ko?'소프트웨어':'Software')+'</span>',Hardware:'<span class="cat-hw">'+(ko?'하드웨어':'Hardware')+'</span>',Network:'<span class="cat-net">'+(ko?'네트워크':'Network')+'</span>'}[c]||esc(c))}
+function catFull(c){
+  var ko=typeof _lang!=='undefined'&&_lang==='ko';
+  // 한국어·영어 입력 모두 정규화 → 언어에 맞게 표시
+  var norm={Software:'sw',Hardware:'hw',Network:'net','소프트웨어':'sw','하드웨어':'hw','네트워크':'net'}[c];
+  if(norm==='sw') return '<span class="cat-sw">'+(ko?'소프트웨어':'Software')+'</span>';
+  if(norm==='hw') return '<span class="cat-hw">'+(ko?'하드웨어':'Hardware')+'</span>';
+  if(norm==='net') return '<span class="cat-net">'+(ko?'네트워크':'Network')+'</span>';
+  return esc(c);
+}
 function tmBadge(t){return t&&t.indexOf('15')>=0?'<span class="tm-fast">'+esc(t)+'</span>':'<span class="tm-slow">'+(esc(t)||'\u2014')+'</span>'}
 function stars(n){n=Math.min(5,Math.max(1,n||1));return'<span class="diff-stars" style="color:#f59e0b">'+'\u2605'.repeat(n)+'</span><span class="diff-stars" style="color:#e2e8f0">'+'\u2605'.repeat(5-n)+'</span>'}
 var _toastTimeoutUtils=null;
