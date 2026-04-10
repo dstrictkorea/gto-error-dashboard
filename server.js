@@ -216,8 +216,8 @@ app.post('/login', (req, res) => {
     const acctInfo = JSON.stringify({ id: uid, branch: account.branch, region: account.region });
     res.cookie('dse_acct', acctInfo, { ...COOKIE_OPTS, httpOnly: false });
     // Redirect to the account's default page
-    // gto (HQ) → Admin dashboard, branch accounts → their locale
-    if (uid === 'gto') return res.redirect('/admin');
+    // gto (HQ) → SPA with Admin tab visible (can also access /admin standalone)
+    if (uid === 'gto') return res.redirect('/kr');
     const locale = account.locale;
     if (locale === 'kr') return res.redirect('/kr');
     if (locale === 'en') return res.redirect('/en');

@@ -105,7 +105,7 @@ dse_acct (JS 읽기 가능) — {id, branch, region} JSON
 
 
 계정의 locale에 따라 자동 리다이렉트 (/kr 또는 /en)
-gto 계정은 항상 /admin으로 리다이렉트 (SPA 접근 불가 — 설계 의도)
+gto 계정은 /kr로 리다이렉트 (SPA에서 Admin 탭 + 일반 페이지 모두 접근 가능. /admin 독립 페이지도 유지)
 프론트엔드에서 _acctInfo, _loggedBranch, _loggedId 전역 변수로 접근
 
 4-2. 접근 제어 로직
@@ -163,8 +163,7 @@ Zone 히트맵, 카테고리/심각도/조치 차트
 반복 장애 Top 10 테이블
 지점 계정 전용: 하단에 리포트 생성 섹션 (branch-report-section)
   - 코멘트 / 비고 텍스트박스 (✕ 클리어 버튼)
-  - MONTHLY 리포트 카드 (다운로드 / 미리보기)
-  - ANNUAL 리포트 카드 (다운로드 / 미리보기)
+  - MONTHLY 리포트 카드 (다운로드 / 미리보기) — 연간 리포트 삭제됨
 
 5-5. Error Log DB
 
@@ -260,7 +259,7 @@ translate.js에 한국어 번역 추가
 
 
 
-9-7. SW 캐시 버전 (현재: v5.7.0)
+9-7. SW 캐시 버전 (현재: v5.7.1)
 
 코드 변경 시 3개 sw.js 동시 업데이트 필수:
   - public/sw.js
@@ -359,6 +358,21 @@ Slack/Teams: 짧고 명확한 메시지, 이모지 최소화
 13. 변경 이력 (Change Log)
 
 ★ 최신 변경사항을 새 세션 시작 시 반드시 확인
+
+13-0. 2026-04-10 (v5.7.1)
+주요 변경:
+1. server.js — gto 로그인 시 /admin → /kr 리다이렉트 변경 (SPA에서 일반 페이지 + Admin 탭 동시 접근 가능)
+2. public/js/admin.js — initBranchReport()에서 연간(ANNUAL) 리포트 카드 삭제 (월간만 유지)
+3. public/js/admin.js — adminReport()에서 Comment/Remarks 값을 API body에 포함
+4. public/index.html — Admin 리포트 생성에 Comment/Remarks textarea + ✕ 버튼 추가 (Global/Korea 모두)
+5. public/index.html — Admin 테이블 헤더 전부 text-align:center + white-space:nowrap (난이도 줄넘김 방지)
+6. public/index.html — 주요 반복 에러 Top 5 테이블: 내용만 text-align:left, 나머지 center
+7. pdf.js — 지점 리포트 Branch Summary: 동적 월/연도, 심각 이슈(Lv.4+) 별도 나열, 빈번 이슈 목록 추가
+8. pdf.js — 에러 없는 지점: "[OK] 금월 크리티컬 미발생" + 월별 정상 운영 상세 메시지
+9. public/css/mobile-app.css — 모바일에서 리포트 생성 숨김 (시각적 개체만 표시)
+10. public/css/mobile-app.css — Admin 페이지 모바일 최적화 (KPI, 차트, 테이블 반응형)
+11. public/css/style.css — Admin 페이지 반응형 CSS (768px 이하 1열 레이아웃)
+12. public/sw.js, kr/sw.js, en/sw.js — SW 캐시 버전 v5.7.0 → v5.7.1
 
 13-1. 2026-04-10 (커밋: 323c931)
 버그 수정 / 회귀 수정:

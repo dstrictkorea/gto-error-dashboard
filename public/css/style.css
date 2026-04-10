@@ -2654,4 +2654,116 @@ html.dark-mode .section-divider {
    Last updated: v5.7.0-Apr2026
    ══════════════════════════════════════ */
 
-/* Admin report grid: 2 columns on desktop, 1 on mob
+/* Admin report grid: 2 columns on desktop, 1 on mobile */
+@media (max-width: 768px) {
+  #pAdmin .ph-title { font-size: 20px !important; }
+  #pAdmin .ph-sub { font-size: 11px !important; }
+
+  /* Report generation: stack to 1 column */
+  #pAdmin > .card:first-of-type > div[style*="grid-template-columns"] {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 14px !important;
+  }
+
+  /* View toggle buttons: full width */
+  #pAdmin > div[style*="display:flex;gap:8px"] {
+    flex-direction: row;
+  }
+  #pAdmin > div[style*="display:flex;gap:8px"] > button {
+    flex: 1;
+    font-size: 12px !important;
+    padding: 10px 12px !important;
+  }
+
+  /* KPI cards: 2 columns */
+  #pAdmin .g4 {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 8px !important;
+  }
+
+  /* Charts: stack vertically */
+  #pAdmin .g22,
+  #pAdmin .g31,
+  #pAdmin .g3 {
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+  }
+
+  /* Tables: horizontal scroll */
+  #pAdmin .tbl-wrap {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  #pAdmin table {
+    min-width: 600px;
+  }
+
+  /* Comment textarea touch-friendly */
+  #pAdmin textarea {
+    min-height: 60px;
+    font-size: 13px !important;
+  }
+
+  /* Action buttons */
+  #pAdmin .btn.btn-sm {
+    min-height: 40px;
+    font-size: 12px !important;
+  }
+
+  /* Branch strip scroll */
+  #adm-daily-br-strip,
+  #adm-monthly-br-strip {
+    overflow-x: auto;
+    flex-wrap: nowrap !important;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 4px;
+  }
+
+  /* Region toggle scroll */
+  #pAdmin .region-toggle {
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Section divider spacing */
+  #pAdmin .section-divider {
+    margin: 12px 0 !important;
+  }
+
+  /* Card padding reduce */
+  #pAdmin .card {
+    padding: 14px !important;
+  }
+}
+
+/* Extra small screens */
+@media (max-width: 400px) {
+  #pAdmin .g4 {
+    grid-template-columns: 1fr !important;
+  }
+  #pAdmin > div[style*="display:flex;gap:8px"] {
+    flex-direction: column;
+    gap: 6px;
+  }
+}
+
+/* Admin table alignment defaults */
+#pAdmin th { text-align: center; }
+#pAdmin td { text-align: center; }
+
+/* Branch report section mobile */
+@media (max-width: 768px) {
+  #branch-report-section .card {
+    padding: 14px !important;
+  }
+  #branch-report-section textarea {
+    min-height: 60px;
+    font-size: 13px !important;
+  }
+  #branch-report-section .btn.btn-sm {
+    min-height: 44px;
+    font-size: 13px !important;
+  }
+}

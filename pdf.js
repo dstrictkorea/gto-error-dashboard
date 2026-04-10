@@ -1053,12 +1053,20 @@ function generatePDF(logs, month, year, lang, history, assets, reportType, regio
 
       // Status line
       if(branchCritical.length === 0){
+        const dynMonthOk = MONTHS_EN[month] + ' ' + year;
         const statusText = isKo
-          ? '[OK] 금월 크리티컬(Lv.4+) 장애 미발생 — ' + filterBranch + '지점 정상 운영중'
-          : '[OK] No critical (Lv.4+) incidents this month — ' + filterBranch + ' branch operating normally';
+          ? '[OK] 금월 크리티컬(Lv.4+) 장애 미발생 — ' + filterBranch + '지점 정상 운영중.'
+          : '[OK] No critical (Lv.4+) incidents this month — ' + filterBranch + ' branch operating normally.';
         doc.save().roundedRect(ML, sumY, PW, 24, 4).fill('#EAF3DE').restore();
         doc.save().rect(ML, sumY, 4, 24).fill(COK).restore();
         doc.fillColor(COK).fontSize(10).font(F.bold).text(statusText, ML + 12, sumY + 5, { width: PW - 20, lineBreak: false });
+        // Additional detail line
+        doc.y = sumY + 28;
+        const noErrDetail = isKo
+          ? dynMonthOk + ': 해당 월 장애 발생 없음. ' + filterBranch + '지점 시스템 정상 운영 중'
+          : dynMonthOk + ': No incidents this month. ' + filterBranch + ' systems operating normally';
+        doc.fillColor(CS).fontSize(9).font(F.med).text(noErrDetail, ML + 12, doc.y, { width: PW - 24, lineBreak: false });
+        doc.y += 16;
       } else {
         const dynMonth = MONTHS_EN[month] + ' ' + year;
         const statusText = isKo

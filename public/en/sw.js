@@ -1,9 +1,9 @@
-// ?愨晲?愨晲?愨晲?愨晲?愨晲?愨晲?愨晲?愨晲?愨晲?愨晲?愨晲?愨晲?愨晲?愨晲?愨晲?愨晲?愨晲?愨晲?愨晲?愨晲?愨晲??
+// ?锟解晲?锟解晲?锟解晲?锟解晲?锟解晲?锟解晲?锟解晲?锟解晲?锟解晲?锟解晲?锟解晲?锟解晲?锟解晲?锟解晲?锟解晲?锟解晲?锟解晲?锟解晲?锟解晲?锟解晲?锟解晲??
 // D'strict GTO-EN ??Service Worker (scope: /en)
 // PWA Offline + Cache Strategy + Update Notify
-// ?愨晲?愨晲?愨晲?愨晲?愨晲?愨晲?愨晲?愨晲?愨晲?愨晲?愨晲?愨晲?愨晲?愨晲?愨晲?愨晲?愨晲?愨晲?愨晲?愨晲?愨晲??
+// ?锟解晲?锟解晲?锟解晲?锟解晲?锟解晲?锟解晲?锟解晲?锟解晲?锟解晲?锟解晲?锟解晲?锟解晲?锟解晲?锟解晲?锟解晲?锟解晲?锟解晲?锟解晲?锟解晲?锟解晲?锟解晲??
 
-const CACHE_VERSION = 'v5.7.0-en-Apr2026';
+const CACHE_VERSION = 'v5.7.1-en-Apr2026';
 const CACHE_STATIC = 'gto-en-static-' + CACHE_VERSION;
 const CACHE_DYNAMIC = 'gto-en-dynamic-' + CACHE_VERSION;
 const CACHE_CDN = 'gto-en-cdn-' + CACHE_VERSION;
@@ -35,7 +35,7 @@ const APP_SHELL = [
 
 const CDN_PATTERNS = ['cdn.jsdelivr.net', 'cdnjs.cloudflare.com'];
 
-// ?愨晲?愨晲?愨晲?愨晲?愨晲 INSTALL ?愨晲?愨晲?愨晲?愨晲?愨晲
+// ?锟解晲?锟解晲?锟解晲?锟解晲?锟解晲 INSTALL ?锟解晲?锟解晲?锟解晲?锟解晲?锟解晲
 self.addEventListener('install', event => {
   console.log('[SW-EN] Installing ' + CACHE_VERSION);
   event.waitUntil(
@@ -47,7 +47,7 @@ self.addEventListener('install', event => {
   );
 });
 
-// ?愨晲?愨晲?愨晲?愨晲?愨晲 ACTIVATE ?愨晲?愨晲?愨晲?愨晲?愨晲
+// ?锟解晲?锟解晲?锟解晲?锟解晲?锟解晲 ACTIVATE ?锟解晲?锟解晲?锟解晲?锟解晲?锟解晲
 self.addEventListener('activate', event => {
   console.log('[SW-EN] Activating ' + CACHE_VERSION);
   event.waitUntil(
@@ -61,7 +61,7 @@ self.addEventListener('activate', event => {
   );
 });
 
-// ?愨晲?愨晲?愨晲?愨晲?愨晲 FETCH ?愨晲?愨晲?愨晲?愨晲?愨晲
+// ?锟解晲?锟解晲?锟解晲?锟解晲?锟解晲 FETCH ?锟解晲?锟解晲?锟解晲?锟解晲?锟解晲
 self.addEventListener('fetch', event => {
   const url = new URL(event.request.url);
   const request = event.request;
@@ -123,10 +123,10 @@ async function networkFirstStatic(request) {
 }
 
 function offlinePage() {
-  return new Response(`<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>GTO-EN Offline</title><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:-apple-system,'Pretendard',sans-serif;background:#f6f5f0;color:#1a1a18;display:flex;align-items:center;justify-content:center;min-height:100vh;padding:24px}.card{background:#fff;border-radius:20px;padding:48px 36px;max-width:400px;width:100%;text-align:center;box-shadow:0 4px 24px rgba(0,0,0,0.06)}.icon{font-size:56px;margin-bottom:20px}h1{font-size:22px;font-weight:800;margin-bottom:8px;color:#534AB7}p{font-size:14px;color:#73726c;line-height:1.6;margin-bottom:24px}.btn{display:inline-block;padding:14px 32px;background:#534AB7;color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer}</style></head><body><div class="card"><div class="icon">?摗</div><h1>You're Offline</h1><p>Please check your network and try again.</p><button class="btn" onclick="location.reload()">??Retry</button></div></body></html>`, { status: 200, headers: { 'Content-Type': 'text/html; charset=utf-8' } });
+  return new Response(`<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>GTO-EN Offline</title><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:-apple-system,'Pretendard',sans-serif;background:#f6f5f0;color:#1a1a18;display:flex;align-items:center;justify-content:center;min-height:100vh;padding:24px}.card{background:#fff;border-radius:20px;padding:48px 36px;max-width:400px;width:100%;text-align:center;box-shadow:0 4px 24px rgba(0,0,0,0.06)}.icon{font-size:56px;margin-bottom:20px}h1{font-size:22px;font-weight:800;margin-bottom:8px;color:#534AB7}p{font-size:14px;color:#73726c;line-height:1.6;margin-bottom:24px}.btn{display:inline-block;padding:14px 32px;background:#534AB7;color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer}</style></head><body><div class="card"><div class="icon">?锟斤拷</div><h1>You're Offline</h1><p>Please check your network and try again.</p><button class="btn" onclick="location.reload()">??Retry</button></div></body></html>`, { status: 200, headers: { 'Content-Type': 'text/html; charset=utf-8' } });
 }
 
-// ?愨晲?愨晲?愨晲?愨晲?愨晲 BACKGROUND SYNC / PUSH ?愨晲?愨晲?愨晲?愨晲?愨晲
+// ?锟解晲?锟解晲?锟解晲?锟解晲?锟解晲 BACKGROUND SYNC / PUSH ?锟解晲?锟解晲?锟解晲?锟解晲?锟解晲
 self.addEventListener('periodicsync', event => {
   if (event.tag === 'sync-error-data') {
     event.waitUntil(fetch('/api/daily-summary').then(r => r.json()).catch(() => {}));

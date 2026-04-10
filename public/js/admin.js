@@ -879,18 +879,6 @@ function initBranchReport(){
     '<button class="btn btn-sm" style="flex:1;background:'+brCol+';color:#fff;font-weight:700;border-radius:8px;padding:10px;min-height:44px" onclick="branchReport(\'download\',\'monthly\')">'+(isKorea?'⬇ 다운로드':'⬇ Download')+'</button>',
     '<button class="btn btn-sm" style="flex:1;background:var(--card);color:var(--t1);border:1.5px solid var(--border);font-weight:700;border-radius:8px;padding:10px;min-height:44px" onclick="branchReport(\'preview\',\'monthly\')">'+(isKorea?'👁 미리보기':'👁 Preview')+'</button>',
     '</div><div id="br-monthly-status" style="margin-top:8px"></div></div>',
-    // 연간 리포트 카드
-    '<div class="card" style="border-left:4px solid #0f766e">',
-    '<div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:12px;gap:8px;flex-wrap:wrap">',
-    '<div style="display:flex;align-items:center;gap:8px;min-width:0">',
-    '<span style="font-size:11px;font-weight:800;color:#fff;background:#0f766e;padding:3px 10px;border-radius:5px;flex-shrink:0">ANNUAL</span>',
-    '<div style="min-width:0"><div style="font-size:13px;font-weight:800;color:var(--t0)">'+(isKorea?brName+' 연간 에러 리포트':br+' Annual Error Report')+'</div>',
-    '<div style="font-size:11px;color:var(--t3);margin-top:1px">'+(isKorea?'해당 지점 연간 누적':'Branch annual summary')+'</div></div></div>',
-    '<span style="font-size:10px;font-weight:700;color:var(--t3);background:var(--sub);padding:3px 10px;border-radius:20px;border:1px solid var(--border);flex-shrink:0">'+(isKorea?'🇰🇷 KOR':'🌍 ENG')+'</span></div>',
-    '<div class="branch-rpt-btn-row" style="display:flex;gap:8px">',
-    '<button class="btn btn-sm" style="flex:1;background:#0f766e;color:#fff;font-weight:700;border-radius:8px;padding:10px;min-height:44px" onclick="branchReport(\'download\',\'annual\')">'+(isKorea?'⬇ 다운로드':'⬇ Download')+'</button>',
-    '<button class="btn btn-sm" style="flex:1;background:var(--card);color:var(--t1);border:1.5px solid var(--border);font-weight:700;border-radius:8px;padding:10px;min-height:44px" onclick="branchReport(\'preview\',\'annual\')">'+(isKorea?'👁 미리보기':'👁 Preview')+'</button>',
-    '</div><div id="br-annual-status" style="margin-top:8px"></div></div>',
     '</div>'
   ].join('');
   sec.style.display='block';

@@ -1,16 +1,16 @@
-// ?â•?â•?â•?â•?â•?â•?â•?â•?â•?â•?â•?â•?â•?â•?â•?â•?â•?â•?â•?â•?â•??
+// ?ï¿½â•?ï¿½â•?ï¿½â•?ï¿½â•?ï¿½â•?ï¿½â•?ï¿½â•?ï¿½â•?ï¿½â•?ï¿½â•?ï¿½â•?ï¿½â•?ï¿½â•?ï¿½â•?ï¿½â•?ï¿½â•?ï¿½â•?ï¿½â•?ï¿½â•?ï¿½â•?ï¿½â•??
 // D'strict Error Dashboard ??Service Worker v5.4
 // PWA Offline + Cache Strategy + Update Notify
-// ?â•?â•?â•?â•?â•?â•?â•?â•?â•?â•?â•?â•?â•?â•?â•?â•?â•?â•?â•?â•?â•??
+// ?ï¿½â•?ï¿½â•?ï¿½â•?ï¿½â•?ï¿½â•?ï¿½â•?ï¿½â•?ï¿½â•?ï¿½â•?ï¿½â•?ï¿½â•?ï¿½â•?ï¿½â•?ï¿½â•?ï¿½â•?ï¿½â•?ï¿½â•?ï¿½â•?ï¿½â•?ï¿½â•?ï¿½â•??
 
 // Cache versioning: update this when assets change to bust old caches
 // Format: YYYY.MM.DD or semantic v#.#.#
-const CACHE_VERSION = 'v5.7.0-Apr2026';
+const CACHE_VERSION = 'v5.7.1-Apr2026';
 const CACHE_STATIC = 'dstrict-static-' + CACHE_VERSION;
 const CACHE_DYNAMIC = 'dstrict-dynamic-' + CACHE_VERSION;
 const CACHE_CDN = 'dstrict-cdn-' + CACHE_VERSION;
 
-// ?€?€ Core static assets (App Shell) ?€?€
+// ?ï¿½?ï¿½ Core static assets (App Shell) ?ï¿½?ï¿½
 const APP_SHELL = [
   '/',
   '/index.html',
@@ -36,13 +36,13 @@ const APP_SHELL = [
   '/manifest.json'
 ];
 
-// ?€?€ CDN assets (cached separately, longer TTL) ?€?€
+// ?ï¿½?ï¿½ CDN assets (cached separately, longer TTL) ?ï¿½?ï¿½
 const CDN_PATTERNS = [
   'cdn.jsdelivr.net',
   'cdnjs.cloudflare.com'
 ];
 
-// ?â•?â•?â•?â•?â• INSTALL ?â•?â•?â•?â•?â•
+// ?ï¿½â•?ï¿½â•?ï¿½â•?ï¿½â•?ï¿½â• INSTALL ?ï¿½â•?ï¿½â•?ï¿½â•?ï¿½â•?ï¿½â•
 self.addEventListener('install', event => {
   console.log('[SW] Installing ' + CACHE_VERSION);
   event.waitUntil(
@@ -61,7 +61,7 @@ self.addEventListener('install', event => {
   );
 });
 
-// ?â•?â•?â•?â•?â• ACTIVATE ?â•?â•?â•?â•?â•
+// ?ï¿½â•?ï¿½â•?ï¿½â•?ï¿½â•?ï¿½â• ACTIVATE ?ï¿½â•?ï¿½â•?ï¿½â•?ï¿½â•?ï¿½â•
 self.addEventListener('activate', event => {
   console.log('[SW] Activating ' + CACHE_VERSION);
   event.waitUntil(
@@ -90,7 +90,7 @@ self.addEventListener('activate', event => {
   );
 });
 
-// ?â•?â•?â•?â•?â• FETCH STRATEGIES ?â•?â•?â•?â•?â•
+// ?ï¿½â•?ï¿½â•?ï¿½â•?ï¿½â•?ï¿½â• FETCH STRATEGIES ?ï¿½â•?ï¿½â•?ï¿½â•?ï¿½â•?ï¿½â•
 self.addEventListener('fetch', event => {
   const url = new URL(event.request.url);
   const request = event.request;
@@ -98,29 +98,29 @@ self.addEventListener('fetch', event => {
   // Skip non-GET requests
   if (request.method !== 'GET') return;
 
-  // ?€?€ Strategy 1: API calls ??Network Only (data must be live) ?€?€
+  // ?ï¿½?ï¿½ Strategy 1: API calls ??Network Only (data must be live) ?ï¿½?ï¿½
   if (url.pathname.startsWith('/api/')) {
     event.respondWith(networkOnlyWithOfflineFallback(request));
     return;
   }
 
-  // ?€?€ Strategy 2: CDN resources ??Cache First (long-lived) ?€?€
+  // ?ï¿½?ï¿½ Strategy 2: CDN resources ??Cache First (long-lived) ?ï¿½?ï¿½
   if (CDN_PATTERNS.some(p => url.hostname.includes(p))) {
     event.respondWith(cacheFirstCDN(request));
     return;
   }
 
-  // ?€?€ Strategy 3: Navigation requests ??Network First with offline page ?€?€
+  // ?ï¿½?ï¿½ Strategy 3: Navigation requests ??Network First with offline page ?ï¿½?ï¿½
   if (request.mode === 'navigate') {
     event.respondWith(networkFirstNavigation(request));
     return;
   }
 
-  // ?€?€ Strategy 4: Static assets ??Network First (ensure fresh content) ?€?€
+  // ?ï¿½?ï¿½ Strategy 4: Static assets ??Network First (ensure fresh content) ?ï¿½?ï¿½
   event.respondWith(networkFirstStatic(request));
 });
 
-// ?€?€ Network Only with offline JSON fallback (API) ?€?€
+// ?ï¿½?ï¿½ Network Only with offline JSON fallback (API) ?ï¿½?ï¿½
 async function networkOnlyWithOfflineFallback(request) {
   try {
     return await fetch(request);
@@ -143,7 +143,7 @@ async function networkOnlyWithOfflineFallback(request) {
   }
 }
 
-// ?€?€ Cache First for CDN (fonts, Chart.js, Pretendard CSS) ?€?€
+// ?ï¿½?ï¿½ Cache First for CDN (fonts, Chart.js, Pretendard CSS) ?ï¿½?ï¿½
 async function cacheFirstCDN(request) {
   const cached = await caches.match(request);
   if (cached) return cached;
@@ -160,7 +160,7 @@ async function cacheFirstCDN(request) {
   }
 }
 
-// ?€?€ Network First for navigation (HTML pages) ?€?€
+// ?ï¿½?ï¿½ Network First for navigation (HTML pages) ?ï¿½?ï¿½
 async function networkFirstNavigation(request) {
   try {
     const response = await fetch(request);
@@ -183,7 +183,7 @@ async function networkFirstNavigation(request) {
   }
 }
 
-// ?€?€ Network First for static assets (CSS/JS always fresh) ?€?€
+// ?ï¿½?ï¿½ Network First for static assets (CSS/JS always fresh) ?ï¿½?ï¿½
 async function networkFirstStatic(request) {
   try {
     const response = await fetch(request);
@@ -201,7 +201,7 @@ async function networkFirstStatic(request) {
   }
 }
 
-// ?€?€ Offline fallback page ?€?€
+// ?ï¿½?ï¿½ Offline fallback page ?ï¿½?ï¿½
 function offlinePage() {
   return new Response(`
     <!DOCTYPE html>
@@ -245,7 +245,7 @@ function offlinePage() {
     </head>
     <body>
       <div class="card">
-        <div class="icon">?“¡</div>
+        <div class="icon">?ï¿½ï¿½</div>
         <h1>You're Offline</h1>
         <p>The dashboard requires an internet connection to load live error data from SharePoint. Please check your network and try again.</p>
         <button class="btn" onclick="location.reload()">??Retry Connection</button>
@@ -259,7 +259,7 @@ function offlinePage() {
   });
 }
 
-// ?â•?â•?â•?â•?â• PERIODIC BACKGROUND SYNC ?â•?â•?â•?â•?â•
+// ?ï¿½â•?ï¿½â•?ï¿½â•?ï¿½â•?ï¿½â• PERIODIC BACKGROUND SYNC ?ï¿½â•?ï¿½â•?ï¿½â•?ï¿½â•?ï¿½â•
 self.addEventListener('periodicsync', event => {
   if (event.tag === 'sync-error-data') {
     event.waitUntil(
@@ -273,7 +273,7 @@ self.addEventListener('periodicsync', event => {
   }
 });
 
-// ?â•?â•?â•?â•?â• BACKGROUND SYNC ?â•?â•?â•?â•?â•
+// ?ï¿½â•?ï¿½â•?ï¿½â•?ï¿½â•?ï¿½â• BACKGROUND SYNC ?ï¿½â•?ï¿½â•?ï¿½â•?ï¿½â•?ï¿½â•
 self.addEventListener('sync', event => {
   if (event.tag === 'sync-pending') {
     event.waitUntil(
@@ -292,7 +292,7 @@ self.addEventListener('sync', event => {
   }
 });
 
-// ?â•?â•?â•?â•?â• PUSH NOTIFICATIONS ?â•?â•?â•?â•?â•
+// ?ï¿½â•?ï¿½â•?ï¿½â•?ï¿½â•?ï¿½â• PUSH NOTIFICATIONS ?ï¿½â•?ï¿½â•?ï¿½â•?ï¿½â•?ï¿½â•
 self.addEventListener('push', event => {
   const data = event.data ? event.data.json() : {};
   const title = data.title || "d'strict Error Alert";
@@ -319,7 +319,7 @@ self.addEventListener('notificationclick', event => {
   );
 });
 
-// ?â•?â•?â•?â•?â• MESSAGE HANDLING ?â•?â•?â•?â•?â•
+// ?ï¿½â•?ï¿½â•?ï¿½â•?ï¿½â•?ï¿½â• MESSAGE HANDLING ?ï¿½â•?ï¿½â•?ï¿½â•?ï¿½â•?ï¿½â•
 self.addEventListener('message', event => {
   if (event.data && event.data.type === 'SKIP_WAITING') {
     self.skipWaiting();

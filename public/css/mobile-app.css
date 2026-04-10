@@ -994,3 +994,109 @@ html.dark-mode .mobile-app .mobile-bottom-nav {
   .mobile-app .tz-city { font-size: 7px !important; }
   .mobile-app .tz-code { font-size: 6px !important; }
 }
+
+/* ══════════════════════════════════════
+   ADMIN PAGE — Mobile Optimizations
+   ══════════════════════════════════════ */
+.mobile-app #pAdmin {
+  padding: 0 4px;
+}
+
+.mobile-app #pAdmin .ph {
+  padding: 12px 0 8px;
+}
+.mobile-app #pAdmin .ph-title {
+  font-size: 18px !important;
+}
+.mobile-app #pAdmin .ph-sub {
+  font-size: 10px !important;
+}
+
+/* Report generation card: compact on mobile */
+.mobile-app #pAdmin > .card:first-of-type {
+  padding: 12px !important;
+  margin-bottom: 12px !important;
+}
+
+/* Region/Language badges: smaller */
+.mobile-app #pAdmin .region-btn {
+  padding: 5px 10px !important;
+  font-size: 11px !important;
+}
+
+/* View toggle buttons */
+.mobile-app #adm-btn-daily,
+.mobile-app #adm-btn-monthly {
+  font-size: 12px !important;
+  padding: 8px 14px !important;
+}
+
+/* KPI cards */
+.mobile-app #adm-daily-kpi .mc-val,
+.mobile-app #adm-monthly-kpi .mc-val {
+  font-size: 22px !important;
+}
+.mobile-app #adm-daily-kpi .mc-label,
+.mobile-app #adm-monthly-kpi .mc-label {
+  font-size: 10px !important;
+}
+
+/* Chart heights reduce */
+.mobile-app #pAdmin canvas {
+  max-height: 200px !important;
+}
+
+/* Tables: compact rows */
+.mobile-app #pAdmin th {
+  font-size: 10px !important;
+  padding: 6px 4px !important;
+}
+.mobile-app #pAdmin td {
+  font-size: 11px !important;
+  padding: 6px 4px !important;
+}
+
+/* Table title */
+.mobile-app #pAdmin .tbl-title {
+  font-size: 13px !important;
+}
+
+/* Section dividers */
+.mobile-app #pAdmin .section-divider {
+  margin: 10px 0 !important;
+}
+
+/* Chart titles */
+.mobile-app #pAdmin .ctitle {
+  font-size: 11px !important;
+}
+
+/* Branch report section: HIDDEN on mobile (reports not needed on mobile) */
+.mobile-app #branch-report-section {
+  display: none !important;
+}
+
+/* Admin report generation card: HIDDEN on mobile */
+.mobile-app #pAdmin > .card:first-of-type {
+  display: none !important;
+}
+
+/* Pagination compact */
+.mobile-app #pAdmin #adm-daily-pg button,
+.mobile-app #pAdmin #adm-monthly-pg button {
+  padding: 4px 8px !important;
+  font-size: 11px !important;
+}
+
+/* Bottom nav: add admin tab for gto mobile */
+@media (max-width: 768px) {
+  .mobile-bottom-nav {
+    display: flex;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .mobile-bottom-nav button {
+    flex-shrink: 0;
+    min-width: 60px;
+  }
+}
