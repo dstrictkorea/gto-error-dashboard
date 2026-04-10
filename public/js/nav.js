@@ -7,9 +7,12 @@ function goPage(i, btn, skipHistory) {
   var isAdmin = (i === -1);
   var adminPage = document.getElementById('pAdmin');
 
-  // Hide all regular pages + admin
-  document.querySelectorAll('.page').forEach(function(p) { p.classList.remove('active'); });
-  if(adminPage) adminPage.classList.remove('active');
+  // Hide all regular pages + admin (clear inline display style)
+  document.querySelectorAll('.page').forEach(function(p) {
+    p.classList.remove('active');
+    p.style.display = '';  // clear inline display:none so CSS .page.active works
+  });
+  if(adminPage) { adminPage.classList.remove('active'); adminPage.style.display = ''; }
 
   if(isAdmin){
     if(adminPage) adminPage.classList.add('active');

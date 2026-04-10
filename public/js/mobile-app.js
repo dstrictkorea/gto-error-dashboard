@@ -65,6 +65,7 @@ function buildMobileHeader(){
       '<button class="mah-btn" onclick="toggleLang()" id="m-lang-btn" aria-label="Toggle language">EN</button>' +
       '<button class="mah-btn" onclick="toggleTheme()" id="m-theme-btn" aria-label="Toggle theme">🌙</button>' +
       '<button class="mah-btn mah-sync" onclick="reloadData()" aria-label="Sync data">⟳</button>' +
+      '<button class="mah-btn" onclick="window.location.href=\'/logout\'" aria-label="Logout" style="color:#dc2626;font-size:13px">⏻</button>' +
     '</div>';
   document.body.insertBefore(hdr, document.body.firstChild);
 }

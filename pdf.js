@@ -1645,7 +1645,7 @@ function generatePDF(logs, month, year, lang, history, assets, reportType, regio
           status
         ];
       });
-      tbl(recHeaders, recWidths, recRows, {
+      tbl(recHeaders, recRows, recWidths, {
         leftCols:[2],
         colColors:{3:v=>{const s=String(v).toLowerCase();return(s.includes('urgent')||s.includes('긴급'))?CE:(s.includes('warn')||s.includes('주의'))?CW:COK;}}
       });

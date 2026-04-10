@@ -981,7 +981,7 @@ window._onAdminGLoaded = function(){
     window._admDailyPendingRender = false;
     // Admin 탭이 활성화된 상태면 바로 렌더
     var pA=document.getElementById('pAdmin');
-    if(pA && (pA.classList.contains('active') || pA.style.display!=='none')){
+    if(pA && pA.classList.contains('active')){
       _admDailyStrip();
       renderAdminDaily();
     }
