@@ -1636,3 +1636,44 @@ function generatePDF(logs, month, year, lang, history, assets, reportType, regio
           rec.text,
           status
         ];
+      });
+      tbl(recHeaders, recWidths, recRows, {
+        leftCols:[2],
+        colColors:{3:v=>{const s=String(v).toLowerCase();return(s.includes('urgent')||s.includes('긴급'))?CE:(s.includes('warn')||s.includes('주의'))?CW:COK;}}
+      });
+    } // end if(total>0) — recommendations section
+
+    // ══════════════════════════════════════════════
+    //  FOOTER ALL PAGES
+    // ══════════════════════════════════════════════
+    _markPage();
+    const tp=doc.bufferedPageRange().count;
+    const contentPageList=[];
+    for(let i=0;i<tp;i++){
+      if(_contentPages.has(i)) contentPageList.push(i);
+    }
+    const totalContent=contentPageList.length;
+    const monthLabel=MONTHS_EN[month]||('Month '+(month+1));
+    const footerTitle=isKo
+      ? ("d'strict Error  |  "+monthLabel+' '+year+' 월간 리포트')
+      : ("d'strict Error  |  "+monthLabel+' '+year+' Monthly Report');
+    for(let ci=0;ci<contentPageList.length;ci++){
+      const i=contentPageList[ci];
+      doc.switchToPage(i);
+      doc.save().rect(0,818,595,24).fill(CT).restore();
+      doc.fillColor('#a3a29c').fontSize(7.5).font(F.light);
+      doc.text(footerTitle,ML,823,{width:PW-60,lineBreak:false});
+      doc.text('Page '+(ci+1)+'/'+totalContent,MR-60,823,{width:60,align:'right',lineBreak:false});
+    }
+    // Add top purple bar to all pages
+    for(let pi=0;pi<tp;pi++){
+      doc.switchToPage(pi);
+      doc.save().rect(0,0,595,6).fill(CP).restore();
+    }
+    doc.switchToPage(tp-1);
+
+    doc.end();
+  }));
+}
+
+module.exports = { generatePDF };
