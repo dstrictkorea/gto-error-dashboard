@@ -90,10 +90,12 @@ async function adminReport(region,action){
   var statusEl=document.getElementById(region==='global'?'adm-g-status':'adm-k-status');
   if(!yearEl||!monthEl||!statusEl) return;
   var year=parseInt(yearEl.value), monthVal=parseInt(monthEl.value);
+  var commentEl=document.getElementById(region==='global'?'adm-g-comment':'adm-k-comment');
+  var comment=commentEl?commentEl.value:'';
   var isAnnual=isNaN(monthVal)||monthVal===-1;
   var endpoint=isAnnual?'/api/annual-report':'/api/report';
-  var body=isAnnual?{year:year,action:action,lang:lang,region:region}
-    :{month:monthVal,year:year,action:action,lang:lang,reportType:'monthly',region:region};
+  var body=isAnnual?{year:year,action:action,lang:lang,region:region,comment:comment}
+    :{month:monthVal,year:year,action:action,lang:lang,reportType:'monthly',region:region,comment:comment};
   statusEl.style.cssText='display:block;padding:8px 12px;border-radius:8px;font-size:12px;font-weight:600;background:var(--bg);border:1px solid var(--border);margin-top:8px;color:var(--t2)';
   statusEl.innerHTML='<div style="display:flex;align-items:center;gap:8px"><div style="width:12px;height:12px;border:2px solid var(--border);border-top-color:#534AB7;border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0"></div>PDF 생성 중...</div>';
   try{
@@ -420,12 +422,12 @@ function _renderAdmDailyTable(){
     var shortDetail=detail.length>40?detail.slice(0,40)+'…':detail;
     return '<tr>'
       +'<td style="text-align:center;color:var(--t3);white-space:nowrap">'+(start+i+1)+'</td>'
-      +'<td style="white-space:nowrap">'+brBadge(r.Branch)+'</td>'
-      +'<td style="white-space:nowrap"><span class="zp">'+esc(r.Zone||'--')+'</span></td>'
-      +'<td style="font-size:12px;color:var(--t2);white-space:nowrap">'+esc(r.Date||'')+'</td>'
-      +'<td style="white-space:nowrap">'+catBadge(r.Category||'')+'</td>'
+      +'<td style="text-align:center;white-space:nowrap">'+brBadge(r.Branch)+'</td>'
+      +'<td style="text-align:center;white-space:nowrap"><span class="zp">'+esc(r.Zone||'--')+'</span></td>'
+      +'<td style="text-align:center;font-size:12px;color:var(--t2);white-space:nowrap">'+esc(r.Date||'')+'</td>'
+      +'<td style="text-align:center;white-space:nowrap">'+catBadge(r.Category||'')+'</td>'
       +'<td style="color:var(--t2);max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:left" title="'+esc(detail)+'">'+esc(shortDetail)+'</td>'
-      +'<td style="font-size:12px;color:var(--t2);white-space:nowrap">'+esc(r.ActionType||'--')+'</td>'
+      +'<td style="text-align:center;font-size:12px;color:var(--t2);white-space:nowrap">'+esc(r.ActionType||'--')+'</td>'
       +'<td style="text-align:center;white-space:nowrap">'+stars(r.Difficulty||1)+'</td>'
       +'</tr>';
   }).join('');
@@ -749,10 +751,10 @@ function renderAdminMonthly(){
         var rank=i<3?'<span style="font-size:16px">'+medals[i]+'</span>':'<span style="color:var(--t3);font-weight:700">'+(i+1)+'</span>';
         return '<tr>'
           +'<td style="white-space:nowrap;text-align:center">'+rank+'</td>'
-          +'<td style="white-space:nowrap">'+brBadge(v.br)+'</td>'
-          +'<td style="white-space:nowrap"><span class="zp">'+esc(v.zone)+'</span></td>'
-          +'<td style="white-space:nowrap">'+catFull(v.cat)+'</td>'
-          +'<td style="color:var(--t2);word-break:break-word">'+esc(v.s)+'</td>'
+          +'<td style="text-align:center;white-space:nowrap">'+brBadge(v.br)+'</td>'
+          +'<td style="text-align:center;white-space:nowrap"><span class="zp">'+esc(v.zone)+'</span></td>'
+          +'<td style="text-align:center;white-space:nowrap">'+catFull(v.cat)+'</td>'
+          +'<td style="color:var(--t2);word-break:break-word;text-align:left">'+esc(v.s)+'</td>'
           +'<td style="font-size:18px;font-weight:800;color:var(--t0);white-space:nowrap;text-align:center">'+v.cnt+'</td>'
           +'</tr>';
       }).join('');
@@ -783,12 +785,12 @@ function _renderAdmMonthlyTable(){
     var shortDetail=detail.length>40?detail.slice(0,40)+'…':detail;
     return '<tr>'
       +'<td style="text-align:center;color:var(--t3);white-space:nowrap">'+(start+i+1)+'</td>'
-      +'<td style="white-space:nowrap">'+brBadge(r.Branch)+'</td>'
-      +'<td style="white-space:nowrap"><span class="zp">'+esc(r.Zone||'--')+'</span></td>'
-      +'<td style="font-size:12px;color:var(--t2);white-space:nowrap">'+esc(r.Date||'')+'</td>'
-      +'<td style="white-space:nowrap">'+catBadge(r.Category||'')+'</td>'
+      +'<td style="text-align:center;white-space:nowrap">'+brBadge(r.Branch)+'</td>'
+      +'<td style="text-align:center;white-space:nowrap"><span class="zp">'+esc(r.Zone||'--')+'</span></td>'
+      +'<td style="text-align:center;font-size:12px;color:var(--t2);white-space:nowrap">'+esc(r.Date||'')+'</td>'
+      +'<td style="text-align:center;white-space:nowrap">'+catBadge(r.Category||'')+'</td>'
       +'<td style="color:var(--t2);max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:left" title="'+esc(detail)+'">'+esc(shortDetail)+'</td>'
-      +'<td style="font-size:12px;color:var(--t2);white-space:nowrap">'+esc(r.ActionType||'--')+'</td>'
+      +'<td style="text-align:center;font-size:12px;color:var(--t2);white-space:nowrap">'+esc(r.ActionType||'--')+'</td>'
       +'<td style="text-align:center;white-space:nowrap">'+stars(r.Difficulty||1)+'</td>'
       +'</tr>';
   }).join('');
@@ -847,44 +849,49 @@ function initBranchReport(){
     '<div style="margin-top:4px">',
     '<div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">',
     '<span style="display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:10px;font-size:20px;background:'+brCol+'22">'+brIcon+'</span>',
-    '<div><div style="font-size:15px;font-weight:800;color:var(--t0)">'+(isKorea?brName+' 지점 리포트 생성':br+' Branch Report')+'</div>',
+    '<div><div style="font-size:15px;font-weight:800;color:var(--t0);text-align:center">'+(isKorea?brName+' 에러 리포트':br+' Error Report')+'</div>',
     '<div style="font-size:11px;color:var(--t2);margin-top:1px">'+(isKorea?'해당 지점 에러만 포함 · 한국어 리포트':'Branch-specific errors only · English report')+'</div></div></div>',
     '<div class="card" style="border:1.5px solid rgba(83,74,183,0.15);margin-bottom:12px">',
     '<div style="display:flex;align-items:center;gap:6px;margin-bottom:8px">',
     '<span style="font-size:14px">📝</span>',
-    '<div style="font-size:12px;font-weight:700;color:var(--t0)">'+(isKorea?'담당자 코멘트 / 비고':'Manager Comment / Remarks')+'</div>',
+    '<div style="font-size:12px;font-weight:700;color:var(--t0)">'+(isKorea?'코멘트 / 비고':'Comment / Remarks')+'</div>',
     '<span style="font-size:10px;color:var(--t3);margin-left:auto">'+(isKorea?'선택사항':'Optional')+'</span></div>',
     '<div style="font-size:11px;color:var(--t3);margin-bottom:10px;line-height:1.6;padding:8px 10px;background:var(--bg);border-radius:6px">',
     isKorea?'💡 개별 안내사항, 심각한 내용, 따로 보고할 사항을 입력하세요. 입력된 내용은 리포트 상단에 게시됩니다.'
           :'💡 Add individual notes, serious issues, or additional information. Content will appear at the top of the report.',
     '</div>',
+    '<div style="position:relative">',
     '<textarea id="branch-rpt-comment" rows="3"',
-    ' style="width:100%;padding:10px 12px;border-radius:8px;border:1.5px solid var(--border);background:var(--bg);color:var(--t0);font-family:var(--f,sans-serif);font-size:13px;resize:vertical;outline:none;transition:border-color .2s"',
+    ' style="width:100%;padding:10px 12px;padding-right:36px;border-radius:8px;border:1.5px solid var(--border);background:var(--bg);color:var(--t0);font-family:var(--f,sans-serif);font-size:13px;resize:vertical;outline:none;transition:border-color .2s;box-sizing:border-box"',
     ' onfocus="this.style.borderColor=\'#534AB7\'" onblur="this.style.borderColor=\'var(--border)\'"',
     ' placeholder="'+(isKorea?'예: LED 모듈 이상 관련 추가 조사 필요.':'e.g. LED module anomaly requires further investigation.')+'"',
-    '></textarea></div>',
+    '></textarea>',
+    '<button onclick="var ta=document.getElementById(\'branch-rpt-comment\');if(ta){ta.value=\'\';ta.focus();}" style="position:absolute;top:6px;right:6px;width:26px;height:26px;border-radius:50%;border:1px solid var(--border);background:var(--bg);color:var(--t3);font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s" onmouseover="this.style.background=\'#fef2f2\';this.style.color=\'#dc2626\';this.style.borderColor=\'#fca5a5\'" onmouseout="this.style.background=\'var(--bg)\';this.style.color=\'var(--t3)\';this.style.borderColor=\'var(--border)\'" title="'+(isKorea?'내용 지우기':'Clear')+'">✕</button>',
+    '</div></div>',
     '<div class="card" style="border-left:4px solid '+brCol+';margin-bottom:12px">',
     '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">',
     '<div style="display:flex;align-items:center;gap:8px">',
     '<span style="font-size:11px;font-weight:800;color:#fff;background:'+brCol+';padding:3px 10px;border-radius:5px">MONTHLY</span>',
-    '<div><div style="font-size:13px;font-weight:800;color:var(--t0)">'+(isKorea?brName+' 월간 에러 리포트':br+' Monthly Error Report')+'</div>',
-    '<div style="font-size:11px;color:var(--t3);margin-top:1px">'+(isKorea?'한국어 리포트':'English report')+'</div></div></div>',
+    '<div><div style="font-size:13px;font-weight:800;color:var(--t0);text-align:center">'+(isKorea?brName+' 에러 리포트':br+' Error Report')+'</div>',
+    '<div style="font-size:11px;color:var(--t3);margin-top:1px;text-align:center">'+(isKorea?'해당 지점 에러만 포함 · 한국어':'Branch-specific errors · English')+'</div></div></div>',
     '<span style="font-size:10px;font-weight:700;color:var(--t3);background:var(--sub);padding:3px 10px;border-radius:20px;border:1px solid var(--border)">'+(isKorea?'🇰🇷 KOR':'🌍 ENG')+'</span></div>',
-    '<div style="display:flex;gap:8px">',
-    '<button class="btn btn-sm" style="flex:1;background:'+brCol+';color:#fff;font-weight:700;border-radius:8px;padding:10px" onclick="branchReport(\'download\',\'monthly\')">'+(isKorea?'⬇ 다운로드':'⬇ Download')+'</button>',
-    '<button class="btn btn-sm" style="flex:1;background:var(--card);color:var(--t1);border:1.5px solid var(--border);font-weight:700;border-radius:8px;padding:10px" onclick="branchReport(\'preview\',\'monthly\')">'+(isKorea?'👁 미리보기':'👁 Preview')+'</button>',
-    '</div><div id="br-monthly-status"></div></div>',
+    '<div class="branch-rpt-btn-row" style="display:flex;gap:8px">',
+    '<button class="btn btn-sm" style="flex:1;background:'+brCol+';color:#fff;font-weight:700;border-radius:8px;padding:10px;min-height:44px" onclick="branchReport(\'download\',\'monthly\')">'+(isKorea?'⬇ 다운로드':'⬇ Download')+'</button>',
+    '<button class="btn btn-sm" style="flex:1;background:var(--card);color:var(--t1);border:1.5px solid var(--border);font-weight:700;border-radius:8px;padding:10px;min-height:44px" onclick="branchReport(\'preview\',\'monthly\')">'+(isKorea?'👁 미리보기':'👁 Preview')+'</button>',
+    '</div><div id="br-monthly-status" style="margin-top:8px"></div></div>',
+    // 연간 리포트 카드
     '<div class="card" style="border-left:4px solid #0f766e">',
-    '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">',
-    '<div style="display:flex;align-items:center;gap:8px">',
-    '<span style="font-size:11px;font-weight:800;color:#fff;background:#0f766e;padding:3px 10px;border-radius:5px">ANNUAL</span>',
-    '<div><div style="font-size:13px;font-weight:800;color:var(--t0)">'+(isKorea?brName+' 연간 에러 리포트':br+' Annual Error Report')+'</div>',
+    '<div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:12px;gap:8px;flex-wrap:wrap">',
+    '<div style="display:flex;align-items:center;gap:8px;min-width:0">',
+    '<span style="font-size:11px;font-weight:800;color:#fff;background:#0f766e;padding:3px 10px;border-radius:5px;flex-shrink:0">ANNUAL</span>',
+    '<div style="min-width:0"><div style="font-size:13px;font-weight:800;color:var(--t0)">'+(isKorea?brName+' 연간 에러 리포트':br+' Annual Error Report')+'</div>',
     '<div style="font-size:11px;color:var(--t3);margin-top:1px">'+(isKorea?'해당 지점 연간 누적':'Branch annual summary')+'</div></div></div>',
-    '<span style="font-size:10px;font-weight:700;color:var(--t3);background:var(--sub);padding:3px 10px;border-radius:20px;border:1px solid var(--border)">'+(isKorea?'🇰🇷 KOR':'🌍 ENG')+'</span></div>',
-    '<div style="display:flex;gap:8px">',
-    '<button class="btn btn-sm" style="flex:1;background:#0f766e;color:#fff;font-weight:700;border-radius:8px;padding:10px" onclick="branchReport(\'download\',\'annual\')">'+(isKorea?'⬇ 다운로드':'⬇ Download')+'</button>',
-    '<button class="btn btn-sm" style="flex:1;background:var(--card);color:var(--t1);border:1.5px solid var(--border);font-weight:700;border-radius:8px;padding:10px" onclick="branchReport(\'preview\',\'annual\')">'+(isKorea?'👁 미리보기':'👁 Preview')+'</button>',
-    '</div><div id="br-annual-status"></div></div></div>'
+    '<span style="font-size:10px;font-weight:700;color:var(--t3);background:var(--sub);padding:3px 10px;border-radius:20px;border:1px solid var(--border);flex-shrink:0">'+(isKorea?'🇰🇷 KOR':'🌍 ENG')+'</span></div>',
+    '<div class="branch-rpt-btn-row" style="display:flex;gap:8px">',
+    '<button class="btn btn-sm" style="flex:1;background:#0f766e;color:#fff;font-weight:700;border-radius:8px;padding:10px;min-height:44px" onclick="branchReport(\'download\',\'annual\')">'+(isKorea?'⬇ 다운로드':'⬇ Download')+'</button>',
+    '<button class="btn btn-sm" style="flex:1;background:var(--card);color:var(--t1);border:1.5px solid var(--border);font-weight:700;border-radius:8px;padding:10px;min-height:44px" onclick="branchReport(\'preview\',\'annual\')">'+(isKorea?'👁 미리보기':'👁 Preview')+'</button>',
+    '</div><div id="br-annual-status" style="margin-top:8px"></div></div>',
+    '</div>'
   ].join('');
   sec.style.display='block';
 }
@@ -946,6 +953,7 @@ function _populateAdminSelects(){
 function initAdminPage(){
   if(typeof _loggedId==='undefined'||_loggedId!=='gto') return;
   var tab=document.getElementById('adminTab'); if(tab) tab.style.display='';
+  var mTab=document.getElementById('mobileAdminTab'); if(mTab) mTab.style.display='';
   _populateAdminSelects();
   // 기본값: 일일현황 > 전체
   _admDailyRegion='all'; _admDailyBranch='ALL';
@@ -1006,3 +1014,4 @@ window._onAdminGLoaded = function(){
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',_i);
   else setTimeout(_i,100);
 })();
+                                                                                                                                                       

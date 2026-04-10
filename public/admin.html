@@ -80,20 +80,21 @@ body{font-family:var(--f);background:var(--adm-bg);color:var(--adm-t0);min-heigh
 /* Divider */
 .adm-divider{height:1px;background:var(--adm-border);margin:28px 0;}
 
-/* Toggle section (일일/월간) */
+/* 뷰 섹션 (일일/월간) */
 .adm-section{background:var(--adm-card);border-radius:16px;border:1px solid var(--adm-border);overflow:hidden;margin-bottom:20px;box-shadow:0 1px 3px rgba(0,0,0,0.04);}
-.adm-section-header{display:flex;align-items:center;justify-content:space-between;padding:20px 24px;cursor:pointer;user-select:none;transition:background .18s;}
-.adm-section-header:hover{background:var(--adm-bg);}
+.adm-section-header{display:flex;align-items:center;justify-content:space-between;padding:20px 24px;border-bottom:1px solid var(--adm-border);}
 .adm-section-header-l{display:flex;align-items:center;gap:14px;}
 .adm-section-icon{font-size:20px;}
 .adm-section-title-wrap{}
 .adm-section-title{font-size:15px;font-weight:800;color:var(--adm-t0);font-family:var(--f-display);}
 .adm-section-sub{font-size:11px;color:var(--adm-t2);margin-top:3px;}
-.adm-section-chevron{font-size:16px;color:var(--adm-t2);transition:transform .3s cubic-bezier(.4,0,.2,1);}
-.adm-section.open .adm-section-chevron{transform:rotate(180deg);}
-.adm-section-body{display:none;padding:0 24px 24px;animation:admSlideDown .25s ease-out;}
-.adm-section.open .adm-section-body{display:block;}
-@keyframes admSlideDown{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
+.adm-section-body{display:block;padding:0 24px 24px;}
+/* 뷰 전환 버튼 */
+.adm-view-btn{padding:10px 22px;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;transition:all .18s cubic-bezier(.4,0,.2,1);font-family:var(--f);}
+.adm-view-btn.active{background:#534AB7;color:#fff;border:none;box-shadow:0 2px 8px rgba(83,74,183,0.28);}
+.adm-view-btn.inactive{background:var(--adm-card);color:var(--adm-t1);border:1.5px solid var(--adm-border);}
+.adm-view-btn.inactive:hover{background:var(--adm-bg);border-color:var(--adm-t3);}
+.adm-view-bar{display:flex;gap:8px;margin-bottom:20px;}
 
 /* Branch toggles */
 .adm-branch-strip{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:18px;padding-top:4px;}
@@ -443,9 +444,15 @@ body{font-family:var(--f);background:var(--adm-bg);color:var(--adm-t0);min-heigh
     </div><!-- /.adm-report-grid -->
   </div><!-- /.adm-report-section -->
 
-  <!-- ══════ 일일 현황 토글 ══════ -->
+  <!-- ══════ 뷰 전환 버튼 ══════ -->
+  <div class="adm-view-bar">
+    <button id="adm-btn-daily" class="adm-view-btn active" onclick="admSwitchView('daily')">📅 일일 현황</button>
+    <button id="adm-btn-monthly" class="adm-view-btn inactive" onclick="admSwitchView('monthly')">📊 월간 현황</button>
+  </div>
+
+  <!-- ══════ 일일 현황 ══════ -->
   <div class="adm-section" id="sec-daily">
-    <div class="adm-section-header" onclick="admToggleSection('daily')">
+    <div class="adm-section-header">
       <div class="adm-section-header-l">
         <span class="adm-section-icon">📅</span>
         <div class="adm-section-title-wrap">
@@ -453,7 +460,6 @@ body{font-family:var(--f);background:var(--adm-bg);color:var(--adm-t0);min-heigh
           <div class="adm-section-sub">7개 지점 전체 · 오늘 발생 에러 현황</div>
         </div>
       </div>
-      <span class="adm-section-chevron">▾</span>
     </div>
     <div class="adm-section-body" id="body-daily">
       <!-- 지역 탭 -->
@@ -471,9 +477,9 @@ body{font-family:var(--f);background:var(--adm-bg);color:var(--adm-t0);min-heigh
     </div>
   </div>
 
-  <!-- ══════ 월간 현황 토글 ══════ -->
-  <div class="adm-section" id="sec-monthly">
-    <div class="adm-section-header" onclick="admToggleSection('monthly')">
+  <!-- ══════ 월간 현황 ══════ -->
+  <div class="adm-section" id="sec-monthly" style="display:none">
+    <div class="adm-section-header">
       <div class="adm-section-header-l">
         <span class="adm-section-icon">📊</span>
         <div class="adm-section-title-wrap">
@@ -481,7 +487,6 @@ body{font-family:var(--f);background:var(--adm-bg);color:var(--adm-t0);min-heigh
           <div class="adm-section-sub">7개 지점 전체 · 지점별 에러 통계</div>
         </div>
       </div>
-      <span class="adm-section-chevron">▾</span>
     </div>
     <div class="adm-section-body" id="body-monthly">
       <!-- 지역 탭 -->
@@ -644,16 +649,16 @@ function doLogout(){
   tick(); setInterval(tick, 1000);
 })();
 
-/* ── 섹션 토글 ── */
-function admToggleSection(id){
-  var sec = admEl('sec-'+id);
-  if(!sec) return;
-  var wasOpen = sec.classList.contains('open');
-  sec.classList.toggle('open');
-  if(!wasOpen){
-    if(id==='daily') admRenderDaily();
-    if(id==='monthly') admRenderMonthly();
-  }
+/* ── 뷰 전환 (일일 ↔ 월간) ── */
+function admSwitchView(view){
+  var sd=admEl('sec-daily'), sm=admEl('sec-monthly');
+  var bd=admEl('adm-btn-daily'), bm=admEl('adm-btn-monthly');
+  if(sd) sd.style.display = view==='daily'  ? '' : 'none';
+  if(sm) sm.style.display = view==='monthly'? '' : 'none';
+  if(bd){ bd.className = 'adm-view-btn ' + (view==='daily'  ? 'active' : 'inactive'); }
+  if(bm){ bm.className = 'adm-view-btn ' + (view==='monthly'? 'active' : 'inactive'); }
+  if(view==='daily')   { admRenderDailyBrStrip(); admRenderDaily(); }
+  if(view==='monthly') { admRenderMonthlyBrStrip(); admRenderMonthly(); }
 }
 
 /* ──────────────────────────────────────────────
@@ -679,9 +684,10 @@ function admLoadData(silent){
     admEl('adm-sync-info').textContent = '✅ SharePoint Live · '+(G.meta.lastSync||'');
     if(!silent) admToast('데이터 로드 완료 — '+G.logs.length+'건', 'success');
     admFillSelects();
-    // 열려 있는 섹션 갱신
-    if(admEl('sec-daily').classList.contains('open'))   admRenderDaily();
-    if(admEl('sec-monthly').classList.contains('open')) admRenderMonthly();
+    // 현재 활성 뷰 갱신
+    var sm = admEl('sec-monthly');
+    if(sm && sm.style.display !== 'none') admRenderMonthly();
+    else admRenderDaily();
   }).catch(function(e){
     admEl('adm-sync-info').textContent = '⚠️ '+e.message;
     if(!silent) admToast('데이터 로드 실패: '+e.message, 'error');
@@ -1098,6 +1104,8 @@ document.addEventListener('DOMContentLoaded', function(){
   admFillSelects();
   admRenderDailyBrStrip();
   admRenderMonthlyBrStrip();
+  // 일일 현황을 기본 뷰로 설정
+  admSwitchView('daily');
   admLoadData(false);
 
   // 1분 자동 갱신

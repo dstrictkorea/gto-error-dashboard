@@ -2650,7 +2650,8 @@ html.dark-mode .section-divider {
 }
 
 /* ══════════════════════════════════════
-   ADMIN PAGE — Version bump anchor
-   (admin.html uses inline <style>, not this file)
+   ADMIN PAGE — Responsive Layout
    Last updated: v5.7.0-Apr2026
    ══════════════════════════════════════ */
+
+/* Admin report grid: 2 columns on desktop, 1 on mob

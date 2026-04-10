@@ -404,6 +404,16 @@
             <button class="region-btn" id="adm-g-ko" data-lang="ko" onclick="setAdminRptLang('global','ko',this)" style="font-size:11px;padding:3px 10px">KOR</button>
           </div>
         </div>
+        <div style="margin-bottom:8px">
+          <div style="display:flex;align-items:center;gap:5px;margin-bottom:5px">
+            <span style="font-size:10px;font-weight:700;color:var(--t2)">Comment / Remarks</span>
+            <span style="font-size:9px;color:var(--t3);margin-left:auto">Optional</span>
+          </div>
+          <div style="position:relative">
+            <textarea id="adm-g-comment" rows="2" style="width:100%;padding:8px 32px 8px 10px;border-radius:7px;border:1px solid var(--border);background:var(--bg);color:var(--t0);font-size:11px;resize:vertical;outline:none;transition:border-color .2s;font-family:var(--f,sans-serif);box-sizing:border-box" onfocus="this.style.borderColor='#534AB7'" onblur="this.style.borderColor='var(--border)'" placeholder="리포트 상단에 게시될 코멘트 입력"></textarea>
+            <button onclick="var ta=document.getElementById('adm-g-comment');if(ta){ta.value='';ta.focus();}" style="position:absolute;top:5px;right:5px;width:22px;height:22px;border-radius:50%;border:1px solid var(--border);background:var(--bg);color:var(--t3);font-size:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s;padding:0" onmouseover="this.style.background='#fef2f2';this.style.color='#dc2626';this.style.borderColor='#fca5a5'" onmouseout="this.style.background='var(--bg)';this.style.color='var(--t3)';this.style.borderColor='var(--border)'" title="내용 지우기">✕</button>
+          </div>
+        </div>
         <div style="display:flex;gap:5px">
           <button class="btn btn-sm" style="flex:1;background:#185FA5;color:#fff;font-weight:700;border-radius:7px;font-size:11px" onclick="adminReport('global','download')">⬇ 다운로드</button>
           <button class="btn btn-sm" style="flex:1;background:#2563eb;color:#fff;font-weight:700;border-radius:7px;font-size:11px" onclick="adminReport('global','preview')">👁 미리보기</button>
@@ -424,6 +434,16 @@
           <div style="display:flex;gap:3px;margin-left:auto">
             <button class="region-btn" id="adm-k-en" data-lang="en" onclick="setAdminRptLang('korea','en',this)" style="font-size:11px;padding:3px 10px">ENG</button>
             <button class="region-btn active" id="adm-k-ko" data-lang="ko" onclick="setAdminRptLang('korea','ko',this)" style="font-size:11px;padding:3px 10px">KOR</button>
+          </div>
+        </div>
+        <div style="margin-bottom:8px">
+          <div style="display:flex;align-items:center;gap:5px;margin-bottom:5px">
+            <span style="font-size:10px;font-weight:700;color:var(--t2)">코멘트 / 비고</span>
+            <span style="font-size:9px;color:var(--t3);margin-left:auto">선택사항</span>
+          </div>
+          <div style="position:relative">
+            <textarea id="adm-k-comment" rows="2" style="width:100%;padding:8px 32px 8px 10px;border-radius:7px;border:1px solid var(--border);background:var(--bg);color:var(--t0);font-size:11px;resize:vertical;outline:none;transition:border-color .2s;font-family:var(--f,sans-serif);box-sizing:border-box" onfocus="this.style.borderColor='#534AB7'" onblur="this.style.borderColor='var(--border)'" placeholder="리포트 상단에 게시될 코멘트 입력"></textarea>
+            <button onclick="var ta=document.getElementById('adm-k-comment');if(ta){ta.value='';ta.focus();}" style="position:absolute;top:5px;right:5px;width:22px;height:22px;border-radius:50%;border:1px solid var(--border);background:var(--bg);color:var(--t3);font-size:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s;padding:0" onmouseover="this.style.background='#fef2f2';this.style.color='#dc2626';this.style.borderColor='#fca5a5'" onmouseout="this.style.background='var(--bg)';this.style.color='var(--t3)';this.style.borderColor='var(--border)'" title="내용 지우기">✕</button>
           </div>
         </div>
         <div style="display:flex;gap:5px">
@@ -593,12 +613,12 @@
           <col style="width:52px">
         </colgroup>
         <thead><tr>
-          <th style="white-space:nowrap">#</th>
-          <th style="white-space:nowrap">지점</th>
-          <th style="white-space:nowrap">Zone</th>
-          <th style="white-space:nowrap">유형</th>
-          <th>내용</th>
-          <th style="white-space:nowrap">건수</th>
+          <th style="white-space:nowrap;text-align:center">#</th>
+          <th style="white-space:nowrap;text-align:center">지점</th>
+          <th style="white-space:nowrap;text-align:center">Zone</th>
+          <th style="white-space:nowrap;text-align:center">유형</th>
+          <th style="text-align:left">내용</th>
+          <th style="white-space:nowrap;text-align:center">건수</th>
         </tr></thead>
         <tbody id="adm-monthly-tbody"></tbody>
       </table>
@@ -654,6 +674,7 @@
 
 <!-- MOBILE BOTTOM TAB BAR -->
 <div class="mobile-bottom-nav" id="mobileBottomNav">
+  <button id="mobileAdminTab" style="display:none" onclick="goPage(-1);document.querySelectorAll('#mobileBottomNav button').forEach(function(b){b.classList.remove('bnav-active')});this.classList.add('bnav-active');window.scrollTo({top:0,behavior:'smooth'})"><span class="bnav-icon">⚙</span>Admin</button>
   <button class="bnav-active" onclick="mobileTabGo(0,this)"><span class="bnav-icon">📅</span>Daily</button>
   <button onclick="mobileTabGo(1,this)"><span class="bnav-icon">📊</span>Monthly</button>
   <button onclick="mobileTabGo(2,this)"><span class="bnav-icon">📋</span>Error Log</button>
@@ -775,37 +796,4 @@ function copyEnvTemplate() {
     '      <div style="font-size:10px;color:var(--t3);margin-top:2px">' + (isKorea ? '선택사항' : 'Optional') + '</div>',
     '    </div>',
     '    <div style="position:relative;">',
-    '      <textarea id="branch-rpt-comment" rows="3"',
-    '        style="width:100%;padding:10px 36px 10px 12px;border-radius:8px;border:1.5px solid var(--border);background:var(--bg);color:var(--t0);font-family:var(--f,sans-serif);font-size:13px;resize:vertical;outline:none;transition:border-color .2s;-webkit-appearance:none"',
-    '        onfocus="this.style.borderColor=\'var(--purple)\'" onblur="this.style.borderColor=\'var(--border)\'"',
-    '        placeholder="' + (isKorea ? '예: LED 모듈 이상 관련 추가 조사 필요.' : 'e.g. LED module anomaly requires further investigation.') + '"',
-    '      ></textarea>',
-    '      <button onclick="document.getElementById(\'branch-rpt-comment\').value=\'\'" title="' + (isKorea ? '지우기' : 'Clear') + '"',
-    '        style="position:absolute;right:8px;top:8px;background:none;border:none;cursor:pointer;color:var(--t3);font-size:14px;padding:4px;border-radius:4px;line-height:1;transition:color .15s"',
-    '        onmouseenter="this.style.color=\'var(--t0)\'" onmouseleave="this.style.color=\'var(--t3)\'">✕</button>',
-    '    </div>',
-    '  </div>',
-    // 월간 리포트 카드
-    '  <div class="card card-elevated" style="border-left:4px solid '+(BR_COLORS[br]||'#534AB7')+';margin-bottom:12px">',
-    // 카드 헤더 — MONTHLY 배지 + 타이틀 + 언어 배지 (flex-wrap으로 모바일 대응)
-    '    <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:12px;gap:8px;flex-wrap:wrap">',
-    '      <div style="display:flex;align-items:center;gap:8px;min-width:0">',
-    '        <span style="font-size:11px;font-weight:800;color:#fff;background:'+(BR_COLORS[br]||'#534AB7')+';padding:3px 10px;border-radius:5px;flex-shrink:0">MONTHLY</span>',
-    '        <div style="min-width:0">',
-    '          <div style="font-size:13px;font-weight:800;color:var(--t0);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + (isKorea ? brLabel + ' 월간 에러 리포트' : br + ' Monthly Error Report') + '</div>',
-    '          <div style="font-size:11px;color:var(--t3);margin-top:1px">' + (isKorea ? '해당 지점 에러만 포함' : 'Branch errors only') + '</div>',
-    '        </div>',
-    '      </div>',
-    '      <span style="font-size:10px;font-weight:700;color:var(--t3);background:var(--sub);padding:3px 10px;border-radius:20px;border:1px solid var(--border);flex-shrink:0;align-self:flex-start">' + (isKorea ? '🇰🇷 KOR' : '🌍 ENG') + '</span>',
-    '    </div>',
-    // 버튼 행 — 모바일에서 class로 CSS 제어
-    '    <div class="branch-rpt-btn-row" style="display:flex;gap:8px">',
-    '      <button class="btn btn-sm branch-rpt-dl-btn" style="flex:1;background:'+(BR_COLORS[br]||'#534AB7')+';color:#fff;font-weight:700;border-radius:8px;padding:10px;min-height:44px" onclick="branchGenReport(\'download\',\'monthly\')">' + (isKorea ? '⬇ 다운로드' : '⬇ Download') + '</button>',
-    '      <button class="btn btn-sm" style="flex:1;background:var(--card);color:var(--t1);border:1.5px solid var(--border);font-weight:700;border-radius:8px;padding:10px;min-height:44px" onclick="branchGenReport(\'preview\',\'monthly\')">' + (isKorea ? '👁 미리보기' : '👁 Preview') + '</button>',
-    '    </div>',
-    '    <div id="br-monthly-status" style="margin-top:8px;display:none;padding:8px 12px;border-radius:6px;font-size:12px;"></div>',
-    '  </div>',
-    '</div>'
-  ].join('');
-
-  sec.style.display = '
+    '      <textarea id="branch-rpt-comme

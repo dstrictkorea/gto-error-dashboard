@@ -72,8 +72,8 @@ function generateAnnualPDF(logs, year, lang, history, assets, region, comment) {
 
     // ── Labels ──
     const L = isKo ? {
-      coverTitle: year + '년 연간 에러 리포트',
-      coverSub: '글로벌 기술운영팀 연간 보고서',
+      coverTitle: '',
+      coverSub: '',
       generated: '보고서 생성일',
       execSummary: '연간 요약 보고',
       branchPerf: '지점별 연간 성과',
@@ -89,8 +89,8 @@ function generateAnnualPDF(logs, year, lang, history, assets, region, comment) {
       avgRes: '평균 처리시간', incidents: '건',
       noData: '데이터 없음',
     } : {
-      coverTitle: year + ' ANNUAL ERROR REPORT',
-      coverSub: 'Global Technical Operations Team — Annual Report',
+      coverTitle: '',
+      coverSub: '',
       generated: 'Generated',
       execSummary: 'Executive Summary',
       branchPerf: 'Branch Annual Performance',
@@ -757,7 +757,7 @@ function generateAnnualPDF(logs, year, lang, history, assets, region, comment) {
     _markPage();
     const tp=doc.bufferedPageRange().count;
     const contentPageList = [];
-    for(let i=1;i<tp;i++){
+    for(let i=0;i<tp;i++){
       if(_contentPages.has(i)) contentPageList.push(i);
     }
     const totalContent = contentPageList.length;
@@ -770,8 +770,11 @@ function generateAnnualPDF(logs, year, lang, history, assets, region, comment) {
       doc.text('Page '+(ci+1)+'/'+totalContent,MR-60,823,{width:60,align:'right',lineBreak:false});
       doc.save().rect(0,0,595,4).fill(CP).restore();
     }
-    doc.switchToPage(0);
-    doc.save().rect(0,0,595,6).fill(CP).restore();
+    // Add top purple bar to all pages
+    for(let pi=0;pi<tp;pi++){
+      doc.switchToPage(pi);
+      doc.save().rect(0,0,595,6).fill(CP).restore();
+    }
     doc.switchToPage(tp - 1);
 
     doc.end();
@@ -779,3 +782,4 @@ function generateAnnualPDF(logs, year, lang, history, assets, region, comment) {
 }
 
 module.exports = { generateAnnualPDF };
+                                                                         

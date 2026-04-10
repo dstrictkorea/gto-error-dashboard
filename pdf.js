@@ -277,8 +277,8 @@ function generatePDF(logs, month, year, lang, history, assets, reportType, regio
     // Bilingual labels
     const L = isKo ? {
       title: 'MONTHLY ERROR REPORT', subtitle: 'SUMMARY',
-      coverTitle: '월간 에러 리포트',
-      coverSub: '글로벌 기술운영팀 정기 보고서',
+      coverTitle: '',
+      coverSub: '',
       generated: '보고서 생성일',
       execSummary: '요약 보고', branchPerf: '지점별 성과',
       catDiff: '유형별 및 난이도 분석', topZones: '주요 영향 Zone',
@@ -305,8 +305,8 @@ function generatePDF(logs, month, year, lang, history, assets, reportType, regio
       ytdTitle: '연간 누적 에러 현황',
     } : {
       title: 'MONTHLY ERROR REPORT', subtitle: 'SUMMARY',
-      coverTitle: 'MONTHLY ERROR REPORT',
-      coverSub: 'Global Technical Operations Team Report',
+      coverTitle: '',
+      coverSub: '',
       generated: 'Generated',
       execSummary: 'Executive Summary', branchPerf: 'Branch Performance',
       catDiff: 'Category & Difficulty Analysis', topZones: 'Top Affected Zones',
@@ -788,7 +788,7 @@ function generatePDF(logs, month, year, lang, history, assets, reportType, regio
       // Section header with background band — CENTER-ALIGNED
       doc.save().rect(ML, headerY, PW, 28).fill('#f0eff8').restore();
       doc.save().rect(ML, headerY, 4, 28).fill(CP).restore();
-      const headerTitle = isKo ? '코멘트 / 비고' : 'Comment / Remarks';
+      const headerTitle = isKo ? '코멘트 / 비고' : 'Comment / Remarks';  // No "Manager"/"담당자" prefix
       doc.fillColor(CT).fontSize(isKo ? 14 : 15).font(F.bold)
         .text(headerTitle.toUpperCase(), ML, headerY + 6, { width: PW, align: 'center', lineBreak: false });
       doc.y = headerY + 32;
@@ -1060,9 +1060,10 @@ function generatePDF(logs, month, year, lang, history, assets, reportType, regio
         doc.save().rect(ML, sumY, 4, 24).fill(COK).restore();
         doc.fillColor(COK).fontSize(10).font(F.bold).text(statusText, ML + 12, sumY + 5, { width: PW - 20, lineBreak: false });
       } else {
+        const dynMonth = MONTHS_EN[month] + ' ' + year;
         const statusText = isKo
-          ? 'April 2026: 해당 월 장애 발생: ' + branchCritical.length + '건'
-          : 'April 2026: Critical incidents detected: ' + branchCritical.length + ' case(s)';
+          ? dynMonth + ': 해당 월 장애 발생: ' + branchCritical.length + '건'
+          : dynMonth + ': Critical incidents detected: ' + branchCritical.length + ' case(s)';
         doc.save().roundedRect(ML, sumY, PW, 24, 4).fill('#FCEBEB').restore();
         doc.save().rect(ML, sumY, 4, 24).fill(CE).restore();
         doc.fillColor(CE).fontSize(10).font(F.bold).text(statusText, ML + 12, sumY + 5, { width: PW - 20, lineBreak: false });
@@ -1082,6 +1083,41 @@ function generatePDF(logs, month, year, lang, history, assets, reportType, regio
           doc.moveDown(0.4);
         });
       }
+
+      // Critical/severe issues listing (Difficulty 4+)
+      if(branchCritical.length > 0){
+        doc.moveDown(0.5);
+        pc(60);
+        doc.fillColor(CT).fontSize(10).font(F.bold).text(isKo ? '심각 장애 목록 (Lv.4+)' : 'Critical Issues (Difficulty 4+)', ML);
+        doc.moveDown(0.3);
+        branchCritical.slice(0, 10).forEach((r, idx) => {
+          const dateStr = (r.Date||'').split('T')[0];
+          const diff = r.Difficulty||0;
+          const label = (idx+1)+'. [Lv.'+diff+'] '+(r.Zone||'--')+' — '+(isKo && r.IssueDetail_ko ? r.IssueDetail_ko : (r.IssueDetail||'--')).slice(0,80) + ' ('+dateStr+')';
+          doc.fillColor(diff>=5?CE:CW).fontSize(9).font(F.med).text(label, ML + 10, undefined, { width: PW - 20, lineBreak: true });
+          doc.moveDown(0.3);
+        });
+      }
+
+      // Most frequent issues listing
+      const issueFreq = {};
+      branchLogs.forEach(r => {
+        const key = (r.IssueDetail||'unknown').toLowerCase().trim().slice(0,100);
+        issueFreq[key] = (issueFreq[key]||0) + 1;
+      });
+      const topFreqIssues = Object.entries(issueFreq).sort((a,b)=>b[1]-a[1]).slice(0,5).filter(e=>e[1]>1);
+      if(topFreqIssues.length > 0){
+        doc.moveDown(0.5);
+        pc(60);
+        doc.fillColor(CT).fontSize(10).font(F.bold).text(isKo ? '가장 빈번한 이슈' : 'Most Frequent Issues', ML);
+        doc.moveDown(0.3);
+        topFreqIssues.forEach((entry, idx) => {
+          const label = (idx+1)+'. '+entry[0].slice(0,80)+' — '+entry[1]+(isKo?'건':' cases');
+          doc.fillColor(CS).fontSize(9).font(F.med).text(label, ML + 10, undefined, { width: PW - 20, lineBreak: true });
+          doc.moveDown(0.3);
+        });
+      }
+
       doc.moveDown(0.5);
       _markPage();
     }
@@ -1600,46 +1636,3 @@ function generatePDF(logs, month, year, lang, history, assets, reportType, regio
           rec.text,
           status
         ];
-      });
-      tbl(recHeaders, recRows, recWidths, {
-        leftCols:[2],
-        colColors:{3:v=>{
-          const urgStr = isKo?'긴급':'URGENT';
-          const warnStr = isKo?'주의':'WARNING';
-          const okStr = isKo?'양호':'OK';
-          return v===urgStr?CE:v===warnStr?CW:COK;
-        }}
-      });
-    }
-
-    // ══════════ FOOTER ALL PAGES (d'strict dark footer) ══════════
-    // Mark the last page's content before rendering footers
-    _markPage();
-    const tp=doc.bufferedPageRange().count;
-    // Build list of content pages (skip cover=0, skip empty pages)
-    const contentPageList = [];
-    for(let i=1;i<tp;i++){
-      if(_contentPages.has(i)) contentPageList.push(i);
-    }
-    const totalContent = contentPageList.length;
-    for(let ci=0;ci<contentPageList.length;ci++){
-      const i=contentPageList[ci];
-      doc.switchToPage(i);
-      doc.save().rect(0,818,595,24).fill(CT).restore();
-      doc.fillColor('#a3a29c').fontSize(7.5).font(F.light);
-      const footerLabel = reportType === 'annual' ? 'Annual Error Report' : 'Monthly Error Report';
-      doc.text("d'strict Error  |  "+monShort.toUpperCase()+'/'+yrShort+' '+footerLabel,ML,823,{width:PW-60,lineBreak:false});
-      doc.text('Page '+(ci+1)+'/'+totalContent,MR-60,823,{width:60,align:'right',lineBreak:false});
-      doc.save().rect(0,0,595,4).fill(CP).restore();
-    }
-    // Also add top purple bar to cover page
-    doc.switchToPage(0);
-    doc.save().rect(0,0,595,4).fill(CP).restore();
-    // Switch back to last page before ending document
-    doc.switchToPage(tp - 1);
-
-    doc.end();
-  }));
-}
-
-module.exports = { generatePDF };
