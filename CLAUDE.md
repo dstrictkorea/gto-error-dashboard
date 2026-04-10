@@ -20,7 +20,7 @@ Power Automate 기반 워크플로우 자동화 지원
 2. 프로젝트 개요 (GTO Error Dashboard)
 GTO(Global Tech Op) Error Dashboard는 d'strict 국내·해외 7개 아르떼뮤지엄 지점의 오류 보고를 자동화한 실시간 대시보드 시스템입니다.
 
-버전: D'strict Error Dashboard v5.6
+버전: D'strict Error Dashboard v5.7
 GitHub: https://github.com/dstrictkorea/gto-error-dashboard (Private)
 네이밍: "gto-error-dashboard" 사용 ("g-atis" 사용 금지)
 
@@ -308,8 +308,9 @@ git reset --hard HEAD   # ⚠️ 로컬 수정 삭제됨
 git pull origin main
 pm2 restart 0
 
-# git index.lock 오류 (PowerShell):
-Remove-Item "C:\Users\hyunh\Desktop\G-ATIS\.git\index.lock"
+# git index.lock / HEAD.lock 오류 (PowerShell):
+Remove-Item "C:\Users\hyunh\Desktop\G-ATIS\.git\index.lock" -ErrorAction SilentlyContinue
+Remove-Item "C:\Users\hyunh\Desktop\G-ATIS\.git\HEAD.lock" -ErrorAction SilentlyContinue
 10-3. 긴급 핫픽스 (서버 직접 수정)
 bash# sed로 직접 수정
 sed -i 's|old_text|new_text|g' public/js/monthly.js
@@ -368,6 +369,9 @@ Slack/Teams: 짧고 명확한 메시지, 이모지 최소화
    - ANNUAL 카드 누락 → 추가 완료 (branchReport('download'|'preview','annual'))
    - 버튼 min-height:44px (모바일 터치 대응)
    - 코멘트 ✕ 버튼 정상 유지
+3. public/js/utils.js — catFull() 한국어 카테고리 정규화 추가
+   - 글로벌 지점 Error Log에서 한국어값('소프트웨어','하드웨어','네트워크')이 뱃지로 표시 안 되는 버그 수정
+   - EN/KO 양방향 normalization map 적용 → _lang에 따라 올바른 언어로 표시
 
 13-2. 2026-04-09 ~ 10 (커밋: c199f16)
 주요 기능 추가:
