@@ -782,4 +782,3 @@ function generateAnnualPDF(logs, year, lang, history, assets, region, comment) {
 }
 
 module.exports = { generateAnnualPDF };
-                                                                         
