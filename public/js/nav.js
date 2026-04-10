@@ -118,6 +118,28 @@ window.addEventListener('popstate', function(e) {
   }
 })();
 
+// ═══ MOBILE BOTTOM TAB NAVIGATION ═══
+function mobileTabGo(i, btn) {
+  _currentMobilePage = i;
+  goPage(i, document.querySelectorAll('.ntab')[
+    (typeof _loggedId !== 'undefined' && _loggedId === 'gto') ? i + 1 : i
+  ]);
+  // Update bottom nav active state
+  document.querySelectorAll('#mobileBottomNav button').forEach(function(b, idx) {
+    // Skip admin tab (first button if visible) — match by data or position
+    if (b.id === 'mobileAdminTab') return;
+    b.classList.remove('bnav-active');
+  });
+  if (btn) btn.classList.add('bnav-active');
+  // Deactivate mobile admin tab
+  var mAdm = document.getElementById('mobileAdminTab');
+  if (mAdm) mAdm.classList.remove('bnav-active');
+  // Scroll to top
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  // Mobile app: render mobile-specific content
+  if (typeof renderMobilePage === 'function') setTimeout(function(){ renderMobilePage(i); }, 100);
+}
+
 // Keyboard navigation for tabs — prevent page scrolling on arrow keys
 document.querySelector('.nav-tabs').addEventListener('keydown', function(e) {
   var tabs = Array.from(document.querySelectorAll('.ntab:not([style*="display:none"])'));
