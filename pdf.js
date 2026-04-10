@@ -769,51 +769,8 @@ function generatePDF(logs, month, year, lang, history, assets, reportType, regio
       _markPage();
     }
 
-    // ══════════ COVER PAGE (full-page professional design) ══════════
-    // Full black background
-    doc.save().rect(0,0,595,842).fill(CT).restore();
-    // Top accent bar (purple)
-    doc.save().rect(0,0,595,6).fill(CP).restore();
-
-    // d'strict logo (official CI)
-    try { doc.image(LOGO_WHITE, ML, 38, {width:120}); } catch(_) { doc.fillColor('#fff').fontSize(28).font(F.black).text("d'strict",ML,42,{width:200,characterSpacing:-0.8,lineBreak:false}); }
-
-    // Center section: Month + Year (the hero element)
-    const coverMonFull = MONTHS_EN[month].toUpperCase();
-    doc.fillColor(CP).fontSize(72).font(F.black).text(coverMonFull,0,240,{width:595,align:'center',characterSpacing:6,lineBreak:false});
-    doc.fillColor('#fff').fontSize(120).font(F.black).text(String(year),0,300,{width:595,align:'center',characterSpacing:4,lineBreak:false});
-    if(isKo){
-      const koMonths = ['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
-      doc.fillColor('#a3a29c').fontSize(14).font(F.med).text(year+'년 '+koMonths[month]+' 보고서',0,460,{width:595,align:'center',lineBreak:false});
-    }
-
-    // Horizontal divider line
-    doc.save().rect(198,isKo?480:460,200,2).fill(CP).restore();
-
-    // Report title
-    doc.fillColor('#fff').fontSize(20).font(F.bold).text(L.coverTitle,0,isKo?498:485,{width:595,align:'center',characterSpacing:1.5,lineBreak:false});
-    // Subtitle
-    doc.fillColor('#a3a29c').fontSize(12).font(F.reg).text(L.coverSub,0,isKo?528:515,{width:595,align:'center',lineBreak:false});
-
-    // Branch badges row
-    const badgeY=560, badgeW=90, badgeH=28, badgeGap=12;
-    const badges=PDF_BRANCHES;
-    const badgeStartX=(595-(badges.length*badgeW+(badges.length-1)*badgeGap))/2;
-    badges.forEach((b,i)=>{
-      const bx=badgeStartX+i*(badgeW+badgeGap);
-      doc.save().roundedRect(bx,badgeY,badgeW,badgeH,6).fill(BR_COLORS[b]||CP).restore();
-      doc.fillColor('#fff').fontSize(10).font(F.bold).text(b,bx,badgeY+8,{width:badgeW,align:'center',lineBreak:false});
-    });
-
-    // Bottom section: metadata
-    doc.fillColor('#555').fontSize(9).font(F.light).text("d'strict Error  |  Global Technical Operations",0,720,{width:595,align:'center',lineBreak:false});
-    const genDate = new Date().toLocaleString('ko-KR',{timeZone:'Asia/Seoul'});
-    doc.fillColor('#444').fontSize(8).font(F.light).text(L.generated+': '+genDate+' KST',0,738,{width:595,align:'center',lineBreak:false});
-
-    // Bottom purple accent bar
-    doc.save().rect(0,836,595,6).fill(CP).restore();
-
-    // Cover page complete — sect() will add new page
+    // ══════════ FIRST CONTENT PAGE (cover removed) ══════════
+    _drawPageBranding();
 
     // ══════════ MANAGER COMMENT (if provided) ══════════
     // Inserted on first content page, before Executive Summary
@@ -831,7 +788,7 @@ function generatePDF(logs, month, year, lang, history, assets, reportType, regio
       // Section header with background band — CENTER-ALIGNED
       doc.save().rect(ML, headerY, PW, 28).fill('#f0eff8').restore();
       doc.save().rect(ML, headerY, 4, 28).fill(CP).restore();
-      const headerTitle = isKo ? '담당자 코멘트 / 비고' : 'Manager Comment / Remarks';
+      const headerTitle = isKo ? '코멘트 / 비고' : 'Comment / Remarks';
       doc.fillColor(CT).fontSize(isKo ? 14 : 15).font(F.bold)
         .text(headerTitle.toUpperCase(), ML, headerY + 6, { width: PW, align: 'center', lineBreak: false });
       doc.y = headerY + 32;

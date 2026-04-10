@@ -262,59 +262,20 @@ function generateAnnualPDF(logs, year, lang, history, assets, region, comment) {
     }
 
     // ══════════════════════════════════════════════
-    //  COVER PAGE
+    //  FIRST CONTENT PAGE (cover removed)
     // ══════════════════════════════════════════════
-    doc.save().rect(0,0,595,842).fill(CT).restore();
-    // Purple accent bar
-    doc.save().rect(0,0,595,6).fill(CP).restore();
-    // d'strict logo area (official CI)
-    try { doc.image(LOGO_WHITE, ML, 65, {width:130}); } catch(_) {
-      doc.save().rect(ML,60,56,56).fill(CP).restore();
-      doc.fillColor('#fff').fontSize(32).font(F.black).text("d'", ML+8, 70, {lineBreak:false});
-    }
-    doc.fillColor('#73726c').fontSize(8).font(F.light).text('Global Technical Operations', ML, 100, {lineBreak:false});
-
-    // Year in large display
-    doc.fillColor(CP).fontSize(120).font(F.black).text(String(year), ML, 200, {lineBreak:false});
-
-    // Title
-    doc.fillColor('#ffffff').fontSize(isKo?26:28).font(F.bold).text(isKo?'연간 에러 리포트':'ANNUAL ERROR REPORT', ML, 360, {width:PW});
-    doc.fillColor('#a3a29c').fontSize(isKo?13:14).font(F.light).text(isKo?'글로벌 기술운영팀 연간 보고서':'Global Technical Operations Team — Annual Report', ML, isKo?400:395, {width:PW});
-
-    // KPI boxes on cover
-    const kpiY = 480;
-    const kpiW = PW/4;
-    const kpis = [
-      {label: L.total, value: String(total), color: CP},
-      {label: L.critical, value: String(critical.length), color: CE},
-      {label: L.avgDiff, value: avgDiff, color: CW},
-      {label: L.avgRes, value: avgRes+'min', color: '#185FA5'},
-    ];
-    kpis.forEach((k,i) => {
-      const kx = ML + i*kpiW;
-      doc.save().rect(kx+2, kpiY, kpiW-4, 60).fill('#2a2a28').restore();
-      doc.save().rect(kx+2, kpiY, kpiW-4, 3).fill(k.color).restore();
-      doc.fillColor('#a3a29c').fontSize(8).font(F.light).text(k.label, kx+10, kpiY+10, {width:kpiW-20, lineBreak:false});
-      doc.fillColor('#fff').fontSize(22).font(F.bold).text(k.value, kx+10, kpiY+26, {width:kpiW-20, lineBreak:false});
-    });
-
-    // Generated date
-    doc.fillColor('#73726c').fontSize(9).font(F.light).text(L.generated+': '+new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'}), ML, 740);
-    // Bottom accent
-    doc.save().rect(0,836,595,6).fill(CP).restore();
+    _drawPageBranding();
 
     // ══════════════════════════════════════════════
-    //  MANAGER COMMENT (if provided)
+    //  COMMENT (if provided)
     // ══════════════════════════════════════════════
     if (safeComment) {
-      doc.addPage();
-      _drawPageBranding();
       // Section header
       const cmtSecY = doc.y;
       doc.save().rect(ML, cmtSecY, PW, 28).fill('#f0eff8').restore();
       doc.save().rect(ML, cmtSecY, 4, 28).fill(CP).restore();
       doc.fillColor(CT).fontSize(isKo ? 14 : 13).font(F.bold)
-        .text(isKo ? '담당자 코멘트 / 비고' : 'Manager Comment / Remarks',
+        .text(isKo ? '코멘트 / 비고' : 'Comment / Remarks',
           ML + 14, cmtSecY + 7, { lineBreak: false });
       doc.y = cmtSecY + 36;
       // Notice bar

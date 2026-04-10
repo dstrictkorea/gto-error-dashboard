@@ -378,6 +378,17 @@ body{font-family:var(--f);background:var(--adm-bg);color:var(--adm-t0);min-heigh
             <button class="adm-toggle-btn" data-lang="ko" onclick="setAdmLang('global','ko',this)">KOR</button>
           </div>
         </div>
+        <!-- Comment / Remarks -->
+        <div style="margin-top:10px;position:relative;">
+          <div style="font-size:11px;font-weight:700;color:var(--adm-t2);margin-bottom:5px;">📝 Comment / Remarks <span style="font-weight:400;color:var(--adm-t3)">(선택)</span></div>
+          <textarea id="rpt-g-comment" rows="2"
+            style="width:100%;padding:8px 36px 8px 10px;border-radius:8px;border:1.5px solid var(--adm-border);background:var(--adm-card);color:var(--adm-t0);font-family:var(--f);font-size:12px;resize:vertical;outline:none;transition:border-color .18s;-webkit-appearance:none"
+            onfocus="this.style.borderColor='var(--adm-purple)'" onblur="this.style.borderColor='var(--adm-border)'"
+            placeholder="Add remarks or notes to include in the report..."></textarea>
+          <button onclick="admEl('rpt-g-comment').value=''" title="지우기"
+            style="position:absolute;right:8px;top:28px;background:none;border:none;cursor:pointer;color:var(--adm-t3);font-size:14px;line-height:1;padding:4px;border-radius:4px;transition:color .15s"
+            onmouseenter="this.style.color='var(--adm-t0)'" onmouseleave="this.style.color='var(--adm-t3)'">✕</button>
+        </div>
         <!-- 버튼 -->
         <div class="adm-rpt-buttons" style="margin-top:10px;">
           <button class="adm-rpt-btn dl" onclick="admGenReport('global','download')">⬇ 다운로드</button>
@@ -408,6 +419,17 @@ body{font-family:var(--f);background:var(--adm-bg);color:var(--adm-t0);min-heigh
             <button class="adm-toggle-btn" data-lang="en" onclick="setAdmLang('korea','en',this)">ENG</button>
             <button class="adm-toggle-btn active" data-lang="ko" onclick="setAdmLang('korea','ko',this)">KOR</button>
           </div>
+        </div>
+        <!-- Comment / Remarks -->
+        <div style="margin-top:10px;position:relative;">
+          <div style="font-size:11px;font-weight:700;color:var(--adm-t2);margin-bottom:5px;">📝 Comment / Remarks <span style="font-weight:400;color:var(--adm-t3)">(선택)</span></div>
+          <textarea id="rpt-k-comment" rows="2"
+            style="width:100%;padding:8px 36px 8px 10px;border-radius:8px;border:1.5px solid var(--adm-border);background:var(--adm-card);color:var(--adm-t0);font-family:var(--f);font-size:12px;resize:vertical;outline:none;transition:border-color .18s;-webkit-appearance:none"
+            onfocus="this.style.borderColor='var(--adm-purple)'" onblur="this.style.borderColor='var(--adm-border)'"
+            placeholder="비고 또는 추가 내용을 입력하세요..."></textarea>
+          <button onclick="admEl('rpt-k-comment').value=''" title="지우기"
+            style="position:absolute;right:8px;top:28px;background:none;border:none;cursor:pointer;color:var(--adm-t3);font-size:14px;line-height:1;padding:4px;border-radius:4px;transition:color .15s"
+            onmouseenter="this.style.color='var(--adm-t0)'" onmouseleave="this.style.color='var(--adm-t3)'">✕</button>
         </div>
         <!-- 버튼 -->
         <div class="adm-rpt-buttons" style="margin-top:10px;">
@@ -731,6 +753,8 @@ function admGenReport(region, action){
   var lang     = _rptState[region].lang;
   var isAnnual = (monthVal === -1);
   var statusEl = admEl(statusId);
+  var commentId = region === 'global' ? 'rpt-g-comment' : 'rpt-k-comment';
+  var comment  = (admEl(commentId) && admEl(commentId).value) ? admEl(commentId).value.trim() : '';
 
   statusEl.style.display='block';
   statusEl.style.background='#eff6ff';
@@ -740,8 +764,8 @@ function admGenReport(region, action){
 
   var endpoint = isAnnual ? '/api/annual-report' : '/api/report';
   var body = isAnnual
-    ? { year:yearVal, action:action, lang:lang, region:region }
-    : { month:monthVal, year:yearVal, action:action, lang:lang, reportType:'monthly', region:region };
+    ? { year:yearVal, action:action, lang:lang, region:region, comment:comment }
+    : { month:monthVal, year:yearVal, action:action, lang:lang, reportType:'monthly', region:region, comment:comment };
 
   fetch(endpoint, {
     method:'POST',
@@ -877,7 +901,7 @@ function admRenderDaily(){
       html+='<td style="font-weight:600">'+admEsc(r.Zone||'--')+'</td>';
       html+='<td style="font-size:11px;color:var(--adm-t2)">'+admEsc(r.Date||'')+'</td>';
       html+='<td style="font-size:11px">'+admEsc(r.Category||'--')+'</td>';
-      html+='<td class="td-content" style="font-size:12px;max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="'+admEsc(r.IssueDetail||'')+'">'+admEsc((r.IssueDetail||'').slice(0,60))+((r.IssueDetail||'').length>60?'…':'')+'</td>';
+      html+='<td class="td-content" style="font-size:12px;word-break:break-word;white-space:normal;line-height:1.5">'+admEsc(r.IssueDetail||'')+'</td>';
       html+='<td>'+admDiffBadge(r.Difficulty)+'</td>';
       html+='</tr>';
     });
@@ -986,7 +1010,7 @@ function admRenderMonthly(){
       +'<td style="font-weight:600">'+admEsc(r.Zone||'--')+'</td>'
       +'<td style="font-size:11px;color:var(--adm-t2)">'+admEsc(r.Date||'')+'</td>'
       +'<td style="font-size:11px">'+admEsc(r.Category||'--')+'</td>'
-      +'<td class="td-content" style="font-size:12px;max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="'+admEsc(r.IssueDetail||'')+'">'+admEsc((r.IssueDetail||'').slice(0,70))+((r.IssueDetail||'').length>70?'…':'')+'</td>'
+      +'<td class="td-content" style="font-size:12px;word-break:break-word;white-space:normal;line-height:1.5">'+admEsc(r.IssueDetail||'')+'</td>'
       +'<td>'+admDiffBadge(r.Difficulty)+'</td>'
       +'</tr>';
   }).join('');
