@@ -359,7 +359,7 @@ Slack/Teams: 짧고 명확한 메시지, 이모지 최소화
 
 ★ 최신 변경사항을 새 세션 시작 시 반드시 확인
 
-13-0. 2026-04-10 (v5.7.1)
+13-0. 2026-04-10 (v5.7.1, 커밋: 55d617b)
 주요 변경:
 1. server.js — gto 로그인 시 /admin → /kr 리다이렉트 변경 (SPA에서 일반 페이지 + Admin 탭 동시 접근 가능)
 2. public/js/admin.js — initBranchReport()에서 연간(ANNUAL) 리포트 카드 삭제 (월간만 유지)
@@ -373,6 +373,9 @@ Slack/Teams: 짧고 명확한 메시지, 이모지 최소화
 10. public/css/mobile-app.css — Admin 페이지 모바일 최적화 (KPI, 차트, 테이블 반응형)
 11. public/css/style.css — Admin 페이지 반응형 CSS (768px 이하 1열 레이아웃)
 12. public/sw.js, kr/sw.js, en/sw.js — SW 캐시 버전 v5.7.0 → v5.7.1
+13. public/js/nav.js — mobileTabGo() 함수 추가 (모바일 하단 탭 페이지 전환 복원)
+14. public/js/admin.js — 파일 끝 151바이트 null byte 제거 (파싱 에러 원인)
+15. pdf.js — KOREA_BRANCHES, GLOBAL_BRANCHES import 누락 수정
 
 13-1. 2026-04-10 (커밋: 323c931)
 버그 수정 / 회귀 수정:
