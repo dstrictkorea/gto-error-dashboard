@@ -73,7 +73,7 @@ function waitForChart(cb, maxWait){
       console.warn('[G-ATIS] Chart.js failed to load from CDN, loading fallback...');
       var s = document.createElement('script');
       s.src = '/js/vendor/chart.umd.min.js';
-      s.onload = function(){ console.log('[G-ATIS] Chart.js fallback loaded'); cb(); };
+      s.onload = function(){ cb(); };
       s.onerror = function(){ console.error('[G-ATIS] Chart.js fallback also failed'); cb(); };
       document.head.appendChild(s);
     }
