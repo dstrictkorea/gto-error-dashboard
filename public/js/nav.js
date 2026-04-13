@@ -85,6 +85,16 @@ function goPage(i, btn, skipHistory) {
     }
   }
 
+  /* gto: reset to Global+ALL every time a data tab is opened */
+  if (!isAdmin && typeof _loggedId !== 'undefined' && _loggedId === 'gto') {
+    if (typeof _region !== 'undefined') _region = 'global';
+    if (typeof _dailyBranch !== 'undefined') _dailyBranch = 'ALL';
+    if (typeof curBranch !== 'undefined') curBranch = 'ALL';
+    document.querySelectorAll('.region-btn[data-region]').forEach(function(b) {
+      b.classList.toggle('active', b.dataset.region === 'global');
+    });
+  }
+
   /* Render the target page */
   if (isAdmin && typeof renderAdmin === 'function') renderAdmin();
   if (i === 0 && typeof renderDaily === 'function') renderDaily();
