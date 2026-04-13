@@ -366,12 +366,12 @@ function _renderDailyTopCat(ds,br){
     var pct=Math.round(item.cnt/total*100);
     var col=catColors[item.cat]||'#534AB7';
     var catJson=JSON.stringify(item.cat).replace(/</g,'\\u003c');
-    h+='<div style="display:flex;align-items:center;gap:10px;padding:8px 0;cursor:pointer;transition:background .15s;border-radius:8px;'+(i<top5.length-1?'border-bottom:1px solid var(--border)':'')+'" onclick="(function(){var s=document.getElementById(\'f1-ca\');if(s){s.value='+catJson+';goPage(2);if(typeof renderP1===\'function\')renderP1();}})()" onmouseover="this.style.background=\'var(--hover)\'" onmouseout="this.style.background=\'transparent\'">'
-      +'<div style="min-width:22px;font-size:13px;font-weight:700;color:var(--t1)">#'+(i+1)+'</div>'
-      +'<div style="flex:1">'
-      +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px"><span style="font-size:13px;font-weight:600;color:var(--t0)">'+esc(item.cat)+'</span><span style="font-size:12px;font-weight:700;color:'+col+'">'+pct+'%</span></div>'
-      +'<div style="position:relative;background:var(--border);border-radius:4px;height:18px;overflow:hidden"><div style="background:'+col+';height:100%;border-radius:4px;width:'+pct+'%;transition:width .3s;min-width:'+(item.cnt>0?'24px':'0')+'"></div>'
-      +'<span style="position:absolute;left:6px;top:50%;transform:translateY(-50%);font-size:11px;font-weight:700;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,0.3)">'+item.cnt+'</span></div>'
+    h+='<div class="rank-row'+(i<top5.length-1?' rank-row-bordered':'')+'" onclick="(function(){var s=document.getElementById(\'f1-ca\');if(s){s.value='+catJson+';goPage(2);if(typeof renderP1===\'function\')renderP1();}})()">'
+      +'<div class="rank-num">#'+(i+1)+'</div>'
+      +'<div class="rank-content">'
+      +'<div class="flex-row-between mb-2"><span class="text-sm text-semibold">'+esc(item.cat)+'</span><span class="text-xs text-bold" style="color:'+col+'">'+pct+'%</span></div>'
+      +'<div class="bar-track" style="height:18px"><div class="bar-segment" style="background:'+col+';width:'+pct+'%;min-width:'+(item.cnt>0?'24px':'0')+'"></div>'
+      +'<span class="bar-label">'+item.cnt+'</span></div>'
       +'</div></div>';
   });
   c.innerHTML=h;
@@ -399,12 +399,12 @@ function _renderDailyTopZone(ds,br){
     var pct=Math.round(item.cnt/total*100);
     var col=zoneColors[i]||'#534AB7';
     var zoneJson=JSON.stringify(item.zone).replace(/</g,'\\u003c');
-    h+='<div style="display:flex;align-items:center;gap:10px;padding:8px 0;cursor:pointer;transition:background .15s;border-radius:8px;'+(i<top5.length-1?'border-bottom:1px solid var(--border)':'')+'" onclick="(function(){var s=document.getElementById(\'f1-zn\');if(s){s.value='+zoneJson+';goPage(2);if(typeof renderP1===\'function\')renderP1();}})()" onmouseover="this.style.background=\'var(--hover)\'" onmouseout="this.style.background=\'transparent\'">'
-      +'<div style="min-width:22px;font-size:13px;font-weight:700;color:var(--t1)">#'+(i+1)+'</div>'
-      +'<div style="flex:1">'
-      +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px"><span style="font-size:13px;font-weight:600;color:var(--t0)">'+esc(item.zone)+'</span><span style="font-size:12px;font-weight:700;color:'+col+'">'+pct+'%</span></div>'
-      +'<div style="position:relative;background:var(--border);border-radius:4px;height:18px;overflow:hidden"><div style="background:'+col+';height:100%;border-radius:4px;width:'+pct+'%;transition:width .3s;min-width:'+(item.cnt>0?'24px':'0')+'"></div>'
-      +'<span style="position:absolute;left:6px;top:50%;transform:translateY(-50%);font-size:11px;font-weight:700;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,0.3)">'+item.cnt+'</span></div>'
+    h+='<div class="rank-row'+(i<top5.length-1?' rank-row-bordered':'')+'" onclick="(function(){var s=document.getElementById(\'f1-zn\');if(s){s.value='+zoneJson+';goPage(2);if(typeof renderP1===\'function\')renderP1();}})()">'
+      +'<div class="rank-num">#'+(i+1)+'</div>'
+      +'<div class="rank-content">'
+      +'<div class="flex-row-between mb-2"><span class="text-sm text-semibold">'+esc(item.zone)+'</span><span class="text-xs text-bold" style="color:'+col+'">'+pct+'%</span></div>'
+      +'<div class="bar-track" style="height:18px"><div class="bar-segment" style="background:'+col+';width:'+pct+'%;min-width:'+(item.cnt>0?'24px':'0')+'"></div>'
+      +'<span class="bar-label">'+item.cnt+'</span></div>'
       +'</div></div>';
   });
   c.innerHTML=h;
@@ -452,7 +452,7 @@ function _renderDailyList(ds,br){
   var BC=typeof BR_COLORS_MAP!=='undefined'?BR_COLORS_MAP:{AMGN:'#0891b2',AMYS:'#059669',AMBS:'#2563eb',AMJJ:'#7c3aed',AMNY:'#185FA5',AMLV:'#993C1D',AMDB:'#534AB7'};
 
   if(!show.length){
-    c.innerHTML='<div class="daily-empty"><div style="font-size:32px;margin-bottom:8px">✅</div><div style="font-size:14px;font-weight:700;color:var(--t0)">'+(t('no_errors')||'No Errors Reported')+'</div><div style="font-size:12px;color:var(--t3);margin-top:4px">'+(t('no_errors_sub')||'All Clear For This Date')+'</div></div>';
+    c.innerHTML='<div class="daily-empty"><div class="empty-state-icon">✅</div><div class="empty-state-title">'+(t('no_errors')||'No Errors Reported')+'</div><div class="empty-state-subtitle">'+(t('no_errors_sub')||'All Clear For This Date')+'</div></div>';
     return;
   }
 

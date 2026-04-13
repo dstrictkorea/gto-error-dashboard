@@ -144,11 +144,11 @@ function _admDailyStrip(){
   var icons=_AI, BC=_AC;
   // ALL 버튼
   var allActive=(br==='ALL');
-  var html='<button class="branch-seg-btn'+(allActive?' branch-seg-active':'')+'" onclick="admSelDailyBr(\'ALL\')" style="'+(allActive?'background:#1e293b;color:#fff;border:none':'background:var(--card);color:var(--t1);border:1px solid var(--border)')+';padding:8px 16px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:5px;transition:all .2s">'
+  var html='<button class="branch-seg-btn'+(allActive?' branch-seg-active':'')+'" onclick="admSelDailyBr(\'ALL\')" style="--seg-c:#1e293b">'
     +'<span>🌐</span><span>전체</span></button>';
   brs.forEach(function(b){
     var isA=br===b, col=BC[b]||'#534AB7';
-    html+='<button class="branch-seg-btn'+(isA?' branch-seg-active':'')+'" onclick="admSelDailyBr(\''+b+'\')" style="'+(isA?'background:'+col+';color:#fff;border:none':'background:var(--card);color:var(--t1);border:1px solid var(--border)')+';padding:8px 16px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:5px;transition:all .2s">'
+    html+='<button class="branch-seg-btn'+(isA?' branch-seg-active':'')+'" onclick="admSelDailyBr(\''+b+'\')" style="--seg-c:'+col+'">'
       +'<span>'+(icons[b]||'📍')+'</span>'
       +'<span>'+b+'</span>'
       +'</button>';
@@ -209,9 +209,9 @@ function renderAdminDaily(){
       var arrow=ds==='up'?'↑':ds==='dn'?'↓':'→';
       return '<div class="card mc" style="--mc-c:'+color+'">'
         +'<div class="mc-lbl">'+label+'</div>'
-        +'<div class="mc-val" style="color:'+color+';font-family:var(--f-display)">'+val+'</div>'
-        +(sub?'<div class="mc-delta" style="background:none;font-size:11px;color:var(--t3)">'+sub+'</div>':'')
-        +(delta!==null?'<div class="mc-delta '+ds+'" style="color:'+dc+';font-size:11px;font-weight:600">'+arrow+' '+(delta>=0?'+':'')+delta+' vs 전주</div>':'')
+        +'<div class="mc-val">'+val+'</div>'
+        +(sub?'<div class="mc-delta text-xs text-muted">'+sub+'</div>':'')
+        +(delta!==null?'<div class="mc-delta '+ds+' text-xs text-semibold">'+arrow+' '+(delta>=0?'+':'')+delta+' vs 전주</div>':'')
         +'</div>';
     }
 
@@ -232,9 +232,9 @@ function renderAdminDaily(){
         var cnt=weekLogs.filter(function(r){return r.Branch===b;}).length;
         var tCnt=todayLogs.filter(function(r){return r.Branch===b;}).length;
         brCards+='<div class="card mc" style="--mc-c:'+col+';border-top:3px solid '+col+'">'
-          +'<div class="mc-lbl"><span style="font-size:15px;line-height:1;vertical-align:middle">'+(_AI[b]||'')+'</span><span style="vertical-align:middle;margin-left:4px">'+b+'</span></div>'
-          +'<div class="mc-val" style="color:'+col+';font-family:var(--f-display)">'+cnt+'</div>'
-          +'<div class="mc-delta" style="background:none;font-size:11px;color:var(--t3)">'+(_AN[b]||'')+' · 오늘 '+tCnt+'건</div>'
+          +'<div class="mc-lbl"><span>'+(_AI[b]||'')+'</span><span>'+b+'</span></div>'
+          +'<div class="mc-val">'+cnt+'</div>'
+          +'<div class="mc-delta text-xs text-muted">'+(_AN[b]||'')+' · 오늘 '+tCnt+'건</div>'
           +'</div>';
       });
       brHtml='<div style="grid-column:1/-1;border-top:2px dashed var(--border);margin:4px 0 0"></div>'
@@ -421,14 +421,14 @@ function _renderAdmDailyTable(){
     var detail=r.IssueDetail||'--';
     var shortDetail=detail.length>40?detail.slice(0,40)+'…':detail;
     return '<tr>'
-      +'<td style="text-align:center;color:var(--t3);white-space:nowrap">'+(start+i+1)+'</td>'
-      +'<td style="text-align:center;white-space:nowrap">'+brBadge(r.Branch)+'</td>'
-      +'<td style="text-align:center;white-space:nowrap"><span class="zp">'+esc(r.Zone||'--')+'</span></td>'
-      +'<td style="text-align:center;font-size:12px;color:var(--t2);white-space:nowrap">'+esc(r.Date||'')+'</td>'
-      +'<td style="text-align:center;white-space:nowrap">'+catBadge(r.Category||'')+'</td>'
-      +'<td style="color:var(--t2);max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:left" title="'+esc(detail)+'">'+esc(shortDetail)+'</td>'
-      +'<td style="text-align:center;font-size:12px;color:var(--t2);white-space:nowrap">'+esc(r.ActionType||'--')+'</td>'
-      +'<td style="text-align:center;white-space:nowrap">'+stars(r.Difficulty||1)+'</td>'
+      +'<td class="text-center text-muted text-nowrap">'+(start+i+1)+'</td>'
+      +'<td class="text-center text-nowrap">'+brBadge(r.Branch)+'</td>'
+      +'<td class="text-center text-nowrap"><span class="zp">'+esc(r.Zone||'--')+'</span></td>'
+      +'<td class="text-center text-xs text-nowrap">'+esc(r.Date||'')+'</td>'
+      +'<td class="text-center text-nowrap">'+catBadge(r.Category||'')+'</td>'
+      +'<td class="td-left td-detail" title="'+esc(detail)+'">'+esc(shortDetail)+'</td>'
+      +'<td class="text-center text-xs text-nowrap">'+esc(r.ActionType||'--')+'</td>'
+      +'<td class="text-center text-nowrap">'+stars(r.Difficulty||1)+'</td>'
       +'</tr>';
   }).join('');
   // 페이지네이션 UI
@@ -457,11 +457,11 @@ function _admMonthlyStrip(){
   var brs=_brs(_admMonthlyRegion), br=_admMonthlyBranch;
   if(_admMonthlyRegion==='korea') brs=['AMJJ','AMYS','AMGN','AMBS'];
   var allActive=(br==='ALL');
-  var html='<button class="branch-seg-btn'+(allActive?' branch-seg-active':'')+'" onclick="admSelMonthlyBr(\'ALL\')" style="'+(allActive?'background:#1e293b;color:#fff;border:none':'background:var(--card);color:var(--t1);border:1px solid var(--border)')+';padding:8px 16px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:5px;transition:all .2s">'
+  var html='<button class="branch-seg-btn'+(allActive?' branch-seg-active':'')+'" onclick="admSelMonthlyBr(\'ALL\')" style="--seg-c:#1e293b">'
     +'<span>🌐</span><span>전체</span></button>';
   brs.forEach(function(b){
     var isA=br===b,col=_AC[b]||'#534AB7';
-    html+='<button class="branch-seg-btn'+(isA?' branch-seg-active':'')+'" onclick="admSelMonthlyBr(\''+b+'\')" style="'+(isA?'background:'+col+';color:#fff;border:none':'background:var(--card);color:var(--t1);border:1px solid var(--border)')+';padding:8px 16px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:5px;transition:all .2s">'
+    html+='<button class="branch-seg-btn'+(isA?' branch-seg-active':'')+'" onclick="admSelMonthlyBr(\''+b+'\')" style="--seg-c:'+col+'">'
       +'<span>'+(_AI[b]||'📍')+'</span>'
       +'<span>'+b+'</span>'
       +'</button>';
@@ -531,10 +531,10 @@ function renderAdminMonthly(){
       var arrow=ds==='up'?'↑':ds==='dn'?'↓':'→';
       return '<div class="card mc" style="--mc-c:'+color+'">'
         +'<div class="mc-lbl">'+label+'</div>'
-        +'<div style="display:flex;align-items:baseline;gap:8px">'
-        +'<div class="mc-val" style="font-family:var(--f-display)">'+v+'</div>'
-        +'<div style="font-size:11px;color:var(--t3);font-weight:500">'+sparkSvg(sparkData,color)+'</div></div>'
-        +'<div class="mc-delta '+ds+'" style="color:'+dc+';font-size:12px;font-weight:600">'+arrow+' '+Math.abs(pct).toFixed(1)+'% ('+(d2>=0?'+':'')+d2+'건)</div>'
+        +'<div class="mc-val-row">'
+        +'<div class="mc-val">'+v+'</div>'
+        +'<div class="mc-spark-wrap">'+sparkSvg(sparkData,color)+'</div></div>'
+        +'<div class="mc-delta '+ds+' text-xs text-semibold">'+arrow+' '+Math.abs(pct).toFixed(1)+'% ('+(d2>=0?'+':'')+d2+'건)</div>'
         +'</div>';
     }
 
@@ -552,8 +552,8 @@ function renderAdminMonthly(){
         var col=_AC[b]||'#534AB7';
         var cnt=md.filter(function(r){return r.Branch===b;}).length;
         var lcnt=lm.filter(function(r){return r.Branch===b;}).length;
-        var lbl='<span style="font-size:15px;line-height:1;vertical-align:middle">'+(_AI[b]||'')+'</span>'
-          +'<span style="vertical-align:middle;margin-left:4px">'+b+'</span>';
+        var lbl='<span>'+(_AI[b]||'')+'</span>'
+          +'<span>'+b+'</span>';
         brCards2+=mcKpi(lbl,cnt,lcnt,col,lastSix(b));
       });
       brHtml2='<div style="grid-column:1/-1;border-top:2px dashed var(--border);margin:4px 0 0"></div>'
@@ -748,14 +748,14 @@ function renderAdminMonthly(){
       var top=Object.values(map2).sort(function(a,b){return b.cnt-a.cnt;}).slice(0,5);
       var medals=['🥇','🥈','🥉'];
       tbody2.innerHTML=top.map(function(v,i){
-        var rank=i<3?'<span style="font-size:16px">'+medals[i]+'</span>':'<span style="color:var(--t3);font-weight:700">'+(i+1)+'</span>';
+        var rank=i<3?'<span class="medal-icon">'+medals[i]+'</span>':'<span class="rank-num">'+(i+1)+'</span>';
         return '<tr>'
-          +'<td style="white-space:nowrap;text-align:center">'+rank+'</td>'
-          +'<td style="text-align:center;white-space:nowrap">'+brBadge(v.br)+'</td>'
-          +'<td style="text-align:center;white-space:nowrap"><span class="zp">'+esc(v.zone)+'</span></td>'
-          +'<td style="text-align:center;white-space:nowrap">'+catFull(v.cat)+'</td>'
-          +'<td style="color:var(--t2);word-break:break-word;text-align:left">'+esc(v.s)+'</td>'
-          +'<td style="font-size:18px;font-weight:800;color:var(--t0);white-space:nowrap;text-align:center">'+v.cnt+'</td>'
+          +'<td class="td-rank">'+rank+'</td>'
+          +'<td class="text-center text-nowrap">'+brBadge(v.br)+'</td>'
+          +'<td class="text-center text-nowrap"><span class="zp">'+esc(v.zone)+'</span></td>'
+          +'<td class="text-center text-nowrap">'+catFull(v.cat)+'</td>'
+          +'<td class="td-left td-detail">'+esc(v.s)+'</td>'
+          +'<td class="td-count">'+v.cnt+'</td>'
           +'</tr>';
       }).join('');
     }
@@ -784,14 +784,14 @@ function _renderAdmMonthlyTable(){
     var detail=r.IssueDetail||'--';
     var shortDetail=detail.length>40?detail.slice(0,40)+'…':detail;
     return '<tr>'
-      +'<td style="text-align:center;color:var(--t3);white-space:nowrap">'+(start+i+1)+'</td>'
-      +'<td style="text-align:center;white-space:nowrap">'+brBadge(r.Branch)+'</td>'
-      +'<td style="text-align:center;white-space:nowrap"><span class="zp">'+esc(r.Zone||'--')+'</span></td>'
-      +'<td style="text-align:center;font-size:12px;color:var(--t2);white-space:nowrap">'+esc(r.Date||'')+'</td>'
-      +'<td style="text-align:center;white-space:nowrap">'+catBadge(r.Category||'')+'</td>'
-      +'<td style="color:var(--t2);max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:left" title="'+esc(detail)+'">'+esc(shortDetail)+'</td>'
-      +'<td style="text-align:center;font-size:12px;color:var(--t2);white-space:nowrap">'+esc(r.ActionType||'--')+'</td>'
-      +'<td style="text-align:center;white-space:nowrap">'+stars(r.Difficulty||1)+'</td>'
+      +'<td class="text-center text-muted text-nowrap">'+(start+i+1)+'</td>'
+      +'<td class="text-center text-nowrap">'+brBadge(r.Branch)+'</td>'
+      +'<td class="text-center text-nowrap"><span class="zp">'+esc(r.Zone||'--')+'</span></td>'
+      +'<td class="text-center text-xs text-nowrap">'+esc(r.Date||'')+'</td>'
+      +'<td class="text-center text-nowrap">'+catBadge(r.Category||'')+'</td>'
+      +'<td class="td-left td-detail" title="'+esc(detail)+'">'+esc(shortDetail)+'</td>'
+      +'<td class="text-center text-xs text-nowrap">'+esc(r.ActionType||'--')+'</td>'
+      +'<td class="text-center text-nowrap">'+stars(r.Difficulty||1)+'</td>'
       +'</tr>';
   }).join('');
   if(pgWrap) pgWrap.innerHTML=_admPgHtml(total,ps,_admMonthlyPage,totalPages,'admMonthlyGo','admMonthlyPS');
@@ -800,32 +800,28 @@ function _renderAdmMonthlyTable(){
 /* ── 페이지네이션 공통 헬퍼 ── */
 function _admPgHtml(total,ps,page,totalPages,goFn,psFn){
   var start=page*ps+1, end=Math.min((page+1)*ps,total);
-  var html='<div style="display:flex;align-items:center;justify-content:space-between;margin-top:12px;flex-wrap:wrap;gap:8px">';
+  var html='<div class="pager-container">';
   // 좌측: 페이지 크기 선택
-  html+='<div style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--t2)">'
-    +'페이지당 '
-    +'<select onchange="'+psFn+'(parseInt(this.value))" style="padding:3px 8px;border-radius:6px;border:1px solid var(--border);background:var(--card);color:var(--t0);font-size:12px">'
+  html+='<div class="pager-ps"><span class="text-sm text-muted">페이지당</span>'
+    +'<select onchange="'+psFn+'(parseInt(this.value))" class="flt-sel">'
     +'<option value="20"'+(ps===20?' selected':'')+'>20</option>'
     +'<option value="50"'+(ps===50?' selected':'')+'>50</option>'
     +'<option value="100"'+(ps===100?' selected':'')+'>100</option>'
-    +'</select>개 · 총 <b>'+total+'</b>건 · '+start+'–'+end+'</div>';
+    +'</select><span class="text-sm text-muted">개 · 총 <b>'+total+'</b>건 · '+start+'–'+end+'</span></div>';
   // 우측: 페이지 버튼
-  html+='<div style="display:flex;align-items:center;gap:4px">';
-  html+='<button onclick="'+goFn+'(0)" style="'+_admPgBtnStyle(page===0)+'" '+(page===0?'disabled':'')+'>«</button>';
-  html+='<button onclick="'+goFn+'('+(page-1)+')" style="'+_admPgBtnStyle(page===0)+'" '+(page===0?'disabled':'')+'>‹</button>';
+  html+='<div class="pager-wrap">';
+  html+='<button class="page-btn page-btn-nav'+(page===0?' disabled':'')+'" onclick="'+goFn+'(0)" '+(page===0?'disabled':'')+'>«</button>';
+  html+='<button class="page-btn page-btn-nav'+(page===0?' disabled':'')+'" onclick="'+goFn+'('+(page-1)+')" '+(page===0?'disabled':'')+'>‹</button>';
   // 페이지 번호 (최대 5개)
   var rangeStart=Math.max(0,page-2), rangeEnd=Math.min(totalPages-1,rangeStart+4);
   for(var p=rangeStart;p<=rangeEnd;p++){
     var isC=p===page;
-    html+='<button onclick="'+goFn+'('+p+')" style="padding:5px 10px;border-radius:6px;font-size:12px;font-weight:'+(isC?'800':'600')+';cursor:pointer;border:1px solid '+(isC?'#534AB7':'var(--border)')+';background:'+(isC?'#534AB7':'var(--card)')+';color:'+(isC?'#fff':'var(--t1)')+'">'+(p+1)+'</button>';
+    html+='<button class="page-btn'+(isC?' page-btn-active':'')+'" onclick="'+goFn+'('+p+')">'+(p+1)+'</button>';
   }
-  html+='<button onclick="'+goFn+'('+(page+1)+')" style="'+_admPgBtnStyle(page===totalPages-1)+'" '+(page===totalPages-1?'disabled':'')+'>›</button>';
-  html+='<button onclick="'+goFn+'('+(totalPages-1)+')" style="'+_admPgBtnStyle(page===totalPages-1)+'" '+(page===totalPages-1?'disabled':'')+'>»</button>';
+  html+='<button class="page-btn page-btn-nav'+(page===totalPages-1?' disabled':'')+'" onclick="'+goFn+'('+(page+1)+')" '+(page===totalPages-1?'disabled':'')+'>›</button>';
+  html+='<button class="page-btn page-btn-nav'+(page===totalPages-1?' disabled':'')+'" onclick="'+goFn+'('+(totalPages-1)+')" '+(page===totalPages-1?'disabled':'')+'>»</button>';
   html+='</div></div>';
   return html;
-}
-function _admPgBtnStyle(disabled){
-  return 'padding:5px 10px;border-radius:6px;font-size:12px;font-weight:600;cursor:'+(disabled?'default':'pointer')+';border:1px solid var(--border);background:var(--card);color:'+(disabled?'var(--t3)':'var(--t1)')+';';
 }
 function admDailyGo(p){_admDailyPage=p;_renderAdmDailyTable();}
 function admDailyPS(ps){_admDailyPS=ps;_admDailyPage=0;_renderAdmDailyTable();}

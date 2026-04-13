@@ -44,7 +44,7 @@
 <div class="mobile-nav-overlay" id="mobileOverlay" onclick="closeMobileNav()"></div>
 <div class="mobile-nav" id="mobileNav">
   <div class="mobile-nav-header">
-    <div style="font-size:15px;font-weight:700;color:var(--t0);font-family:var(--f-display)">d'strict Error Dashboard</div>
+    <div class="text-bold" style="font-family:var(--f-display)">d'strict Error Dashboard</div>
     <button class="mobile-nav-close" onclick="closeMobileNav()">×</button>
   </div>
   <button class="mobile-nav-item active" onclick="mobileGoPage(0)"><span class="nav-icon">📅</span>Daily</button>
@@ -53,10 +53,10 @@
   <button class="mobile-nav-item" onclick="mobileGoPage(3)"><span class="nav-icon">🏢</span>Branches</button>
   <button class="mobile-nav-item" onclick="mobileGoPage(4)"><span class="nav-icon">🔍</span>Search</button>
   <div class="mobile-nav-actions">
-    <button class="btn btn-sm" style="width:100%;background:var(--purple);color:#fff;font-weight:600;border-radius:8px" onclick="reloadData();closeMobileNav()">⟳</button>
-    <div style="display:flex;gap:6px">
-      <button class="btn btn-sm btn-ghost" style="flex:1;border-radius:8px" onclick="toggleLang();closeMobileNav()" id="mobileLangToggle">EN</button>
-      <button class="btn btn-sm" style="flex:1;border-radius:8px;background:#ef4444;color:#fff;font-weight:600" onclick="doLogout()">&#9211; Logout</button>
+    <button class="btn btn-sm btn-primary" style="width:100%" onclick="reloadData();closeMobileNav()">⟳</button>
+    <div class="flex-row gap-xs">
+      <button class="btn btn-sm btn-ghost" style="flex:1" onclick="toggleLang();closeMobileNav()" id="mobileLangToggle">EN</button>
+      <button class="btn btn-sm" style="flex:1;background:#ef4444;color:#fff" onclick="doLogout()">&#9211; Logout</button>
     </div>
   </div>
 </div>
@@ -120,7 +120,7 @@
       </div>
     </div>
   </div>
-  <div id="daily-branch-toggles" style="display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap"></div>
+  <div id="daily-branch-toggles" class="flex-row flex-wrap gap-xs mb-4"></div>
 
   <!-- Submit Error CTA -->
   <button class="daily-submit-btn" id="dailySubmitBtn" onclick="openFormModal()">
@@ -271,7 +271,7 @@
   <div class="ph"><div><div class="ph-title">Search</div><div class="ph-sub">Past_History — Resolved cases archive</div></div></div>
 
   <!-- Enhanced search bar: larger, centered, with icon and clear button -->
-  <div style="max-width:600px;margin:0 auto 32px;display:flex;flex-direction:column;gap:16px">
+  <div class="flex-col gap-md" style="max-width:600px;margin:0 auto 32px">
     <div class="input-group" style="width:100%">
       <span class="input-group-icon">🔍</span>
       <input type="text" id="hist-s-main" class="search-input" placeholder="Search resolved cases..." oninput="debouncedHist()" style="border:none;padding:12px 16px;font-size:15px" aria-label="Search case history">
@@ -297,12 +297,12 @@
 
 <!-- PAGE 4: AI (hidden) -->
 <div class="page" id="p4">
-  <div class="ph"><div><div class="ph-title" style="color:var(--purple)">AI Analysis</div><div class="ph-sub">Gemini 2.5 Flash / Llama 3.3 70B (Groq) / Mistral Small — All Free</div></div></div>
+  <div class="ph"><div><div class="ph-title kpi-purple">AI Analysis</div><div class="ph-sub">Gemini 2.5 Flash / Llama 3.3 70B (Groq) / Mistral Small — All Free</div></div></div>
 
   <div class="ai-placeholder">
-    <div style="font-size:36px;margin-bottom:16px">🤖</div>
-    <div style="font-size:18px;font-weight:700;color:var(--purple);margin-bottom:12px">AI Analysis — Free API Keys Required</div>
-    <div style="font-size:14px;color:var(--t2);line-height:1.8;max-width:680px;margin:0 auto;text-align:left">
+    <div class="empty-state-icon">🤖</div>
+    <div class="text-lg text-bold kpi-purple mb-4">AI Analysis — Free API Keys Required</div>
+    <div class="text-base text-muted" style="line-height:1.8;max-width:680px;margin:0 auto;text-align:left">
       <strong>How it works:</strong><br>
       1. Click a <b>Difficulty 4+</b> error in Error Log<br>
       2. 3 free AIs comprehensively analyze: past history, equipment specs, manufacturer manuals, industry best practices<br>
@@ -312,48 +312,48 @@
       <strong style="color:var(--purple);font-size:14px">Free API Key Setup (~1 min each):</strong>
 
       <!-- Modern card-based layout for API setup -->
-      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px;margin-top:16px">
+      <div class="admin-grid-3 mt-4">
         <!-- Gemini Card -->
-        <div class="card" style="border:1px solid rgba(83,74,183,0.1)">
-          <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
-            <span style="font-size:16px">🔑</span>
+        <div class="card card-elevated">
+          <div class="flex-row gap-sm mb-4">
+            <span>🔑</span>
             <div>
-              <div style="font-weight:600;color:var(--t0)">Gemini 2.5 Flash</div>
-              <div style="font-size:11px;color:var(--t3)">Google</div>
+              <div class="text-semibold">Gemini 2.5 Flash</div>
+              <div class="text-xs text-muted">Google</div>
             </div>
           </div>
-          <a href="https://aistudio.google.com/apikey" target="_blank" style="color:#2563eb;text-decoration:none;font-size:13px;font-weight:500">Get API Key →</a>
-          <div class="api-status connected" style="margin-top:8px;justify-content:center">
+          <a href="https://aistudio.google.com/apikey" target="_blank" class="text-sm text-semibold">Get API Key →</a>
+          <div class="api-status connected mt-2">
             <div class="api-status-dot"></div>Ready
           </div>
         </div>
 
         <!-- Groq Card -->
-        <div class="card" style="border:1px solid rgba(83,74,183,0.1)">
-          <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
-            <span style="font-size:16px">⚡</span>
+        <div class="card card-elevated">
+          <div class="flex-row gap-sm mb-4">
+            <span>⚡</span>
             <div>
-              <div style="font-weight:600;color:var(--t0)">Llama 3.3 70B</div>
-              <div style="font-size:11px;color:var(--t3)">Groq</div>
+              <div class="text-semibold">Llama 3.3 70B</div>
+              <div class="text-xs text-muted">Groq</div>
             </div>
           </div>
-          <a href="https://console.groq.com" target="_blank" style="color:#2563eb;text-decoration:none;font-size:13px;font-weight:500">Get API Key →</a>
-          <div class="api-status not-configured" style="margin-top:8px;justify-content:center">
+          <a href="https://console.groq.com" target="_blank" class="text-sm text-semibold">Get API Key →</a>
+          <div class="api-status not-configured mt-2">
             <div class="api-status-dot"></div>Not configured
           </div>
         </div>
 
         <!-- Mistral Card -->
-        <div class="card" style="border:1px solid rgba(83,74,183,0.1)">
-          <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
-            <span style="font-size:16px">🎯</span>
+        <div class="card card-elevated">
+          <div class="flex-row gap-sm mb-4">
+            <span>🎯</span>
             <div>
-              <div style="font-weight:600;color:var(--t0)">Mistral Small</div>
-              <div style="font-size:11px;color:var(--t3)">Free & Unlimited</div>
+              <div class="text-semibold">Mistral Small</div>
+              <div class="text-xs text-muted">Free & Unlimited</div>
             </div>
           </div>
-          <a href="https://console.mistral.ai/api-keys" target="_blank" style="color:#2563eb;text-decoration:none;font-size:13px;font-weight:500">Get API Key →</a>
-          <div class="api-status not-configured" style="margin-top:8px;justify-content:center">
+          <a href="https://console.mistral.ai/api-keys" target="_blank" class="text-sm text-semibold">Get API Key →</a>
+          <div class="api-status not-configured mt-2">
             <div class="api-status-dot"></div>Not configured
           </div>
         </div>
@@ -377,25 +377,25 @@
   <!-- ══ 페이지 헤더 ══ -->
   <div class="ph">
     <div>
-      <div class="ph-title" style="color:var(--purple)">⚙ Admin</div>
+      <div class="ph-title kpi-purple">⚙ Admin</div>
       <div class="ph-sub">전체 7지점 통합 관리 · gto 전용</div>
     </div>
   </div>
 
   <!-- ══ 리포트 생성 (Daily의 에러제출 버튼 위치) ══ -->
-  <div class="card" style="border:1.5px solid rgba(83,74,183,0.18);margin-bottom:20px;padding:18px 20px">
-    <div style="font-size:12px;font-weight:800;color:var(--purple);margin-bottom:14px;display:flex;align-items:center;gap:6px">
+  <div class="card admin-report-card mb-6 p-6">
+    <div class="section-label flex-row gap-xs mb-4">
       <span>📋</span> 리포트 생성
     </div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+    <div class="admin-grid-2">
       <!-- 글로벌 -->
-      <div style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:14px">
-        <div style="display:flex;align-items:center;gap:7px;margin-bottom:10px">
-          <span style="padding:2px 8px;border-radius:4px;font-size:10px;font-weight:800;color:#fff;background:#185FA5">🌍 GLOBAL</span>
-          <span style="font-size:11px;color:var(--t2);font-weight:600">AMNY · AMLV · AMDB</span>
+      <div class="ctx-card">
+        <div class="flex-row gap-sm mb-4">
+          <span class="bp-amny">🌍 GLOBAL</span>
+          <span class="text-xs text-semibold text-muted">AMNY · AMLV · AMDB</span>
         </div>
-        <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;flex-wrap:wrap">
-          <span style="font-size:11px;color:var(--t2);font-weight:600">기간</span>
+        <div class="flex-row flex-wrap gap-xs mb-2">
+          <span class="text-xs text-semibold text-muted">기간</span>
           <select id="adm-g-year" class="flt-sel" style="font-size:12px"></select>
           <select id="adm-g-month" class="flt-sel" style="font-size:12px"><option value="-1">연간</option></select>
           <div style="display:flex;gap:3px;margin-left:auto">
@@ -413,21 +413,21 @@
             <button onclick="var ta=document.getElementById('adm-g-comment');if(ta){ta.value='';ta.focus();}" style="position:absolute;top:5px;right:5px;width:22px;height:22px;border-radius:50%;border:1px solid var(--border);background:var(--bg);color:var(--t3);font-size:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s;padding:0" onmouseover="this.style.background='#fef2f2';this.style.color='#dc2626';this.style.borderColor='#fca5a5'" onmouseout="this.style.background='var(--bg)';this.style.color='var(--t3)';this.style.borderColor='var(--border)'" title="내용 지우기">✕</button>
           </div>
         </div>
-        <div style="display:flex;gap:5px">
-          <button class="btn btn-sm" style="flex:1;background:#185FA5;color:#fff;font-weight:700;border-radius:7px;font-size:11px" onclick="adminReport('global','download')">⬇ 다운로드</button>
-          <button class="btn btn-sm" style="flex:1;background:#2563eb;color:#fff;font-weight:700;border-radius:7px;font-size:11px" onclick="adminReport('global','preview')">👁 미리보기</button>
-          <button class="btn btn-sm" style="flex:1;background:#059669;color:#fff;font-weight:700;border-radius:7px;font-size:11px" onclick="adminReport('global','email')">✉ 이메일</button>
+        <div class="flex-row gap-xs">
+          <button class="btn btn-sm btn-primary" style="flex:1;background:#185FA5" onclick="adminReport('global','download')">⬇ 다운로드</button>
+          <button class="btn btn-sm btn-primary" style="flex:1;background:#2563eb" onclick="adminReport('global','preview')">👁 미리보기</button>
+          <button class="btn btn-sm btn-primary" style="flex:1;background:#059669" onclick="adminReport('global','email')">✉ 이메일</button>
         </div>
         <div id="adm-g-status"></div>
       </div>
       <!-- 국내 -->
-      <div style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:14px">
-        <div style="display:flex;align-items:center;gap:7px;margin-bottom:10px">
-          <span style="padding:2px 8px;border-radius:4px;font-size:10px;font-weight:800;color:#fff;background:#059669">🇰🇷 KOREA</span>
-          <span style="font-size:11px;color:var(--t2);font-weight:600">AMGN · AMYS · AMBS · AMJJ</span>
+      <div class="ctx-card">
+        <div class="flex-row gap-sm mb-4">
+          <span class="bp-amgn">🇰🇷 KOREA</span>
+          <span class="text-xs text-semibold text-muted">AMGN · AMYS · AMBS · AMJJ</span>
         </div>
-        <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;flex-wrap:wrap">
-          <span style="font-size:11px;color:var(--t2);font-weight:600">기간</span>
+        <div class="flex-row flex-wrap gap-xs mb-2">
+          <span class="text-xs text-semibold text-muted">기간</span>
           <select id="adm-k-year" class="flt-sel" style="font-size:12px"></select>
           <select id="adm-k-month" class="flt-sel" style="font-size:12px"><option value="-1">연간</option></select>
           <div style="display:flex;gap:3px;margin-left:auto">
@@ -445,10 +445,10 @@
             <button onclick="var ta=document.getElementById('adm-k-comment');if(ta){ta.value='';ta.focus();}" style="position:absolute;top:5px;right:5px;width:22px;height:22px;border-radius:50%;border:1px solid var(--border);background:var(--bg);color:var(--t3);font-size:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s;padding:0" onmouseover="this.style.background='#fef2f2';this.style.color='#dc2626';this.style.borderColor='#fca5a5'" onmouseout="this.style.background='var(--bg)';this.style.color='var(--t3)';this.style.borderColor='var(--border)'" title="내용 지우기">✕</button>
           </div>
         </div>
-        <div style="display:flex;gap:5px">
-          <button class="btn btn-sm" style="flex:1;background:#059669;color:#fff;font-weight:700;border-radius:7px;font-size:11px" onclick="adminReport('korea','download')">⬇ 다운로드</button>
-          <button class="btn btn-sm" style="flex:1;background:#0d9488;color:#fff;font-weight:700;border-radius:7px;font-size:11px" onclick="adminReport('korea','preview')">👁 미리보기</button>
-          <button class="btn btn-sm" style="flex:1;background:#14b8a6;color:#fff;font-weight:700;border-radius:7px;font-size:11px" onclick="adminReport('korea','email')">✉ 이메일</button>
+        <div class="flex-row gap-xs">
+          <button class="btn btn-sm btn-primary" style="flex:1;background:#059669" onclick="adminReport('korea','download')">⬇ 다운로드</button>
+          <button class="btn btn-sm btn-primary" style="flex:1;background:#0d9488" onclick="adminReport('korea','preview')">👁 미리보기</button>
+          <button class="btn btn-sm btn-primary" style="flex:1;background:#14b8a6" onclick="adminReport('korea','email')">✉ 이메일</button>
         </div>
         <div id="adm-k-status"></div>
       </div>
@@ -456,13 +456,11 @@
   </div>
 
   <!-- ══ 일일/월간 뷰 전환 버튼 ══ -->
-  <div style="display:flex;gap:8px;margin-bottom:20px">
-    <button id="adm-btn-daily" onclick="admSwitchView('daily')"
-      style="padding:9px 22px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;background:#534AB7;color:#fff;border:none;transition:all .2s">
+  <div class="flex-row gap-sm mb-6">
+    <button id="adm-btn-daily" class="btn btn-primary" onclick="admSwitchView('daily')">
       📅 일일 현황
     </button>
-    <button id="adm-btn-monthly" onclick="admSwitchView('monthly')"
-      style="padding:9px 22px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;background:var(--card);color:var(--t1);border:1px solid var(--border);transition:all .2s">
+    <button id="adm-btn-monthly" class="btn btn-secondary" onclick="admSwitchView('monthly')">
       📊 월간 현황
     </button>
   </div>
@@ -478,7 +476,7 @@
     </div>
 
     <!-- 지점 버튼 (글로벌/국내 선택 시만 표시) -->
-    <div id="adm-daily-br-strip" style="display:none;gap:6px;margin-bottom:16px;flex-wrap:wrap"></div>
+    <div id="adm-daily-br-strip" class="flex-wrap gap-xs mb-4" style="display:none"></div>
 
     <!-- KPI -->
     <div class="g4" id="adm-daily-kpi"></div>
@@ -550,14 +548,14 @@
     </div>
 
     <!-- 지점 버튼 (글로벌/국내 선택시만) -->
-    <div id="adm-monthly-br-strip" style="display:none;gap:6px;margin-bottom:16px;flex-wrap:wrap"></div>
+    <div id="adm-monthly-br-strip" class="flex-wrap gap-xs mb-4" style="display:none"></div>
 
     <!-- 기간 선택 -->
-    <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px">
-      <span style="font-size:12px;font-weight:700;color:var(--t2)">기간</span>
+    <div class="flex-row gap-sm mb-4">
+      <span class="flbl">기간</span>
       <select id="adm-m-year" onchange="renderAdminMonthly()" aria-label="연도 선택"></select>
       <select id="adm-m-month" onchange="renderAdminMonthly()" aria-label="월 선택"></select>
-      <span id="adm-monthly-date" style="font-size:12px;color:var(--t3);margin-left:4px"></span>
+      <span id="adm-monthly-date" class="text-xs text-muted"></span>
     </div>
 
     <!-- KPI -->

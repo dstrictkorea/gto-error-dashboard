@@ -129,7 +129,7 @@ function renderP0(){
   var maxZ=Math.max.apply(null,Object.values(zc).concat([1]));
   var sortedZones=zones.sort(function(a,b){return(zc[b]||0)-(zc[a]||0)});
 
-  el('zone-hm').innerHTML='<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(80px,1fr));gap:6px">'+sortedZones.map(function(z){var v=zc[z]||0,op=.05+v/maxZ*.85;return'<div class="hm-cell" style="background:rgba(37,99,235,'+op+');color:'+(v>maxZ*.5?'#fff':'#1d4ed8')+';border-radius:10px;padding:8px;cursor:pointer;transition:all 0.3s ease;text-align:center" onmouseover="this.style.boxShadow=\'0 0 12px rgba(37,99,235,0.4)\';this.style.transform=\'scale(1.05)\'" onmouseout="this.style.boxShadow=\'none\';this.style.transform=\'scale(1)\'" title="'+esc(z)+'" onclick="filterZone('+JSON.stringify(z).replace(/</g,'\\u003c')+')">'+'<div style="font-size:15px;font-weight:800">'+v+'</div><div style="font-size:9px;margin-top:2px;font-weight:600;word-break:break-word">'+(z.length>10?z.slice(0,9)+'\u2026':z)+'</div></div>'}).join('')+'</div>';
+  el('zone-hm').innerHTML='<div class="hm-grid">'+sortedZones.map(function(z){var v=zc[z]||0,op=.05+v/maxZ*.85;return'<div class="hm-cell" style="background:rgba(37,99,235,'+op+');color:'+(v>maxZ*.5?'#fff':'#1d4ed8')+'" title="'+esc(z)+'" onclick="filterZone('+JSON.stringify(z).replace(/</g,'\\u003c')+')">'+'<div class="hm-val">'+v+'</div><div class="hm-label">'+(z.length>10?z.slice(0,9)+'\u2026':z)+'</div></div>'}).join('')+'</div>';
 
   // Category Doughnut with center text and enhanced legend
   var catCanvas = document.getElementById('cat-chart');

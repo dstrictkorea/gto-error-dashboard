@@ -37,9 +37,9 @@ function renderBranchPage(){
   }
   el('branch-sel').innerHTML='<div class="branch-seg-container">'+B.map(function(b){
     return'<button class="branch-seg-btn'+(b.id===curBranch?' branch-seg-active':'')+'" onclick="selBranch(\''+b.id+'\',this)" style="--seg-c:'+b.col+'">'
-      +'<span style="font-size:16px;margin-right:4px">'+b.emoji+'</span>'
-      +'<span style="font-weight:600;letter-spacing:0.01em">'+b.id+'</span>'
-      +'<span style="font-size:12px;margin-left:6px;opacity:0.7">'+b.city+'</span>'
+      +'<span>'+b.emoji+'</span>'
+      +'<span>'+b.id+'</span>'
+      +'<span class="text-xs text-muted">'+b.city+'</span>'
       +'</button>';
   }).join('')+'</div>';
   renderBranchContent();
@@ -88,12 +88,12 @@ function renderBranchContent(){
     +'<div style="font-size:11px;color:var(--t3)">'+t('lastUpdate')+' '+timeStr+'</div>'
     +'</div></div>'
     +'<div class="g4">'
-    +'<div class="card mc kpi-animated" style="--mc-c:'+col+'"><div class="mc-lbl">'+t('totalErrors')+'</div><div class="mc-val" style="font-family:var(--f-display)">'+d.length+'</div></div>'
-    +'<div class="card mc kpi-animated" style="--mc-c:#ca8a04"><div class="mc-lbl">'+t('swErrors')+'</div><div class="mc-val" style="font-family:var(--f-display)">'+sw+'</div></div>'
-    +'<div class="card mc kpi-animated" style="--mc-c:#2563eb"><div class="mc-lbl">'+t('hwErrors')+'</div><div class="mc-val" style="font-family:var(--f-display)">'+hw+'</div></div>'
-    +'<div class="card mc kpi-animated" style="--mc-c:#dc2626"><div class="mc-lbl">'+t('criticalErrors')+'</div><div class="mc-val" style="font-family:var(--f-display)">'+crit+'</div></div>'
+    +'<div class="card mc kpi-animated" style="--mc-c:'+col+'"><div class="mc-lbl">'+t('totalErrors')+'</div><div class="mc-val">'+d.length+'</div></div>'
+    +'<div class="card mc kpi-animated" style="--mc-c:#ca8a04"><div class="mc-lbl">'+t('swErrors')+'</div><div class="mc-val">'+sw+'</div></div>'
+    +'<div class="card mc kpi-animated" style="--mc-c:#2563eb"><div class="mc-lbl">'+t('hwErrors')+'</div><div class="mc-val">'+hw+'</div></div>'
+    +'<div class="card mc kpi-animated" style="--mc-c:#dc2626"><div class="mc-lbl">'+t('criticalErrors')+'</div><div class="mc-val">'+crit+'</div></div>'
     +'</div>'
-    +'<div class="card" style="margin-bottom:16px"><div style="display:flex;align-items:center;gap:8px;margin-bottom:14px"><span style="font-size:18px">📊</span><div class="ctitle" style="margin:0">'+t('zoneBreakdown')+'</div></div>'
+    +'<div class="card" style="margin-bottom:16px"><div class="flex-row gap-sm mb-4"><span>📊</span><div class="ctitle mb-0">'+t('zoneBreakdown')+'</div></div>'
     +'<div class="bchart">'+Object.entries(zc).sort(function(a,c){return c[1]-a[1]}).map(function(e,i){
       var sharePct=d.length?Math.round(e[1]/d.length*100):0;
       var barWidth=Math.round(e[1]/mz*100);
@@ -123,8 +123,8 @@ function renderAllBranches(d){
   var brCards=brs.map(function(b,i){
     var bd=d.filter(function(r){return r.Branch===b}),cnt=bd.length;
     return'<div class="card mc kpi-animated" style="--mc-c:'+cols[b]+';background:linear-gradient(135deg,'+cols[b]+'11 0%,'+cols[b]+'05 100%);animation:slideIn 0.5s ease-out '+(i*0.1)+'s both">'
-      +'<div class="mc-lbl">'+b+' <span style="font-weight:400;color:var(--t4)">('+cities[b]+')</span></div>'
-      +'<div class="mc-val" style="font-family:var(--f-display);color:'+cols[b]+'">'+cnt+'</div>'
+      +'<div class="mc-lbl">'+b+' <span class="text-muted">('+cities[b]+')</span></div>'
+      +'<div class="mc-val">'+cnt+'</div>'
       +'</div>';
   }).join('');
   var zc={};d.forEach(function(r){zc[r.Zone]=(zc[r.Zone]||0)+1});
@@ -150,13 +150,13 @@ function renderAllBranches(d){
     +'<div style="font-size:14px;color:var(--t2);font-weight:500">'+t('globalOverview')+'</div>'
     +'</div>'
     +'<div class="g4">'
-    +'<div class="card mc kpi-animated" style="--mc-c:var(--t0)"><div class="mc-lbl">'+t('totalErrors')+'</div><div class="mc-val" style="font-family:var(--f-display)">'+d.length+'</div></div>'
-    +'<div class="card mc kpi-animated" style="--mc-c:#ca8a04"><div class="mc-lbl">'+t('swErrors')+'</div><div class="mc-val" style="font-family:var(--f-display)">'+sw+'</div></div>'
-    +'<div class="card mc kpi-animated" style="--mc-c:#2563eb"><div class="mc-lbl">'+t('hwErrors')+'</div><div class="mc-val" style="font-family:var(--f-display)">'+hw+'</div></div>'
-    +'<div class="card mc kpi-animated" style="--mc-c:#dc2626"><div class="mc-lbl">'+t('criticalErrors')+'</div><div class="mc-val" style="font-family:var(--f-display)">'+crit+'</div></div>'
+    +'<div class="card mc kpi-animated" style="--mc-c:var(--t0)"><div class="mc-lbl">'+t('totalErrors')+'</div><div class="mc-val">'+d.length+'</div></div>'
+    +'<div class="card mc kpi-animated" style="--mc-c:#ca8a04"><div class="mc-lbl">'+t('swErrors')+'</div><div class="mc-val">'+sw+'</div></div>'
+    +'<div class="card mc kpi-animated" style="--mc-c:#2563eb"><div class="mc-lbl">'+t('hwErrors')+'</div><div class="mc-val">'+hw+'</div></div>'
+    +'<div class="card mc kpi-animated" style="--mc-c:#dc2626"><div class="mc-lbl">'+t('criticalErrors')+'</div><div class="mc-val">'+crit+'</div></div>'
     +'</div>'
     +'<div class="g3" style="margin-bottom:16px">'+brCards+'</div>'
-    +'<div class="card" style="margin-bottom:16px"><div style="display:flex;align-items:center;gap:8px;margin-bottom:14px"><span style="font-size:18px">📍</span><div class="ctitle" style="margin:0">'+t('zoneBreakdown')+'</div></div><div class="bchart">'+zoneChart+'</div></div>'
+    +'<div class="card" style="margin-bottom:16px"><div class="flex-row gap-sm mb-4"><span>📍</span><div class="ctitle mb-0">'+t('zoneBreakdown')+'</div></div><div class="bchart">'+zoneChart+'</div></div>'
     +brBuildTable(d, [
       {label:t('branch'),key:'Branch'},{label:t('zone'),key:'Zone'},{label:t('date'),key:'Date'},{label:t('solvedBy'),key:'SolvedBy'},
       {label:t('category'),key:'Category'},{label:t('thIssueDetail'),key:'IssueDetail'},{label:t('duration'),key:'TimeTaken'},{label:t('thDiff'),key:'Difficulty'}
@@ -180,8 +180,8 @@ function brBuildTable(d, cols, colFn, title) {
     var isActive=_brSortKey===c.key;
     var arrow=isActive?(_brSortAsc?'↑':'↓'):'↕';
     var arrowColor=isActive?'color:var(--purple);opacity:1':'color:inherit;opacity:0.3';
-    return'<th class="sortable" style="font-weight:600;color:var(--t3);border-bottom:2px solid var(--border);padding:8px 12px;font-size:11px;text-transform:uppercase;letter-spacing:0.06em;cursor:pointer;user-select:none;white-space:nowrap;transition:all 0.12s" onclick="brSort(\''+c.key+'\')" onmouseover="this.style.color=\'var(--t1)\'" onmouseout="this.style.color=\'var(--t3)\'">'
-      +c.label+' <span style="font-size:10px;margin-left:2px;'+arrowColor+'">'+arrow+'</span></th>';
+    return'<th class="sortable" onclick="brSort(\''+c.key+'\')">'
+      +c.label+' <span class="sort-arrow" style="'+arrowColor+'">'+arrow+'</span></th>';
   }).join('');
 
   var body=pageData.map(function(r,i){
@@ -190,10 +190,10 @@ function brBuildTable(d, cols, colFn, title) {
   }).join('');
 
   // Pagination
-  var pgHtml='<div class="pager-container" style="border-top:1px solid var(--border);margin-top:12px">';
+  var pgHtml='<div class="pager-container">';
   pgHtml+='<button class="page-btn page-btn-nav'+(_brPage===0?' disabled':'')+'" onclick="_brPage=0;renderBranchContent()" '+(_brPage===0?'disabled':'')+'>«</button>';
   pgHtml+='<button class="page-btn page-btn-nav'+(_brPage===0?' disabled':'')+'" onclick="_brPage--;renderBranchContent()" '+(_brPage===0?'disabled':'')+'>‹</button>';
-  pgHtml+='<span style="font-size:12px;color:var(--t2);margin:0 8px">'+(start+1)+'-'+end+(_lang==='ko'?' / '+total+t('errors'):' of '+total)+'</span>';
+  pgHtml+='<span class="text-sm text-muted">'+(start+1)+'-'+end+(_lang==='ko'?' / '+total+t('errors'):' of '+total)+'</span>';
   var pStart=Math.max(0,_brPage-2),pEnd=Math.min(pages,pStart+5);if(pEnd-pStart<5)pStart=Math.max(0,pEnd-5);
   for(var p=pStart;p<pEnd;p++){
     pgHtml+='<button class="page-btn'+(p===_brPage?' page-btn-active':'')+'" onclick="_brPage='+p+';renderBranchContent()">'+(p+1)+'</button>';
@@ -208,5 +208,5 @@ function brBuildTable(d, cols, colFn, title) {
   pgHtml+='</div>';
   pgHtml+='</div>';
 
-  return '<div class="tbl-wrap"><div class="tbl-hdr"><div style="display:flex;align-items:center;gap:8px"><span style="font-size:16px">📋</span><div class="tbl-title">'+title+'</div><span class="rcnt" style="background:var(--purple)20;color:var(--purple);padding:4px 10px;border-radius:100px;font-weight:600;font-size:12px">'+total+' '+t('records')+'</span></div></div><div style="overflow-x:auto"><table style="border-collapse:collapse;width:100%"><thead><tr>'+hdr+'</tr></thead><tbody>'+body+'</tbody></table></div></div>'+pgHtml;
+  return '<div class="tbl-wrap"><div class="tbl-hdr"><div class="flex-row gap-sm"><span>📋</span><div class="tbl-title">'+title+'</div><span class="rcnt">'+total+' '+t('records')+'</span></div></div><div style="overflow-x:auto"><table><thead><tr>'+hdr+'</tr></thead><tbody>'+body+'</tbody></table></div></div>'+pgHtml;
 }

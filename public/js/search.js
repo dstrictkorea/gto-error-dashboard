@@ -42,10 +42,10 @@ function renderHist(){
   el('hist-cnt').textContent=d.length+' '+t('errors');
   var zones=unique(d.map(function(h){return h.zone})).sort();
   if(!zones.length){
-    el('hist-list').innerHTML='<div style="text-align:center;padding:56px;color:var(--t3);animation:fadeIn 0.4s ease-out">'
-      +'<div style="font-size:48px;margin-bottom:16px;opacity:0.4;animation:float 3s ease-in-out infinite">☁️</div>'
-      +'<div style="font-size:16px;font-weight:700;color:var(--t1);margin-bottom:8px">'+t('noFound')+'</div>'
-      +'<div style="font-size:13px;color:var(--t3)">'+t('tryDiffSearch')+'</div>'
+    el('hist-list').innerHTML='<div class="empty-state">'
+      +'<div class="empty-state-icon">☁️</div>'
+      +'<div class="empty-state-title">'+t('noFound')+'</div>'
+      +'<div class="empty-state-subtitle">'+t('tryDiffSearch')+'</div>'
       +'</div>';
     return;
   }

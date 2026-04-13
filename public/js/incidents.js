@@ -81,7 +81,7 @@ function renderP1Page(){
   // Show empty state if no results
   if(total===0){
     el('p1-cnt').textContent=t('showing')+' 0 '+t('of')+' 0';
-    el('p1-tbl').innerHTML='<tr><td colspan="10" style="padding:40px;text-align:center"><div style="color:var(--t3)"><div style="font-size:32px;margin-bottom:8px">☁️</div><div style="font-size:14px;font-weight:600;margin-bottom:4px">'+t('noMatchingRecords')+'</div><div style="font-size:12px;color:var(--t4);margin-bottom:16px">'+t('noMatchingSub')+'</div><button class="btn btn-sm" style="background:var(--purple);color:#fff;padding:6px 16px;border-radius:8px" onclick="el(\'f1-s\').value=\'\';el(\'f1-br\').value=\'\';el(\'f1-zn\').value=\'\';el(\'f1-ca\').value=\'\';el(\'f1-df\').value=\'\';el(\'f1-yr\').value=\'\';el(\'f1-mn\').value=\'\';renderP1()">'+t('resetFilters')+'</button></div></td></tr>';
+    el('p1-tbl').innerHTML='<tr><td colspan="10"><div class="empty-state"><div class="empty-state-icon">☁️</div><div class="empty-state-title">'+t('noMatchingRecords')+'</div><div class="empty-state-subtitle">'+t('noMatchingSub')+'</div><button class="btn btn-sm btn-primary" onclick="el(\'f1-s\').value=\'\';el(\'f1-br\').value=\'\';el(\'f1-zn\').value=\'\';el(\'f1-ca\').value=\'\';el(\'f1-df\').value=\'\';el(\'f1-yr\').value=\'\';el(\'f1-mn\').value=\'\';renderP1()">'+t('resetFilters')+'</button></div></td></tr>';
     var pgEl=document.getElementById('p1-pager');if(pgEl)pgEl.innerHTML='';return
   }
 
@@ -95,8 +95,8 @@ function renderP1Page(){
     var actualIdx=start+rowIdx;
     var zebra=actualIdx%2===0?'background:rgba(0,0,0,0.01)':'';
     return'<tr class="cp" data-idx="'+i+'" style="'+zebra+'" onclick="showDetail(parseInt(this.getAttribute(\'data-idx\')))">'
-      +'<td style="color:var(--t3);font-weight:600;width:48px;white-space:nowrap">'+(actualIdx+1)+'</td>'
-      +'<td>'+brBadge(r.Branch)+'</td><td><span class="zp">'+esc(r.Zone)+'</span></td><td style="color:var(--t3);font-size:12px">'+r.Date+'</td><td style="font-weight:500;font-size:13px">'+esc(r.SolvedBy)+'</td><td>'+catBadge(r.Category)+'</td><td class="td-left" title="'+esc(r.IssueDetail)+'" style="color:var(--t2);font-size:13px">'+esc(typeof autoTr==='function'?autoTr(r.IssueDetail):r.IssueDetail)+'</td><td style="font-size:11px;color:var(--t3)">'+esc(typeof autoTrAction==='function'?autoTrAction(r.ActionType):r.ActionType)+'</td><td>'+tmBadge(typeof autoTr==='function'?autoTr(r.TimeTaken):r.TimeTaken)+'</td><td>'+stars(r.Difficulty)+'</td></tr>'
+      +'<td class="text-muted text-semibold text-nowrap">'+(actualIdx+1)+'</td>'
+      +'<td>'+brBadge(r.Branch)+'</td><td><span class="zp">'+esc(r.Zone)+'</span></td><td class="text-muted text-xs">'+r.Date+'</td><td class="text-semibold text-sm">'+esc(r.SolvedBy)+'</td><td>'+catBadge(r.Category)+'</td><td class="td-left td-detail" title="'+esc(r.IssueDetail)+'">'+esc(typeof autoTr==='function'?autoTr(r.IssueDetail):r.IssueDetail)+'</td><td class="text-xs text-muted">'+esc(typeof autoTrAction==='function'?autoTrAction(r.ActionType):r.ActionType)+'</td><td>'+tmBadge(typeof autoTr==='function'?autoTr(r.TimeTaken):r.TimeTaken)+'</td><td>'+stars(r.Difficulty)+'</td></tr>'
   }).join('');
 
   // Enhanced pagination controls
@@ -150,8 +150,8 @@ function showDetail(idx){
   var sim=searchSimilar(r.Branch,r.Zone,r.Category,r.IssueDetail,r);
 
   // Section 1: Issue Context
-  var ctxHtml='<div class="detail-section"><div class="detail-section-hdr"><span style="font-size:16px">📋</span><div class="detail-section-title">'+t('issueContext')+'</div></div>'
-    +'<div style="margin-bottom:10px"><div style="font-size:16px;font-weight:700;line-height:1.5;color:var(--t0)">'+esc(typeof autoTr==='function'?autoTr(r.IssueDetail):r.IssueDetail)+'</div></div>'
+  var ctxHtml='<div class="detail-section"><div class="detail-section-hdr"><span class="detail-section-icon">📋</span><div class="detail-section-title">'+t('issueContext')+'</div></div>'
+    +'<div class="mb-4"><div class="text-md text-bold">'+esc(typeof autoTr==='function'?autoTr(r.IssueDetail):r.IssueDetail)+'</div></div>'
     +'<div class="ctx-grid"><div><span class="ctx-meta-label">'+t('branch')+'</span>'+brBadge(r.Branch)+'</div>'
     +'<div><span class="ctx-meta-label">'+t('zone')+'</span><span class="zp ctx-meta-tag" style="color:var(--t1)">'+esc(r.Zone)+'</span></div>'
     +'<div><span class="ctx-meta-label">'+t('category')+'</span>'+catFull(r.Category)+'</div>'
@@ -159,7 +159,7 @@ function showDetail(idx){
     +'</div>';
 
   // Section 2: Resolution
-  var resHtml='<div class="detail-section"><div class="detail-section-hdr"><span style="font-size:16px">✓</span><div class="detail-section-title">'+t('resolution')+'</div></div>'
+  var resHtml='<div class="detail-section"><div class="detail-section-hdr"><span class="detail-section-icon">✓</span><div class="detail-section-title">'+t('resolution')+'</div></div>'
     +'<div class="ctx-grid ctx-grid-wide">'
     +'<div class="ctx-card"><div class="ctx-label">👤 '+t('solvedBy')+'</div><div class="ctx-value">'+esc(r.SolvedBy)+'</div></div>'
     +'<div class="ctx-card"><div class="ctx-label">⚡ '+t('action')+'</div><div class="ctx-value">'+esc(typeof autoTr==='function'?autoTr(r.ActionTaken):r.ActionTaken)+'</div></div>'
@@ -169,7 +169,7 @@ function showDetail(idx){
     +'</div>';
 
   // Section 3: Similar Cases — 100-Point Scoring System
-  var simHtml='<div class="detail-section"><div class="detail-section-hdr" style="margin-bottom:4px"><span style="font-size:16px">📊</span><div class="detail-section-title">'+t('similarCasesCount')+' ('+sim.length+')</div></div>'
+  var simHtml='<div class="detail-section"><div class="detail-section-hdr" style="margin-bottom:4px"><span class="detail-section-icon">📊</span><div class="detail-section-title">'+t('similarCasesCount')+' ('+sim.length+')</div></div>'
     +'<div style="font-size:10px;color:var(--t4);margin-bottom:12px;padding-left:24px">'+(_lang==='ko'?'장비 40 · 카테고리 25 · 증상 15 · Zone 10 · 장소 10 = 100점 만점 (75점 이상 표시)':'Equip 40 · Category 25 · Symptom 15 · Zone 10 · Place 10 = 100pt max (≥75pt shown)')+'</div>';
   if(sim.length){
     simHtml+='<div style="position:relative;padding:0 0 0 24px">';
@@ -206,7 +206,7 @@ function showDetail(idx){
   simHtml+='</div>';
 
   // Section 4: AI Analysis
-  var aiHtml='<div><div class="detail-section-hdr"><span style="font-size:16px">🤖</span><div class="detail-section-title">'+t('aiAnalysis')+'</div>'
+  var aiHtml='<div><div class="detail-section-hdr"><span class="detail-section-icon">🤖</span><div class="detail-section-title">'+t('aiAnalysis')+'</div>'
     +(r.Difficulty>=4?'<span style="background:rgba(255,193,7,0.15);color:#d97706;font-size:9px;font-weight:700;padding:3px 8px;border-radius:6px">⚠ DIFFICULTY '+r.Difficulty+'</span>':'')
     +'</div>'
     +'<div class="ai-panel">'
@@ -218,7 +218,7 @@ function showDetail(idx){
     +'<button class="btn btn-sm" style="background:var(--purple);color:#fff;font-size:11px;border-radius:8px;padding:8px 16px;font-weight:600;width:100%" onclick="requestAI('+idx+')">'+t('requestAI')+'</button>'
     +'</div></div>';
 
-  var html='<div class="detail-panel" style="animation:slideInDetail 0.3s ease-out"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px"><div style="font-size:18px;letter-spacing:-0.02em;font-weight:800;color:var(--t0)"></div><button class="btn btn-ghost" style="width:32px;height:32px;border-radius:50%;padding:0;display:flex;align-items:center;justify-content:center;color:var(--t2);font-size:16px;transition:all 0.2s;background:transparent;border:1px solid transparent;cursor:pointer" onmouseover="this.style.background=\'var(--card)\';this.style.borderColor=\'var(--border)\'" onmouseout="this.style.background=\'transparent\';this.style.borderColor=\'transparent\'" onclick="closeDetail()">×</button></div>'
+  var html='<div class="detail-panel"><div class="flex-row-between mb-6"><div></div><button class="btn btn-ghost detail-close-btn" onclick="closeDetail()">×</button></div>'
     +ctxHtml+resHtml+simHtml+aiHtml
     +'</div>';
 
