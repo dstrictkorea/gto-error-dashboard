@@ -73,12 +73,11 @@ function _fillDailyBranchToggles(){
   var BC=typeof BR_COLORS_MAP!=='undefined'?BR_COLORS_MAP:{};
   var icons={AMNY:'🗽',AMLV:'🎰',AMDB:'🏜️',AMGN:'🏔',AMYS:'🌊',AMBS:'⚓',AMJJ:'🍊'};
   var allActive=(!_dailyBranch||_dailyBranch==='ALL'||regionBrs.indexOf(_dailyBranch)<0);
-  var btnBase=';padding:8px 16px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:5px;transition:all .2s';
-  var html='<button class="branch-seg-btn'+(allActive?' branch-seg-active':'')+'" onclick="_selectDailyBranch(\'ALL\')" style="'+(allActive?'background:#1e293b;color:#fff;border:none':'background:var(--card);color:var(--t1);border:1px solid var(--border)')+btnBase+'"><span>🌐</span><span>ALL</span></button>';
+  var html='<button class="branch-seg-btn'+(allActive?' branch-seg-active':'')+'" onclick="_selectDailyBranch(\'ALL\')" style="--seg-c:#1e293b" data-color="#1e293b"><span>🌐</span><span>ALL</span></button>';
   regionBrs.forEach(function(b){
     var isActive=_dailyBranch===b;
     var col=BC[b]||'#534AB7';
-    html+='<button class="branch-seg-btn'+(isActive?' branch-seg-active':'')+'" onclick="_selectDailyBranch(\''+b+'\')" style="'+(isActive?'background:'+col+';color:#fff;border:none':'background:var(--card);color:var(--t1);border:1px solid var(--border)')+btnBase+'"><span>'+(icons[b]||'📍')+'</span><span>'+b+'</span></button>';
+    html+='<button class="branch-seg-btn'+(isActive?' branch-seg-active':'')+'" onclick="_selectDailyBranch(\''+b+'\')" style="--seg-c:'+col+'" data-color="'+col+'"><span>'+(icons[b]||'📍')+'</span><span>'+b+'</span></button>';
   });
   wrap.innerHTML=html;
 }
@@ -182,10 +181,10 @@ function _renderDailyKPI(ds,br){
   var tzLabel=tzInfo?tzInfo.label:'';
 
   c.innerHTML=
-    '<div class="mc"><div class="mc-label">'+t('thisWeek')+'</div><div class="mc-val" style="color:#534AB7">'+cnt+'</div>'+(tzLabel?'<div class="mc-delta" style="background:none;font-size:10px;color:var(--t4)">'+tzLabel+'</div>':'')+'</div>'+
-    '<div class="mc"><div class="mc-label">'+t('kpiToday')+'</div><div class="mc-val" style="color:#60a5fa">'+todayCnt+'</div><div class="mc-delta" style="background:none;font-size:10px;color:var(--t4)">'+ds+'</div></div>'+
-    '<div class="mc"><div class="mc-label">'+t('vsPrevWeek')+'</div><div class="mc-val" style="color:'+(dw>=0?'#ef4444':'#10b981')+'">'+(dw>=0?'+':'')+dw+'</div><div class="mc-delta">'+(prev?Math.round(dw/prev*100)+'%':'—')+'</div></div>'+
-    '<div class="mc"><div class="mc-label">'+t('avgPerDay')+'</div><div class="mc-val" style="color:#8b5cf6">'+avgDay+'</div><div class="mc-delta">'+t('errorsPerDay')+'</div></div>';
+    '<div class="mc"><div class="mc-label">'+t('thisWeek')+'</div><div class="mc-val kpi-purple">'+cnt+'</div>'+(tzLabel?'<div class="mc-delta text-xs text-muted">'+tzLabel+'</div>':'')+'</div>'+
+    '<div class="mc"><div class="mc-label">'+t('kpiToday')+'</div><div class="mc-val kpi-blue">'+todayCnt+'</div><div class="mc-delta text-xs text-muted">'+ds+'</div></div>'+
+    '<div class="mc"><div class="mc-label">'+t('vsPrevWeek')+'</div><div class="mc-val '+(dw>=0?'delta-up':'delta-dn')+'">'+(dw>=0?'+':'')+dw+'</div><div class="mc-delta">'+(prev?Math.round(dw/prev*100)+'%':'—')+'</div></div>'+
+    '<div class="mc"><div class="mc-label">'+t('avgPerDay')+'</div><div class="mc-val kpi-violet">'+avgDay+'</div><div class="mc-delta">'+t('errorsPerDay')+'</div></div>';
 }
 
 /* ═══════════════════════
@@ -193,10 +192,10 @@ function _renderDailyKPI(ds,br){
    ═══════════════════════ */
 /* ── Shared empty-state helper ── */
 function _dailyEmptyState(icon,title,sub){
-  return '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;min-height:180px;gap:6px;opacity:0.85">'
-    +'<div style="font-size:42px;line-height:1">'+icon+'</div>'
-    +'<div style="font-size:14px;font-weight:700;color:var(--t0)">'+(title||'No Data')+'</div>'
-    +'<div style="font-size:12px;color:var(--t3)">'+(sub||'')+'</div></div>';
+  return '<div class="empty-state-box">'
+    +'<div class="empty-state-icon">'+icon+'</div>'
+    +'<div class="empty-state-title">'+(title||'No Data')+'</div>'
+    +'<div class="empty-state-sub">'+(sub||'')+'</div></div>';
 }
 
 function _renderDailyTrend(ds,br){

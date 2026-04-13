@@ -101,30 +101,30 @@ function renderP1Page(){
 
   // Enhanced pagination controls
   var pgEl=document.getElementById('p1-pager');
-  if(!pgEl){pgEl=document.createElement('div');pgEl.id='p1-pager';pgEl.style.cssText='display:flex;align-items:center;justify-content:center;gap:10px;padding:16px 0;flex-wrap:wrap;font-size:12px';var tblWrap=el('p1-tbl').closest('.tbl-wrap');if(tblWrap)tblWrap.parentNode.insertBefore(pgEl,tblWrap.nextSibling)}
+  if(!pgEl){pgEl=document.createElement('div');pgEl.id='p1-pager';pgEl.className='pager-container';var tblWrap=el('p1-tbl').closest('.tbl-wrap');if(tblWrap)tblWrap.parentNode.insertBefore(pgEl,tblWrap.nextSibling)}
 
-  var pgHtml='<div style="display:flex;gap:2px;align-items:center">';
-  pgHtml+='<button class="btn btn-ghost btn-sm" onclick="p1Go(0)" style="border-radius:6px;padding:6px 10px;min-width:auto;'+((_p1Page===0)?'opacity:.4':'')+'" '+((_p1Page===0)?'disabled':'')+'>«</button>';
-  pgHtml+='<button class="btn btn-ghost btn-sm" onclick="p1Go('+(_p1Page-1)+')" style="border-radius:6px;padding:6px 10px;min-width:auto;'+((_p1Page===0)?'opacity:.4':'')+'" '+((_p1Page===0)?'disabled':'')+'>‹</button>';
+  var pgHtml='<div class="pager-wrap">';
+  pgHtml+='<button class="page-btn page-btn-nav'+((_p1Page===0)?' disabled':'')+'" onclick="p1Go(0)" '+((_p1Page===0)?'disabled':'')+'>«</button>';
+  pgHtml+='<button class="page-btn page-btn-nav'+((_p1Page===0)?' disabled':'')+'" onclick="p1Go('+(_p1Page-1)+')" '+((_p1Page===0)?'disabled':'')+'>‹</button>';
 
   var pStart=Math.max(0,_p1Page-3),pEnd=Math.min(pages,pStart+7);
   if(pEnd-pStart<7)pStart=Math.max(0,pEnd-7);
   for(var p=pStart;p<pEnd;p++){
-    pgHtml+='<button class="btn btn-sm" style="'+(p===_p1Page?'background:var(--purple);color:#fff;border-radius:6px;min-width:34px;height:32px;display:flex;align-items:center;justify-content:center':'background:var(--card);color:var(--t2);border:1px solid var(--border);border-radius:6px;min-width:34px;height:32px;display:flex;align-items:center;justify-content:center')+'" onclick="p1Go('+p+')">'+(p+1)+'</button>';
+    pgHtml+='<button class="page-btn'+(p===_p1Page?' page-btn-active':'')+'" onclick="p1Go('+p+')">'+(p+1)+'</button>';
   }
-  pgHtml+='<button class="btn btn-ghost btn-sm" onclick="p1Go('+(_p1Page+1)+')" style="border-radius:6px;padding:6px 10px;min-width:auto;'+((_p1Page>=pages-1)?'opacity:.4':'')+'" '+((_p1Page>=pages-1)?'disabled':'')+'>›</button>';
-  pgHtml+='<button class="btn btn-ghost btn-sm" onclick="p1Go('+(pages-1)+')" style="border-radius:6px;padding:6px 10px;min-width:auto;'+((_p1Page>=pages-1)?'opacity:.4':'')+'" '+((_p1Page>=pages-1)?'disabled':'')+'>»</button>';
+  pgHtml+='<button class="page-btn page-btn-nav'+((_p1Page>=pages-1)?' disabled':'')+'" onclick="p1Go('+(_p1Page+1)+')" '+((_p1Page>=pages-1)?'disabled':'')+'>›</button>';
+  pgHtml+='<button class="page-btn page-btn-nav'+((_p1Page>=pages-1)?' disabled':'')+'" onclick="p1Go('+(pages-1)+')" '+((_p1Page>=pages-1)?'disabled':'')+'>»</button>';
   pgHtml+='</div>';
 
   // Page size selector
-  pgHtml+='<div style="display:flex;gap:4px;align-items:center;margin-left:12px"><span style="color:var(--t3);font-size:11px">'+t('perPage')+'</span>';
+  pgHtml+='<div class="pager-ps"><span class="text-sm text-muted">'+t('perPage')+'</span>';
   [20,50,100].forEach(function(sz){
-    pgHtml+='<button class="btn btn-sm" style="'+(getP1PageSize()===sz?'background:var(--purple);color:#fff;border-radius:6px;min-width:32px;height:28px':'background:var(--card);color:var(--t2);border:1px solid var(--border);border-radius:6px;min-width:32px;height:28px')+'" onclick="el(\'f1-ps\').value='+sz+';_p1Page=0;renderP1Page()">'+sz+'</button>'
+    pgHtml+='<button class="page-btn page-btn-sm'+(getP1PageSize()===sz?' page-btn-active':'')+'" onclick="el(\'f1-ps\').value='+sz+';_p1Page=0;renderP1Page()">'+sz+'</button>'
   });
   pgHtml+='</div>';
 
   // Keyboard hint
-  pgHtml+='<div style="flex-basis:100%;text-align:center;font-size:10px;color:var(--t4);margin-top:4px">'+t('navigateHint')+'</div>';
+  pgHtml+='<div class="pager-hint">'+t('navigateHint')+'</div>';
 
   pgEl.innerHTML=pgHtml;
   closeDetail();
@@ -150,26 +150,26 @@ function showDetail(idx){
   var sim=searchSimilar(r.Branch,r.Zone,r.Category,r.IssueDetail,r);
 
   // Section 1: Issue Context
-  var ctxHtml='<div style="margin-bottom:20px;padding-bottom:16px;border-bottom:1px solid var(--border)"><div style="display:flex;align-items:center;gap:8px;margin-bottom:12px"><span style="font-size:16px">📋</span><div style="font-size:13px;font-weight:700;color:var(--t0);text-transform:uppercase;letter-spacing:0.5px">'+t('issueContext')+'</div></div>'
+  var ctxHtml='<div class="detail-section"><div class="detail-section-hdr"><span style="font-size:16px">📋</span><div class="detail-section-title">'+t('issueContext')+'</div></div>'
     +'<div style="margin-bottom:10px"><div style="font-size:16px;font-weight:700;line-height:1.5;color:var(--t0)">'+esc(typeof autoTr==='function'?autoTr(r.IssueDetail):r.IssueDetail)+'</div></div>'
-    +'<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;font-size:12px"><div><span style="color:var(--t3);display:block;margin-bottom:4px">'+t('branch')+'</span>'+brBadge(r.Branch)+'</div>'
-    +'<div><span style="color:var(--t3);display:block;margin-bottom:4px">'+t('zone')+'</span><span class="zp" style="background:var(--card);color:var(--t1);padding:4px 8px;border-radius:6px;display:inline-block">'+esc(r.Zone)+'</span></div>'
-    +'<div><span style="color:var(--t3);display:block;margin-bottom:4px">'+t('category')+'</span>'+catFull(r.Category)+'</div>'
-    +'<div><span style="color:var(--t3);display:block;margin-bottom:4px">'+t('date')+'</span><span style="background:var(--card);color:var(--t2);padding:4px 8px;border-radius:6px;display:inline-block;font-size:11px">'+r.Date+'</span></div></div>'
+    +'<div class="ctx-grid"><div><span class="ctx-meta-label">'+t('branch')+'</span>'+brBadge(r.Branch)+'</div>'
+    +'<div><span class="ctx-meta-label">'+t('zone')+'</span><span class="zp ctx-meta-tag" style="color:var(--t1)">'+esc(r.Zone)+'</span></div>'
+    +'<div><span class="ctx-meta-label">'+t('category')+'</span>'+catFull(r.Category)+'</div>'
+    +'<div><span class="ctx-meta-label">'+t('date')+'</span><span class="ctx-meta-tag">'+r.Date+'</span></div></div>'
     +'</div>';
 
   // Section 2: Resolution
-  var resHtml='<div style="margin-bottom:20px;padding-bottom:16px;border-bottom:1px solid var(--border)"><div style="display:flex;align-items:center;gap:8px;margin-bottom:12px"><span style="font-size:16px">✓</span><div style="font-size:13px;font-weight:700;color:var(--t0);text-transform:uppercase;letter-spacing:0.5px">'+t('resolution')+'</div></div>'
-    +'<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px">'
-    +'<div style="padding:12px;background:var(--card);border-radius:10px;border:1px solid var(--border)"><div style="font-size:11px;color:var(--t3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px">👤 '+t('solvedBy')+'</div><div style="font-size:13px;font-weight:600;color:var(--t0)">'+esc(r.SolvedBy)+'</div></div>'
-    +'<div style="padding:12px;background:var(--card);border-radius:10px;border:1px solid var(--border)"><div style="font-size:11px;color:var(--t3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px">⚡ '+t('action')+'</div><div style="font-size:13px;font-weight:600;color:var(--t0)">'+esc(typeof autoTr==='function'?autoTr(r.ActionTaken):r.ActionTaken)+'</div></div>'
-    +'<div style="padding:12px;background:var(--card);border-radius:10px;border:1px solid var(--border)"><div style="font-size:11px;color:var(--t3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px">⏱ '+t('duration')+'</div><div style="font-size:13px;font-weight:600;color:var(--t0)">'+esc(typeof autoTr==='function'?autoTr(r.TimeTaken):r.TimeTaken)+'</div></div>'
+  var resHtml='<div class="detail-section"><div class="detail-section-hdr"><span style="font-size:16px">✓</span><div class="detail-section-title">'+t('resolution')+'</div></div>'
+    +'<div class="ctx-grid ctx-grid-wide">'
+    +'<div class="ctx-card"><div class="ctx-label">👤 '+t('solvedBy')+'</div><div class="ctx-value">'+esc(r.SolvedBy)+'</div></div>'
+    +'<div class="ctx-card"><div class="ctx-label">⚡ '+t('action')+'</div><div class="ctx-value">'+esc(typeof autoTr==='function'?autoTr(r.ActionTaken):r.ActionTaken)+'</div></div>'
+    +'<div class="ctx-card"><div class="ctx-label">⏱ '+t('duration')+'</div><div class="ctx-value">'+esc(typeof autoTr==='function'?autoTr(r.TimeTaken):r.TimeTaken)+'</div></div>'
     +'</div>'
-    +(r.HQ?'<div style="margin-top:12px;padding:10px;background:rgba(83,74,183,0.1);border-radius:8px;border-left:3px solid var(--purple)"><span style="color:var(--purple);font-weight:600;font-size:11px">🏢 '+t('hqLabel')+':</span> <span style="color:var(--t1)">'+esc(typeof autoTr==='function'?autoTr(r.HQ):r.HQ)+'</span></div>':'')
+    +(r.HQ?'<div class="hq-banner"><span class="hq-banner-label">🏢 '+t('hqLabel')+':</span> <span style="color:var(--t1)">'+esc(typeof autoTr==='function'?autoTr(r.HQ):r.HQ)+'</span></div>':'')
     +'</div>';
 
   // Section 3: Similar Cases — 100-Point Scoring System
-  var simHtml='<div style="margin-bottom:20px;padding-bottom:16px;border-bottom:1px solid var(--border)"><div style="display:flex;align-items:center;gap:8px;margin-bottom:4px"><span style="font-size:16px">📊</span><div style="font-size:13px;font-weight:700;color:var(--t0);text-transform:uppercase;letter-spacing:0.5px">'+t('similarCasesCount')+' ('+sim.length+')</div></div>'
+  var simHtml='<div class="detail-section"><div class="detail-section-hdr" style="margin-bottom:4px"><span style="font-size:16px">📊</span><div class="detail-section-title">'+t('similarCasesCount')+' ('+sim.length+')</div></div>'
     +'<div style="font-size:10px;color:var(--t4);margin-bottom:12px;padding-left:24px">'+(_lang==='ko'?'장비 40 · 카테고리 25 · 증상 15 · Zone 10 · 장소 10 = 100점 만점 (75점 이상 표시)':'Equip 40 · Category 25 · Symptom 15 · Zone 10 · Place 10 = 100pt max (≥75pt shown)')+'</div>';
   if(sim.length){
     simHtml+='<div style="position:relative;padding:0 0 0 24px">';
@@ -201,15 +201,15 @@ function showDetail(idx){
     });
     simHtml+='</div>';
   } else {
-    simHtml+='<div style="color:var(--t3);font-size:12px;padding:16px;text-align:center;background:rgba(0,0,0,0.02);border-radius:8px">'+(_lang==='ko'?'80점 이상 일치하는 유사사례가 없습니다':t('noSimilarCases'))+'</div>';
+    simHtml+='<div class="no-similar-box">'+(_lang==='ko'?'80점 이상 일치하는 유사사례가 없습니다':t('noSimilarCases'))+'</div>';
   }
   simHtml+='</div>';
 
   // Section 4: AI Analysis
-  var aiHtml='<div><div style="display:flex;align-items:center;gap:8px;margin-bottom:12px"><span style="font-size:16px">🤖</span><div style="font-size:13px;font-weight:700;color:var(--t0);text-transform:uppercase;letter-spacing:0.5px">'+t('aiAnalysis')+'</div>'
+  var aiHtml='<div><div class="detail-section-hdr"><span style="font-size:16px">🤖</span><div class="detail-section-title">'+t('aiAnalysis')+'</div>'
     +(r.Difficulty>=4?'<span style="background:rgba(255,193,7,0.15);color:#d97706;font-size:9px;font-weight:700;padding:3px 8px;border-radius:6px">⚠ DIFFICULTY '+r.Difficulty+'</span>':'')
     +'</div>'
-    +'<div style="padding:16px;background:linear-gradient(135deg,rgba(83,74,183,0.08),rgba(123,58,237,0.05));border:1px solid rgba(83,74,183,0.2);border-radius:10px;margin-bottom:12px">'
+    +'<div class="ai-panel">'
     +'<div id="ai-result" style="font-size:12px;color:var(--t1);margin-bottom:10px">'
     +(r.Difficulty>=4
       ?'<strong style="color:var(--t0)">'+t('highDiffDetected')+'</strong> '+t('highDiffSub')

@@ -16,13 +16,12 @@ function renderP0(){
   var prevMonName=MONTHS[m===0?11:m-1].slice(0,3);
   function kpi(l,v,p,c,brData){
     var d=v-p,pct=p?Math.round((d/p)*1000)/10:(v>0?100:0),ds=d>0?'up':d<0?'dn':'eq';
-    var sparkSvg='<svg width="48" height="18" style="margin-top:4px;vertical-align:text-top"><polyline points="'+brData.map(function(x,i){return i*(48/5)+','+Math.round(18-x*18)+''}).join(' ')+'" fill="none" stroke="'+c+'" stroke-width="1.2" vector-effect="non-scaling-stroke"/></svg>';
+    var sparkSvg='<svg class="kpi-spark" width="48" height="18"><polyline points="'+brData.map(function(x,i){return i*(48/5)+','+Math.round(18-x*18)+''}).join(' ')+'" fill="none" stroke="'+c+'" stroke-width="1.2" vector-effect="non-scaling-stroke"/></svg>';
     var deltaArrow=ds==='up'?'↑':ds==='dn'?'↓':'→';
-    var deltaColor=ds==='up'?'#ef4444':ds==='dn'?'#22c55e':'#8a8a84';
     var deltaText=_lang==='ko'?
       ('전월 대비 '+deltaArrow+Math.abs(pct).toFixed(1)+'% ('+(d>=0?'+':'')+d+'건 '+(ds==='up'?'증가':ds==='dn'?'감소':'동일')+')'):
       (deltaArrow+' '+Math.abs(pct).toFixed(1)+'% ('+(d>=0?'+':'')+d+') vs Last Month');
-    return'<div class="card mc" style="--mc-c:'+c+'"><div class="mc-lbl">'+l+'</div><div style="display:flex;align-items:baseline;gap:8px"><div class="mc-val" style="font-family:var(--f-display)">'+v+'</div><div style="font-size:11px;color:var(--t3);font-weight:500">'+sparkSvg+'</div></div><div class="mc-delta '+ds+'" style="color:'+deltaColor+';font-size:12px;font-weight:600">'+deltaText+'</div></div>'
+    return'<div class="card mc" style="--mc-c:'+c+'"><div class="mc-lbl">'+l+'</div><div class="mc-val-row"><div class="mc-val">'+v+'</div><div class="mc-spark-wrap">'+sparkSvg+'</div></div><div class="mc-delta '+ds+'">'+deltaText+'</div></div>'
   }
 
   var lastSixMonths=function(l,br){
@@ -345,8 +344,8 @@ function renderP0(){
   // Top issues with rank badges — clean count display, no bar chart
   var medals=['\ud83e\udd47','\ud83e\udd48','\ud83e\udd49'];
   el('top-issues').innerHTML=top.length?top.map(function(v,i){
-    var rank=i<3?'<span style="font-size:16px">'+medals[i]+'</span>':'<span style="color:var(--t3);font-weight:700">'+(i+1)+'</span>';
-    return'<tr><td style="width:48px;white-space:nowrap">'+rank+'</td><td>'+brBadge(v.br)+'</td><td><span class="zp">'+esc(v.zone)+'</span></td><td>'+catFull(v.cat)+'</td><td class="td-left" style="color:var(--t2)">'+esc(v.s)+'</td><td style="font-size:18px;font-weight:800;color:var(--t0);width:50px">'+v.cnt+'</td></tr>'
-  }).join(''):'<tr><td colspan="6" style="text-align:center;padding:22px;color:var(--t3)">'+t('noErrors')+'</td></tr>';
+    var rank=i<3?'<span class="medal-icon">'+medals[i]+'</span>':'<span class="rank-num">'+(i+1)+'</span>';
+    return'<tr><td class="td-rank">'+rank+'</td><td>'+brBadge(v.br)+'</td><td><span class="zp">'+esc(v.zone)+'</span></td><td>'+catFull(v.cat)+'</td><td class="td-left td-detail">'+esc(v.s)+'</td><td class="td-count">'+v.cnt+'</td></tr>'
+  }).join(''):'<tr><td colspan="6" class="td-empty">'+t('noErrors')+'</td></tr>';
 }
 

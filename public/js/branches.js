@@ -36,7 +36,7 @@ function renderBranchPage(){
     B.push({id:'AMDB',col:'#534AB7',city:t('dubai'),emoji:'🏜️'});
   }
   el('branch-sel').innerHTML='<div class="branch-seg-container">'+B.map(function(b){
-    return'<button class="branch-seg-btn'+(b.id===curBranch?' branch-seg-active':'')+'" onclick="selBranch(\''+b.id+'\',this)" style="'+(b.id===curBranch?'background:'+b.col+';color:#fff':'background:var(--card);color:var(--t1);border:1px solid var(--border)')+'">'
+    return'<button class="branch-seg-btn'+(b.id===curBranch?' branch-seg-active':'')+'" onclick="selBranch(\''+b.id+'\',this)" style="--seg-c:'+b.col+'">'
       +'<span style="font-size:16px;margin-right:4px">'+b.emoji+'</span>'
       +'<span style="font-weight:600;letter-spacing:0.01em">'+b.id+'</span>'
       +'<span style="font-size:12px;margin-left:6px;opacity:0.7">'+b.city+'</span>'
@@ -46,18 +46,10 @@ function renderBranchPage(){
 }
 function selBranch(b,btn){
   curBranch=b;_brPage=0;
-  var allBtns=document.querySelectorAll('.branch-seg-btn');
-  var branchColors={ALL:'#1e293b',AMGN:'#0891b2',AMYS:'#059669',AMBS:'#2563eb',AMJJ:'#7c3aed',AMNY:'#185FA5',AMLV:'#993C1D',AMDB:'#534AB7'};
-  allBtns.forEach(function(x){
+  document.querySelectorAll('.branch-seg-btn').forEach(function(x){
     x.classList.remove('branch-seg-active');
-    x.style.background='var(--card)';
-    x.style.color='var(--t1)';
-    x.style.border='1px solid var(--border)';
   });
   btn.classList.add('branch-seg-active');
-  btn.style.background=branchColors[b];
-  btn.style.color='#fff';
-  btn.style.border='none';
   renderBranchContent();
 }
 function renderBranchContent(){
@@ -198,20 +190,20 @@ function brBuildTable(d, cols, colFn, title) {
   }).join('');
 
   // Pagination
-  var pgHtml='<div style="display:flex;align-items:center;justify-content:center;gap:8px;padding:16px 0;flex-wrap:wrap;border-top:1px solid var(--border);margin-top:12px">';
-  pgHtml+='<button class="btn btn-ghost btn-sm" style="border-radius:6px;padding:6px 8px;font-size:14px;width:32px;height:32px;display:flex;align-items:center;justify-content:center" onclick="_brPage=0;renderBranchContent()" '+(_brPage===0?'disabled style="opacity:.3"':'')+'>«</button>';
-  pgHtml+='<button class="btn btn-ghost btn-sm" style="border-radius:6px;padding:6px 8px;font-size:14px;width:32px;height:32px;display:flex;align-items:center;justify-content:center" onclick="_brPage--;renderBranchContent()" '+(_brPage===0?'disabled style="opacity:.3"':'')+'>‹</button>';
+  var pgHtml='<div class="pager-container" style="border-top:1px solid var(--border);margin-top:12px">';
+  pgHtml+='<button class="page-btn page-btn-nav'+(_brPage===0?' disabled':'')+'" onclick="_brPage=0;renderBranchContent()" '+(_brPage===0?'disabled':'')+'>«</button>';
+  pgHtml+='<button class="page-btn page-btn-nav'+(_brPage===0?' disabled':'')+'" onclick="_brPage--;renderBranchContent()" '+(_brPage===0?'disabled':'')+'>‹</button>';
   pgHtml+='<span style="font-size:12px;color:var(--t2);margin:0 8px">'+(start+1)+'-'+end+(_lang==='ko'?' / '+total+t('errors'):' of '+total)+'</span>';
   var pStart=Math.max(0,_brPage-2),pEnd=Math.min(pages,pStart+5);if(pEnd-pStart<5)pStart=Math.max(0,pEnd-5);
   for(var p=pStart;p<pEnd;p++){
-    pgHtml+='<button class="btn btn-sm" style="'+(p===_brPage?'background:var(--purple);color:#fff;border:none':'background:var(--card);color:var(--t1);border:1px solid var(--border)')+';min-width:32px;height:32px;border-radius:6px;font-weight:600;font-size:12px" onclick="_brPage='+p+';renderBranchContent()">'+(p+1)+'</button>';
+    pgHtml+='<button class="page-btn'+(p===_brPage?' page-btn-active':'')+'" onclick="_brPage='+p+';renderBranchContent()">'+(p+1)+'</button>';
   }
-  pgHtml+='<button class="btn btn-ghost btn-sm" style="border-radius:6px;padding:6px 8px;font-size:14px;width:32px;height:32px;display:flex;align-items:center;justify-content:center" onclick="_brPage++;renderBranchContent()" '+(_brPage>=pages-1?'disabled style="opacity:.3"':'')+'>›</button>';
-  pgHtml+='<button class="btn btn-ghost btn-sm" style="border-radius:6px;padding:6px 8px;font-size:14px;width:32px;height:32px;display:flex;align-items:center;justify-content:center" onclick="_brPage=Math.ceil('+total+'/'+_brPageSize+')-1;renderBranchContent()" '+(_brPage>=pages-1?'disabled style="opacity:.3"':'')+'>»</button>';
+  pgHtml+='<button class="page-btn page-btn-nav'+(_brPage>=pages-1?' disabled':'')+'" onclick="_brPage++;renderBranchContent()" '+(_brPage>=pages-1?'disabled':'')+'>›</button>';
+  pgHtml+='<button class="page-btn page-btn-nav'+(_brPage>=pages-1?' disabled':'')+'" onclick="_brPage=Math.ceil('+total+'/'+_brPageSize+')-1;renderBranchContent()" '+(_brPage>=pages-1?'disabled':'')+'>»</button>';
   // Per page selector
-  pgHtml+='<div style="display:flex;gap:4px;align-items:center;margin-left:12px"><span style="color:var(--t3);font-size:11px">'+t('perPage')+'</span>';
+  pgHtml+='<div class="pager-ps"><span class="text-sm text-muted">'+t('perPage')+'</span>';
   [20,50,100].forEach(function(sz){
-    pgHtml+='<button class="btn btn-sm" style="'+(_brPageSize===sz?'background:var(--purple);color:#fff;border-radius:6px;min-width:32px;height:28px':'background:var(--card);color:var(--t2);border:1px solid var(--border);border-radius:6px;min-width:32px;height:28px')+'" onclick="_brPageSize='+sz+';_brPage=0;renderBranchContent()">'+sz+'</button>';
+    pgHtml+='<button class="page-btn page-btn-sm'+(_brPageSize===sz?' page-btn-active':'')+'" onclick="_brPageSize='+sz+';_brPage=0;renderBranchContent()">'+sz+'</button>';
   });
   pgHtml+='</div>';
   pgHtml+='</div>';
