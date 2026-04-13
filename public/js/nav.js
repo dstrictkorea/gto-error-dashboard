@@ -2,6 +2,22 @@
 
 var _pageNames = ['daily', 'monthly', 'errorlog', 'branches', 'search', 'ai'];
 
+// ── Mobile bottom nav sync (called from goPage for every navigation) ──
+function _syncMobileBottomNav(pageIdx) {
+  var mAdm = document.getElementById('mobileAdminTab');
+  var navBtns = document.querySelectorAll('#mobileBottomNav button:not(#mobileAdminTab)');
+  // Clear all
+  if (mAdm) mAdm.classList.remove('bnav-active');
+  navBtns.forEach(function(b) { b.classList.remove('bnav-active'); });
+  // Activate correct button
+  if (pageIdx === -1) {
+    // Admin page: highlight mobile admin tab
+    if (mAdm) mAdm.classList.add('bnav-active');
+  } else if (pageIdx >= 0 && pageIdx < navBtns.length) {
+    navBtns[pageIdx].classList.add('bnav-active');
+  }
+}
+
 function goPage(i, btn, skipHistory) {
   // Admin page: i === -1
   var isAdmin = (i === -1);
@@ -12,37 +28,51 @@ function goPage(i, btn, skipHistory) {
     p.classList.remove('active');
     p.style.display = '';  // clear inline display:none so CSS .page.active works
   });
-  if(adminPage) { adminPage.classList.remove('active'); adminPage.style.display = ''; }
+  if (adminPage) { adminPage.classList.remove('active'); adminPage.style.display = ''; }
 
-  if(isAdmin){
-    if(adminPage) adminPage.classList.add('active');
+  if (isAdmin) {
+    if (adminPage) adminPage.classList.add('active');
   } else {
     var pages = document.querySelectorAll('.page:not(#pAdmin)');
     pages.forEach(function(p, j) { p.classList.toggle('active', j === i); });
   }
 
-  // Update nav tabs
+  // Update desktop nav tabs
   document.querySelectorAll('.ntab').forEach(function(b) {
     b.classList.remove('active');
     b.setAttribute('aria-selected', 'false');
     b.setAttribute('tabindex', '-1');
   });
-  if(isAdmin){
+  if (isAdmin) {
     var adminTab = document.getElementById('adminTab');
-    if(adminTab){ adminTab.classList.add('active'); adminTab.setAttribute('aria-selected','true'); adminTab.setAttribute('tabindex','0'); }
+    if (adminTab) {
+      adminTab.classList.add('active');
+      adminTab.setAttribute('aria-selected', 'true');
+      adminTab.setAttribute('tabindex', '0');
+    }
   } else if (btn) {
     btn.classList.add('active');
     btn.setAttribute('aria-selected', 'true');
     btn.setAttribute('tabindex', '0');
   } else {
-    // +1 offset because adminTab is the first .ntab now
+    // No btn provided — find desktop tab by index (no offset: Admin tab is last, not first)
     var tabs = document.querySelectorAll('.ntab');
-    var tabIdx = (typeof _loggedId !== 'undefined' && _loggedId === 'gto') ? i + 1 : i;
-    if (tabs[tabIdx]) {
-      tabs[tabIdx].classList.add('active');
-      tabs[tabIdx].setAttribute('aria-selected', 'true');
-      tabs[tabIdx].setAttribute('tabindex', '0');
+    if (tabs[i]) {
+      tabs[i].classList.add('active');
+      tabs[i].setAttribute('aria-selected', 'true');
+      tabs[i].setAttribute('tabindex', '0');
     }
+  }
+
+  // Always sync mobile bottom nav
+  _syncMobileBottomNav(i);
+
+  // Sync mobile page index and header label
+  if (!isAdmin && typeof _currentMobilePage !== 'undefined') {
+    _currentMobilePage = i;
+  }
+  if (!isAdmin && typeof updateMobileHeaderLabel === 'function') {
+    updateMobileHeaderLabel(i);
   }
 
   if (!skipHistory) {
@@ -53,14 +83,6 @@ function goPage(i, btn, skipHistory) {
     if (window.location.pathname + window.location.hash !== fullPath) {
       history.pushState({ page: i }, '', fullPath);
     }
-  }
-
-  // Sync mobile page index when desktop nav is used
-  if(!isAdmin && typeof _currentMobilePage !== 'undefined') {
-    _currentMobilePage = i;
-  }
-  if(!isAdmin && typeof updateMobileHeaderLabel === 'function') {
-    updateMobileHeaderLabel(i);
   }
 
   /* Render the target page */
@@ -102,12 +124,13 @@ window.addEventListener('popstate', function(e) {
       history.replaceState({ page: idx }, '', '#' + hash);
       setTimeout(function() { goPage(idx, null, true); }, 200);
     } else if (!hash || hash === 'daily') {
-      // gto defaults to admin
       if (isGto) {
         history.replaceState({ page: -1 }, '', '#admin');
         setTimeout(function() { goPage(-1, null, true); }, 200);
       } else {
         history.replaceState({ page: 0 }, '', '#daily');
+        // Sync mobile bottom nav to Daily (page 0) as initial state
+        setTimeout(function() { _syncMobileBottomNav(0); }, 50);
       }
     }
   } else {
@@ -117,6 +140,8 @@ window.addEventListener('popstate', function(e) {
       setTimeout(function() { goPage(-1, null, true); }, 200);
     } else {
       history.replaceState({ page: 0 }, '', '#daily');
+      // Sync mobile bottom nav to Daily (page 0) as initial state
+      setTimeout(function() { _syncMobileBottomNav(0); }, 50);
     }
   }
 })();
@@ -124,21 +149,14 @@ window.addEventListener('popstate', function(e) {
 // ═══ MOBILE BOTTOM TAB NAVIGATION ═══
 function mobileTabGo(i, btn) {
   _currentMobilePage = i;
-  goPage(i, document.querySelectorAll('.ntab')[
-    (typeof _loggedId !== 'undefined' && _loggedId === 'gto') ? i + 1 : i
-  ]);
-  // Update bottom nav active state — works both for click (btn provided) and swipe (btn not provided)
-  var navBtns = document.querySelectorAll('#mobileBottomNav button:not(#mobileAdminTab)');
-  navBtns.forEach(function(b) { b.classList.remove('bnav-active'); });
-  var mAdm = document.getElementById('mobileAdminTab');
-  if (mAdm) mAdm.classList.remove('bnav-active');
-  // Activate the correct button by index position among non-admin buttons
-  var targetBtn = btn || navBtns[i];
-  if (targetBtn) targetBtn.classList.add('bnav-active');
+  // Pass the correct desktop tab — no gto offset (Admin tab is last ntab, not first)
+  var desktopTabs = document.querySelectorAll('.ntab');
+  goPage(i, desktopTabs[i] || null);
+  // Mobile bottom nav sync is handled inside goPage via _syncMobileBottomNav
   // Scroll to top
   window.scrollTo({ top: 0, behavior: 'smooth' });
   // Mobile app: render mobile-specific content
-  if (typeof renderMobilePage === 'function') setTimeout(function(){ renderMobilePage(i); }, 100);
+  if (typeof renderMobilePage === 'function') setTimeout(function() { renderMobilePage(i); }, 100);
 }
 
 // Keyboard navigation for tabs — prevent page scrolling on arrow keys
@@ -146,10 +164,18 @@ document.querySelector('.nav-tabs').addEventListener('keydown', function(e) {
   var tabs = Array.from(document.querySelectorAll('.ntab:not([style*="display:none"])'));
   var idx = tabs.indexOf(document.activeElement);
   if (idx < 0) return;
-  if (e.key === 'ArrowRight') { e.preventDefault(); var next = (idx + 1) % tabs.length; tabs[next].focus(); tabs[next].click(); return; }
-  if (e.key === 'ArrowDown') { e.preventDefault(); var next = (idx + 1) % tabs.length; tabs[next].focus(); tabs[next].click(); return; }
-  if (e.key === 'ArrowLeft') { e.preventDefault(); var prev = (idx - 1 + tabs.length) % tabs.length; tabs[prev].focus(); tabs[prev].click(); return; }
-  if (e.key === 'ArrowUp') { e.preventDefault(); var prev = (idx - 1 + tabs.length) % tabs.length; tabs[prev].focus(); tabs[prev].click(); return; }
+  if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+    e.preventDefault();
+    var next = (idx + 1) % tabs.length;
+    tabs[next].focus(); tabs[next].click();
+    return;
+  }
+  if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+    e.preventDefault();
+    var prev = (idx - 1 + tabs.length) % tabs.length;
+    tabs[prev].focus(); tabs[prev].click();
+    return;
+  }
 });
 
 /* ═══════════════════════════════════════

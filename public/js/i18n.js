@@ -536,7 +536,7 @@ function applyLang() {
   }
 
   // Mobile bottom nav labels
-  var mobileBottomBtns = document.querySelectorAll('.mobile-bottom-nav > button');
+  var mobileBottomBtns = document.querySelectorAll('.mobile-bottom-nav > button:not(#mobileAdminTab)');
   var mobileNavKeys = ['daily', 'monthly', 'errorLog', 'branches', 'search'];
   var mobileNavIcons = ['📅', '📊', '📋', '🏢', '🔍'];
   mobileBottomBtns.forEach(function(btn, i) {
