@@ -173,7 +173,7 @@ button, a, [role="button"] {
   }
   body { color-scheme: dark; }
   .topbar { background: rgba(20,20,19,0.8); border-bottom: 1px solid rgba(255,255,255,0.05); }
-  #loading { background: rgba(10,10,10,0.97); }
+  #loading { background: linear-gradient(135deg, #141413 0%, #1a1730 50%, #141413 100%); }
   .bp-amhq { background: #0a1f12; color: #5eead4; }
   .bp-amgn { background: #0c1929; color: #67e8f9; }
   .bp-amys { background: #0a1f12; color: #6ee7b7; }
@@ -223,7 +223,7 @@ html.dark-mode {
 }
 html.dark-mode .logo-ci { filter: invert(1) !important; }
 html.dark-mode .topbar { background: rgba(20,20,19,0.8); border-bottom: 1px solid rgba(255,255,255,0.05); }
-html.dark-mode #loading { background: rgba(10,10,10,0.97); }
+html.dark-mode #loading { background: linear-gradient(135deg, #141413 0%, #1a1730 50%, #141413 100%); }
 html.dark-mode .bp-amhq { background: #0a1f12; color: #5eead4; }
 html.dark-mode .bp-amgn { background: #0c1929; color: #67e8f9; }
 html.dark-mode .bp-amys { background: #0a1f12; color: #6ee7b7; }
@@ -323,20 +323,37 @@ body {
 #loading {
   position: fixed;
   inset: 0;
-  background: rgba(248, 248, 246, 0.98);
+  background: linear-gradient(135deg, #f8f8f6 0%, #f0eff8 50%, #f8f8f6 100%);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   z-index: 999;
-  gap: 16px;
-  backdrop-filter: blur(20px);
+  gap: 20px;
+}
+
+#loading::after {
+  content: '';
+  position: absolute;
+  width: 200px; height: 200px;
+  background: radial-gradient(circle, rgba(83,74,183,0.08) 0%, transparent 70%);
+  border-radius: 50%;
+  filter: blur(40px);
+  animation: pulse 2s ease-in-out infinite;
+  pointer-events: none;
+}
+
+#loading .load-text {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--t3);
+  letter-spacing: 0.02em;
 }
 
 .spinner {
-  width: 40px;
-  height: 40px;
-  border: 3px solid rgba(83,74,183,0.1);
+  width: 44px;
+  height: 44px;
+  border: 3px solid rgba(83,74,183,0.12);
   border-top-color: #534AB7;
   border-radius: 50%;
   animation: spin 0.7s linear infinite;
@@ -691,12 +708,24 @@ html.dark-mode .nav-tabs {
 }
 
 .ctitle {
-  font-size: 13px;
-  font-weight: 700;
+  font-size: 12px;
+  font-weight: 800;
   text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: var(--t0);
+  letter-spacing: 0.08em;
+  color: var(--t3);
   margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ctitle::before {
+  content: '';
+  width: 3px;
+  height: 14px;
+  background: linear-gradient(180deg, var(--purple) 0%, var(--purple-light) 100%);
+  border-radius: 2px;
+  flex-shrink: 0;
 }
 
 /* ── METRIC CARDS — KPI style ── */
@@ -1303,13 +1332,29 @@ input[type=text].search-input:focus-visible {
    DETAIL PANEL — Linear-inspired
    ══════════════════════════════════════ */
 .detail-panel {
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: var(--r);
+  position: fixed;
+  top: 0; right: 0; bottom: 0;
+  width: 440px;
+  max-width: 100vw;
+  background: rgba(255,255,255,0.92);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border-left: 1px solid rgba(0,0,0,0.06);
+  box-shadow: -8px 0 32px rgba(0,0,0,0.08), -2px 0 8px rgba(0,0,0,0.04);
+  z-index: 400;
+  overflow-y: auto;
   padding: 24px;
-  margin-top: 12px;
-  box-shadow: var(--shadow-md);
-  animation: slideUp 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  animation: slideInPanel 0.35s cubic-bezier(0.2, 0, 0, 1);
+}
+
+html.dark-mode .detail-panel {
+  background: rgba(28,28,26,0.92);
+  border-left: 1px solid rgba(255,255,255,0.05);
+}
+
+@keyframes slideInPanel {
+  from { transform: translateX(100%); opacity: 0.5; }
+  to { transform: translateX(0); opacity: 1; }
 }
 
 @keyframes slideUp {
@@ -2433,9 +2478,10 @@ html.dark-mode .section-divider {
 /* --- Mobile Detail Panel --- */
 @media (max-width: 768px) {
   .detail-panel {
+    width: 100vw !important;
     padding: 14px !important;
-    margin: 0 -6px;
-    border-radius: 12px !important;
+    border-radius: 0 !important;
+    border-left: none !important;
   }
   .detail-panel > div[style*="grid-template-columns"] {
     grid-template-columns: repeat(2, 1fr) !important;
@@ -2961,8 +3007,9 @@ html.dark-mode .section-divider {
    ═══════════════════════════════════ */
 .form-modal-overlay {
   display: none; position: fixed; inset: 0;
-  background: rgba(0,0,0,.5); z-index: 9998;
-  backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
+  background: rgba(0,0,0,0.4); z-index: 9998;
+  backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+  animation: fadeIn 0.2s ease;
 }
 .form-modal-overlay.show { display: block; }
 .form-modal {
@@ -2970,11 +3017,24 @@ html.dark-mode .section-divider {
   top: 50%; left: 50%; transform: translate(-50%,-50%);
   width: min(90vw, 680px); height: min(85vh, 800px);
   background: var(--card); border-radius: 20px;
-  box-shadow: 0 24px 80px rgba(0,0,0,.3);
+  box-shadow: 0 24px 80px rgba(0,0,0,0.15), 0 8px 24px rgba(0,0,0,0.08);
   z-index: 9999; overflow: hidden;
   flex-direction: column;
+  max-width: 90vw;
+  max-height: 90vh;
+  animation: modalIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 .form-modal.show { display: flex; }
+
+@keyframes modalIn {
+  from { opacity: 0; transform: translate(-50%, -48%) scale(0.95); }
+  to { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
 .form-modal-header {
   display: flex; align-items: center; justify-content: space-between;
   padding: 16px 20px; border-bottom: 1px solid var(--border);
@@ -3351,4 +3411,109 @@ html.dark-mode .ctx-card-purple { background: rgba(83,74,183,0.08); }
     min-height: 44px;
     font-size: 13px !important;
   }
+}
+
+/* ═══════════════════════════════════
+   PREMIUM FOOTER
+   ═══════════════════════════════════ */
+footer, .footer {
+  margin-top: 48px;
+  padding: 24px 32px;
+  border-top: 1px solid var(--border);
+  background: rgba(255,255,255,0.4);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--t3);
+}
+
+html.dark-mode footer,
+html.dark-mode .footer {
+  background: rgba(20,20,19,0.4);
+}
+
+footer a {
+  color: var(--purple);
+  text-decoration: none;
+  font-weight: 600;
+  transition: color 0.15s ease;
+}
+
+footer a:hover {
+  color: var(--purple-light);
+}
+
+/* ═══════════════════════════════════
+   PREMIUM CTA — Error Submit Button
+   ═══════════════════════════════════ */
+#dailySubmitBtn,
+[onclick*="openFormModal"] {
+  background: linear-gradient(135deg, #534AB7 0%, #7C6FE0 60%, #9B8FFF 100%) !important;
+  color: #fff !important;
+  border: none !important;
+  border-radius: 14px !important;
+  padding: 14px 24px !important;
+  font-size: 14px !important;
+  font-weight: 700 !important;
+  letter-spacing: -0.01em;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 4px 16px rgba(83,74,183,0.3), 0 1px 3px rgba(0,0,0,0.06);
+  transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+#dailySubmitBtn:hover,
+[onclick*="openFormModal"]:hover {
+  box-shadow: 0 8px 32px rgba(83,74,183,0.4), 0 2px 8px rgba(0,0,0,0.08) !important;
+  transform: translateY(-2px) !important;
+}
+
+#dailySubmitBtn:active,
+[onclick*="openFormModal"]:active {
+  transform: translateY(0) scale(0.98) !important;
+}
+
+#dailySubmitBtn::before,
+[onclick*="openFormModal"]::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 50%;
+  background: linear-gradient(180deg, rgba(255,255,255,0.15) 0%, transparent 100%);
+  pointer-events: none;
+  border-radius: 14px 14px 0 0;
+}
+
+/* ═══════════════════════════════════
+   CHART CONTAINERS
+   ═══════════════════════════════════ */
+.card canvas {
+  border-radius: 12px;
+  margin-top: 8px;
+}
+
+/* ═══════════════════════════════════
+   SECTION DIVIDER RHYTHM
+   ═══════════════════════════════════ */
+.g4, .g3, .g31, .g22, .g2 {
+  margin-bottom: 4px;
+}
+
+/* ═══════════════════════════════════
+   INTERACTIVE CURSOR + MICRO-INTERACTIONS
+   ═══════════════════════════════════ */
+button, a, .ntab, .region-btn, .branch-seg-btn, tr.cp {
+  cursor: pointer;
+}
+
+button:not(:disabled):active,
+.ntab:active,
+.region-btn:active,
+.branch-seg-btn:active {
+  transform: scale(0.97);
 }

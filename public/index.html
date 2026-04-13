@@ -63,12 +63,11 @@
 
 <!-- LOADING SCREEN — Multi-step indicator -->
 <div id="loading">
-  <div style="width:48px;height:48px;background:var(--purple);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:900;color:#fff;font-family:var(--f-display);box-shadow:0 4px 12px rgba(0,0,0,0.08),0 0 0 2px rgba(83,74,183,0.1)">D</div>
-  <div style="font-size:17px;color:var(--t0);font-weight:800;font-family:var(--f-display);margin-top:4px">D'strict Error Dashboard</div>
-  <div style="font-size:12px;color:var(--t3);margin-top:2px;animation:pulse 1.5s ease-in-out infinite" id="load-s">Connecting → Authenticating → Loading data</div>
-  <div class="spinner" style="margin-top:12px"></div>
-  <!-- Progress bar animation -->
-  <div style="width:120px;height:3px;background:var(--sub);border-radius:2px;margin-top:8px;overflow:hidden">
+  <div style="width:52px;height:52px;background:linear-gradient(135deg,#534AB7,#7C6FE0);border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:900;color:#fff;font-family:var(--f-display);box-shadow:0 8px 24px rgba(83,74,183,0.25),0 0 0 3px rgba(83,74,183,0.08)">D</div>
+  <div style="font-size:17px;color:var(--t0);font-weight:800;font-family:var(--f-display);letter-spacing:-0.02em">D'strict Error Dashboard</div>
+  <div class="load-text" id="load-s" style="animation:pulse 1.5s ease-in-out infinite">Connecting &rarr; Authenticating &rarr; Loading data</div>
+  <div class="spinner"></div>
+  <div style="width:120px;height:3px;background:var(--sub);border-radius:2px;overflow:hidden">
     <div style="height:100%;background:linear-gradient(90deg,var(--purple),var(--purple-light));animation:slideLoadBar 1.5s ease-in-out infinite;width:30%"></div>
   </div>
 </div>
@@ -658,16 +657,18 @@
 </div>
 
 <!-- FOOTER -->
-<footer style="background:var(--sub);border-top:1px solid var(--border);padding:16px 32px;margin-top:48px;color:var(--t3);font-size:12px;text-align:center">
-  <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px">
+<footer>
+  <div style="display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:16px;width:100%">
     <div>
-      <strong style="color:var(--t2)">D'strict Error Dashboard</strong> v5.4 — 2026 Enterprise Edition
+      <strong style="color:var(--t2)">D'strict Error Dashboard</strong> v5.7.4 — 2026 Enterprise Edition
     </div>
+    <div style="color:var(--t4)">|</div>
     <div>
       Last sync: <span id="footer-sync-time">--</span>
     </div>
+    <div style="color:var(--t4)">|</div>
     <div>
-      <a href="#" style="color:var(--purple);text-decoration:none;font-weight:500">d'strict</a> © 2026 · Built by <span style="color:var(--t2);font-weight:600">Tony Hwang</span>
+      <a href="#">d'strict</a> &copy; 2026 &middot; Built by <span style="color:var(--t2);font-weight:600">Tony Hwang</span>
     </div>
   </div>
 </footer>

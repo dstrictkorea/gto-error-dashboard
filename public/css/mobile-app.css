@@ -59,11 +59,12 @@
   z-index: 1000;
   min-height: var(--mah-h);
   padding: calc(var(--safe-top) + 8px) calc(14px + var(--safe-right)) 8px calc(14px + var(--safe-left));
-  /* Glassmorphism */
-  background: rgba(247,247,245,0.85);
-  backdrop-filter: blur(24px) saturate(180%);
-  -webkit-backdrop-filter: blur(24px) saturate(180%);
-  border-bottom: 1px solid var(--border);
+  /* Premium Glassmorphism */
+  background: rgba(255,255,255,0.72) !important;
+  backdrop-filter: blur(24px) saturate(200%) !important;
+  -webkit-backdrop-filter: blur(24px) saturate(200%) !important;
+  border-bottom: 1px solid rgba(0,0,0,0.04) !important;
+  box-shadow: 0 1px 0 rgba(0,0,0,0.02), 0 4px 24px rgba(0,0,0,0.02);
   align-items: center;
   justify-content: space-between;
 }
@@ -156,11 +157,12 @@
   z-index: 1000;
   height: var(--mab-h);
   padding-bottom: var(--safe-bottom);
-  /* Glassmorphism */
-  background: rgba(255,255,255,0.78);
-  backdrop-filter: blur(24px) saturate(180%);
-  -webkit-backdrop-filter: blur(24px) saturate(180%);
-  border-top: 0.5px solid rgba(0,0,0,0.06);
+  /* Premium Glassmorphism */
+  background: rgba(255,255,255,0.72);
+  backdrop-filter: blur(24px) saturate(200%);
+  -webkit-backdrop-filter: blur(24px) saturate(200%);
+  border-top: 1px solid rgba(0,0,0,0.04);
+  box-shadow: 0 -1px 0 rgba(0,0,0,0.02), 0 -8px 32px rgba(0,0,0,0.03);
   align-items: stretch;
   justify-content: space-around;
 }
@@ -185,19 +187,21 @@
   transition: transform 0.25s cubic-bezier(.34,1.56,.64,1);
 }
 .mobile-app .mobile-bottom-nav button.bnav-active {
-  color: var(--purple, #534AB7);
+  color: #534AB7;
   font-weight: 800;
 }
 .mobile-app .mobile-bottom-nav button.bnav-active .bnav-icon {
-  transform: scale(1.2) translateY(-1px);
+  transform: scale(1.15) translateY(-2px);
+  filter: drop-shadow(0 2px 4px rgba(83,74,183,0.2));
 }
 .mobile-app .mobile-bottom-nav button.bnav-active::before {
   content: '';
   position: absolute;
   top: 0; left: 50%; transform: translateX(-50%);
-  width: 28px; height: 3px;
-  border-radius: 0 0 4px 4px;
-  background: var(--purple, #534AB7);
+  width: 24px; height: 3px;
+  border-radius: 0 0 6px 6px;
+  background: linear-gradient(135deg, #534AB7, #7C6FE0);
+  box-shadow: 0 2px 8px rgba(83,74,183,0.3);
   animation: maTabIn 0.3s ease;
 }
 @keyframes maTabIn { from { width: 0; opacity: 0; } to { width: 28px; opacity: 1; } }
@@ -564,21 +568,31 @@
 
 /* ── Hero KPI (One question per screen) ── */
 .ma-hero-kpi {
-  background: linear-gradient(135deg, #534AB7 0%, #6d63d0 100%);
+  background: linear-gradient(135deg, #534AB7 0%, #7C6FE0 40%, #9B8FFF 100%);
   border-radius: 20px;
-  padding: 24px 20px;
+  padding: 24px;
+  color: #fff;
   text-align: center;
   margin-bottom: 14px;
   position: relative;
   overflow: hidden;
+  box-shadow: 0 8px 32px rgba(83,74,183,0.3), 0 2px 8px rgba(0,0,0,0.06);
+}
+.ma-hero-kpi::before {
+  content: '';
+  position: absolute;
+  top: -50%; right: -20%;
+  width: 60%; height: 150%;
+  background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 60%);
+  pointer-events: none;
 }
 .ma-hero-kpi::after {
   content: '';
   position: absolute;
-  top: -30%; right: -20%;
-  width: 120px; height: 120px;
-  border-radius: 50%;
-  background: rgba(255,255,255,0.08);
+  bottom: -30%; left: -10%;
+  width: 50%; height: 100%;
+  background: radial-gradient(circle, rgba(0,0,0,0.08) 0%, transparent 60%);
+  pointer-events: none;
 }
 .ma-hero-num {
   font-size: clamp(32px, 10vw, 48px);
@@ -915,12 +929,13 @@
    DARK MODE
    ═══════════════════════════════════ */
 html.dark-mode .mobile-app #m-app-header {
-  background: rgba(26,26,24,0.82);
-  border-bottom-color: rgba(255,255,255,0.06);
+  background: rgba(20,20,19,0.82) !important;
+  border-bottom: 1px solid rgba(255,255,255,0.05) !important;
 }
 html.dark-mode .mobile-app .mobile-bottom-nav {
-  background: rgba(26,26,24,0.82);
-  border-top-color: rgba(255,255,255,0.06);
+  background: rgba(20,20,19,0.82);
+  border-top: 1px solid rgba(255,255,255,0.05);
+  box-shadow: 0 -1px 0 rgba(255,255,255,0.03), 0 -8px 32px rgba(0,0,0,0.2);
 }
 .dark-mode .ma-hero-kpi {
   background: linear-gradient(135deg, #4338ca 0%, #534AB7 100%);
