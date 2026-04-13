@@ -8,10 +8,10 @@
 var _dailyCharts = {};
 var _dailyInited = false;
 
-// If logged in as a site account, default to that branch; otherwise URL locale based
+// If logged in as a site account, default to that branch; gto (HQ) defaults to ALL
 var _dailyBranch = (typeof _loggedBranch !== 'undefined' && _loggedBranch)
   ? _loggedBranch
-  : ((typeof _urlLocale !== 'undefined' && _urlLocale === 'kr') ? 'AMGN' : 'AMNY');
+  : 'ALL';
 
 /* ── Branch → Timezone map ── */
 var _brTzMap={
@@ -59,22 +59,20 @@ function renderDaily(){
 function _fillDailyBranchToggles(){
   var wrap=el('daily-branch-toggles'); if(!wrap) return;
   var regionBrs=typeof getRegionBranches==='function'?getRegionBranches():['AMNY','AMLV','AMDB'];
-  var BN_ALL=typeof BR_NAMES!=='undefined'?BR_NAMES:{};
   var BC=typeof BR_COLORS_MAP!=='undefined'?BR_COLORS_MAP:{};
   var icons={AMNY:'🗽',AMLV:'🎰',AMDB:'🏜️',AMGN:'🏔',AMYS:'🌊',AMBS:'⚓',AMJJ:'🍊'};
-  var html='';
+  var allActive=(!_dailyBranch||_dailyBranch==='ALL'||regionBrs.indexOf(_dailyBranch)<0);
+  var btnBase=';padding:8px 16px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:5px;transition:all .2s';
+  var html='<button class="branch-seg-btn'+(allActive?' branch-seg-active':'')+'" onclick="_selectDailyBranch(\'ALL\')" style="'+(allActive?'background:#1e293b;color:#fff;border:none':'background:var(--card);color:var(--t1);border:1px solid var(--border)')+btnBase+'"><span>🌐</span><span>ALL</span></button>';
   regionBrs.forEach(function(b){
     var isActive=_dailyBranch===b;
     var col=BC[b]||'#534AB7';
-    html+='<button class="branch-seg-btn'+(isActive?' branch-seg-active':'')+'" onclick="_selectDailyBranch(\''+b+'\')" style="'+(isActive?'background:'+col+';color:#fff;border:none':'background:var(--card);color:var(--t1);border:1px solid var(--border)')+';padding:8px 16px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:5px;transition:all .2s">'
-      +'<span>'+(icons[b]||'📍')+'</span>'
-      +'<span>'+b+'</span>'
-      +'</button>';
+    html+='<button class="branch-seg-btn'+(isActive?' branch-seg-active':'')+'" onclick="_selectDailyBranch(\''+b+'\')" style="'+(isActive?'background:'+col+';color:#fff;border:none':'background:var(--card);color:var(--t1);border:1px solid var(--border)')+btnBase+'"><span>'+(icons[b]||'📍')+'</span><span>'+b+'</span></button>';
   });
   wrap.innerHTML=html;
 }
 function _selectDailyBranch(b){
-  _dailyBranch=(_dailyBranch===b)?'ALL':b;
+  _dailyBranch=b;
   _fillDailyBranchToggles();
   _updateDaily();
   _updateSubmitBtnState();

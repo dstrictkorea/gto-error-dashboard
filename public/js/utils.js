@@ -38,7 +38,7 @@ function toggleRegion(r){
   _region=r||(_region==='korea'?'global':'korea');
   localStorage.setItem('region',_region);
   if(typeof curBranch!=='undefined') curBranch='ALL';
-  if(typeof _dailyBranch!=='undefined') _dailyBranch=(_region==='korea'?'AMGN':'AMNY');
+  if(typeof _dailyBranch!=='undefined') _dailyBranch='ALL';
   document.querySelectorAll('.region-btn[data-region]').forEach(function(b){
     b.classList.toggle('active',b.dataset.region===_region);
   });
