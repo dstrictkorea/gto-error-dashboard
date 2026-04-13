@@ -31,8 +31,8 @@ var _urlLocale = (function(){
   if (p === '/en') return 'en';
   return '';
 })();
-/* If account has a locked region, use that; otherwise URL-based */
-var _region = (_acctInfo.region) ? _acctInfo.region : ((_urlLocale === 'kr') ? 'korea' : 'global');
+/* If account has a locked region, use that; gto (HQ) always starts global; otherwise URL-based */
+var _region = (_acctInfo.region) ? _acctInfo.region : (_loggedId === 'gto' ? 'global' : (_urlLocale === 'kr' ? 'korea' : 'global'));
 function getRegionBranches(){return _region==='korea'?KOREA_BRANCHES:GLOBAL_BRANCHES;}
 function toggleRegion(r){
   _region=r||(_region==='korea'?'global':'korea');
