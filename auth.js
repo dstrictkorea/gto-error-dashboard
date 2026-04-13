@@ -73,7 +73,7 @@ async function getSheet(name) {
     const h = r.values[0].map(v => String(v??'').trim());
     return r.values.slice(1).filter(row => row.some(v => v!==null&&v!==''&&v!==0))
       .map(row => { const o={}; h.forEach((k,i)=>{ if(k) o[k]=row[i]??''; }); return o; });
-  } catch(e) { console.error(`  ❌ ${name}: ${e.message}`); return []; }
+  } catch(e) { console.error(`[Auth] Sheet "${name}" fetch failed: ${e.message}`); return []; }
 }
 
 module.exports = { getToken, graph, getSheet };

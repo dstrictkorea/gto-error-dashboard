@@ -1898,6 +1898,7 @@ html.dark-mode .detail-panel {
 #toast.error { background: var(--error, var(--red)); }
 #toast.error::before { content: '\2717 '; font-weight: 900; }
 #toast.warning { background: var(--warning, var(--yellow)); }
+#toast.warning::before { content: '\26A0 '; font-weight: 900; }
 
 /* ══════════════════════════════════════
    SKELETON LOADING — shimmer
@@ -3291,6 +3292,126 @@ html.dark-mode .ctx-card-purple { background: rgba(83,74,183,0.08); }
 .p-3 { padding: var(--space-3); }
 .p-4 { padding: var(--space-4); }
 .p-6 { padding: var(--space-6); }
+
+/* ═══════════════════════════════════════
+   ASYNC STATE UI — Premium loading/error/success
+   ═══════════════════════════════════════ */
+
+/* Async button loading state */
+.btn-loading {
+  position: relative;
+  color: transparent !important;
+  pointer-events: none;
+}
+.btn-loading::after {
+  content: '';
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  width: 18px; height: 18px;
+  border: 2px solid rgba(255,255,255,0.3);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+/* Small inline spinner */
+.spinner-sm {
+  display: inline-block;
+  width: 14px; height: 14px;
+  border: 2px solid rgba(255,255,255,0.3);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  vertical-align: middle;
+  margin-right: 6px;
+}
+
+/* Retry button */
+.retry-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 16px;
+  padding: 8px 20px;
+  border-radius: 100px;
+  font-size: 13px;
+  font-weight: 600;
+  background: linear-gradient(145deg, #534AB7, #7C6FE0);
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(83,74,183,0.25);
+}
+.retry-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 16px rgba(83,74,183,0.35);
+}
+.retry-btn:active { transform: scale(0.97); }
+
+/* AI analysis result */
+.ai-result {
+  font-size: 14px;
+  line-height: 1.7;
+  color: var(--t1);
+  animation: fadeSlideIn 0.4s ease;
+}
+.ai-result h3, .ai-result strong {
+  font-weight: 700;
+  color: var(--t0);
+  margin-top: 12px;
+  margin-bottom: 4px;
+}
+.ai-result ul, .ai-result ol {
+  padding-left: 20px;
+  margin: 8px 0;
+}
+.ai-result li { margin-bottom: 4px; }
+.ai-result p { margin-bottom: 8px; }
+
+/* Success state */
+.success-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 48px 24px;
+  border-radius: 20px;
+  background: radial-gradient(circle at 50% 40%, rgba(22,163,74,0.04) 0%, transparent 60%);
+}
+.success-state-icon {
+  font-size: 52px;
+  margin-bottom: 12px;
+  animation: float-gentle 3s ease-in-out infinite;
+}
+
+/* Error state */
+.error-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 48px 24px;
+  border-radius: 20px;
+  background: radial-gradient(circle at 50% 40%, rgba(220,38,38,0.03) 0%, transparent 60%);
+}
+
+/* Permission restricted button */
+.btn-restricted {
+  opacity: 0.35;
+  pointer-events: none;
+  cursor: not-allowed;
+  position: relative;
+}
+
+/* Toast type variants */
+.toast.success { background: #16A34A !important; }
+.toast.error { background: #DC2626 !important; }
+.toast.warning { background: #D97706 !important; }
+.toast.info { background: var(--purple) !important; }
 
 /* ═══════════════════════════════════
    PRINT STYLES — maintain readability on paper

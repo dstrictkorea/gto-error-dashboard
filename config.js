@@ -62,5 +62,9 @@ const BR_REGIONS = {
 const KOREA_BRANCHES = ['AMGN','AMYS','AMBS','AMJJ'];
 const GLOBAL_BRANCHES = ['AMNY','AMLV','AMDB'];
 const ALL_BRANCHES = KOREA_BRANCHES.concat(GLOBAL_BRANCHES);
+const BRANCH_TIMEZONES = {
+  AMGN: 'Asia/Seoul', AMYS: 'Asia/Seoul', AMBS: 'Asia/Seoul', AMJJ: 'Asia/Seoul',
+  AMNY: 'America/New_York', AMLV: 'America/Los_Angeles', AMDB: 'Asia/Dubai'
+};
 
-module.exports = { C, MONTHS_EN, BR_NAMES, BR_COLORS, BR_REGIONS, KOREA_BRANCHES, GLOBAL_BRANCHES, ALL_BRANCHES, validateConfig };
+module.exports = { C, MONTHS_EN, BR_NAMES, BR_COLORS, BR_REGIONS, KOREA_BRANCHES, GLOBAL_BRANCHES, ALL_BRANCHES, BRANCH_TIMEZONES, validateConfig };

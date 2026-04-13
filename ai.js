@@ -72,7 +72,7 @@ Pattern Alert:
 
 
 // ── AI fetch with timeout ──
-const AI_TIMEOUT = 20000; // 20 seconds per AI call
+const AI_TIMEOUT = 30000; // 30 seconds per AI call
 async function aiFetch(url, opts) {
   const controller = new AbortController();
   const id = setTimeout(() => controller.abort(), AI_TIMEOUT);
@@ -92,9 +92,9 @@ async function callGemini(prompt) {
       generationConfig: { maxOutputTokens: 500, temperature: 0.3 }
     })
   });
-  if (!r.ok) throw new Error(`Gemini: HTTP ${r.status}`);
+  if (!r.ok) { const msg = `Gemini: HTTP ${r.status}`; console.error(`[AI] ${msg}`); throw new Error(msg); }
   const d = await r.json();
-  if (d.error) throw new Error(`Gemini: ${d.error.message}`);
+  if (d.error) { const msg = `Gemini: ${d.error.message}`; console.error(`[AI] ${msg}`); throw new Error(msg); }
   return d.candidates?.[0]?.content?.parts?.[0]?.text || null;
 }
 
@@ -110,9 +110,9 @@ async function callGroq(prompt) {
       max_tokens: 500, temperature: 0.3
     })
   });
-  if (!r.ok) throw new Error(`Groq: HTTP ${r.status}`);
+  if (!r.ok) { const msg = `Groq: HTTP ${r.status}`; console.error(`[AI] ${msg}`); throw new Error(msg); }
   const d = await r.json();
-  if (d.error) throw new Error(`Groq: ${d.error.message}`);
+  if (d.error) { const msg = `Groq: ${d.error.message}`; console.error(`[AI] ${msg}`); throw new Error(msg); }
   return d.choices?.[0]?.message?.content || null;
 }
 
@@ -128,9 +128,9 @@ async function callMistral(prompt) {
       max_tokens: 500, temperature: 0.3
     })
   });
-  if (!r.ok) throw new Error(`Mistral: HTTP ${r.status}`);
+  if (!r.ok) { const msg = `Mistral: HTTP ${r.status}`; console.error(`[AI] ${msg}`); throw new Error(msg); }
   const d = await r.json();
-  if (d.error) throw new Error(`Mistral: ${d.error.message||d.error}`);
+  if (d.error) { const msg = `Mistral: ${d.error.message||d.error}`; console.error(`[AI] ${msg}`); throw new Error(msg); }
   return d.choices?.[0]?.message?.content || null;
 }
 
@@ -276,7 +276,7 @@ router.post('/ai-comment', async (req, res) => {
       AI_CFG.groq.key ? 'Groq' : null,
       AI_CFG.mistral.key ? 'Mistral' : null
     ].filter(Boolean);
-    console.log(`\n🤖 AI Analysis: ${incident.Branch} · ${incident.Zone} (Diff ${incident.Difficulty}) → ${activeAI.join(' + ')}`);
+    console.log(`[AI] ${new Date().toISOString()} — Analysis: ${incident.Branch} ${incident.Zone} Diff=${incident.Difficulty} providers=${activeAI.join(',')}`);
 
     const [gem, grq, mst] = await Promise.allSettled([
       callGemini(prompt), callGroq(prompt), callMistral(prompt)
@@ -304,8 +304,8 @@ router.post('/ai-comment', async (req, res) => {
       models: activeAI
     });
   } catch (e) {
-    console.error('AI Analysis error:', e.message);
-    res.status(500).json({ error: e.message });
+    console.error('[AI] /ai-comment error:', e.message);
+    res.status(500).json({ error: 'AI analysis failed. Please try again.' });
   }
 });
 
@@ -345,7 +345,7 @@ MAINTENANCE:
 ESCALATION:
 • [Next step if standard fix fails — ${asset.Maker} support procedure, RMA process]`;
 
-    console.log(`\n🔍 Asset AI: ${asset.Maker} ${asset.Model} → ${incident.IssueDetail.slice(0,40)}`);
+    console.log(`[AI] ${new Date().toISOString()} — Asset AI: ${asset.Maker} ${asset.Model} issue=${String(incident.IssueDetail||'').slice(0,40)}`);
 
     const [gem, grq] = await Promise.allSettled([
       callGemini(prompt), callGroq(prompt)
@@ -404,7 +404,7 @@ router.post('/translate', async (req, res) => {
       chunks.push(toTranslate.slice(i, i + CHUNK));
     }
 
-    console.log(`\n🌐 Translate: ${toTranslate.length} strings in ${chunks.length} batch(es)`);
+    console.log(`[AI] ${new Date().toISOString()} — Translate: ${toTranslate.length} strings in ${chunks.length} batch(es)`);
 
     for (const chunk of chunks) {
       const numbered = chunk.map((t, i) => `${i + 1}. ${t}`).join('\n');
@@ -485,8 +485,8 @@ OUTPUT FORMAT (pure JSON, no markdown):
     res.json({ ok: true, translations: result, cached: unique.length - toTranslate.length, translated: toTranslate.length });
 
   } catch (e) {
-    console.error('Translate error:', e.message);
-    res.status(500).json({ ok: false, error: e.message });
+    console.error('[AI] /translate error:', e.message);
+    res.status(500).json({ ok: false, error: 'Translation failed. Please try again.' });
   }
 });
 

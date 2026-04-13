@@ -2,8 +2,15 @@
 
 const PDFDocument = require('pdfkit');
 const path = require('path');
-const { MONTHS_EN, BR_NAMES, BR_COLORS, KOREA_BRANCHES, GLOBAL_BRANCHES } = require('./config');
+const { MONTHS_EN, BR_NAMES, BR_COLORS, KOREA_BRANCHES, GLOBAL_BRANCHES, ALL_BRANCHES } = require('./config');
 const { normHist } = require('./normalize');
+
+// Strip control characters from text destined for PDF rendering
+function sanitizePdfText(str) {
+  if (typeof str !== 'string') return '';
+  // Remove control chars except newline/tab, and limit length
+  return str.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '').slice(0, 4000);
+}
 
 const FONT_DIR = path.join(__dirname, 'fonts');
 const LOGO_WHITE = path.join(FONT_DIR, 'dstrict_CI_WHITE.png');
@@ -108,11 +115,10 @@ function generatePDF(logs, month, year, lang, history, assets, reportType, regio
   assets = Array.isArray(assets) ? assets : [];
   reportType = reportType === 'annual' ? 'annual' : 'monthly'; // default monthly
   region = ['korea','global'].includes(region) ? region : 'global';
-  const safeComment = typeof comment === 'string' ? comment.trim().slice(0, 2000) : '';
+  const safeComment = sanitizePdfText(typeof comment === 'string' ? comment.trim() : '').slice(0, 2000);
   branchFilter = typeof branchFilter === 'string' ? branchFilter.trim().toUpperCase() : '';
   // Validate branchFilter against known branches
-  const ALL_BRANCHES_LIST = KOREA_BRANCHES.concat(GLOBAL_BRANCHES);
-  if (branchFilter && !ALL_BRANCHES_LIST.includes(branchFilter)) branchFilter = '';
+  if (branchFilter && !ALL_BRANCHES.includes(branchFilter)) branchFilter = '';
   // When single-branch report: restrict PDF_BRANCHES to just that branch
   const PDF_BRANCHES = branchFilter
     ? [branchFilter]

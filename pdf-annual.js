@@ -2,7 +2,13 @@
 
 const PDFDocument = require('pdfkit');
 const path = require('path');
-const { MONTHS_EN, BR_NAMES, BR_COLORS, KOREA_BRANCHES, GLOBAL_BRANCHES } = require('./config');
+const { MONTHS_EN, BR_NAMES, BR_COLORS, KOREA_BRANCHES, GLOBAL_BRANCHES, ALL_BRANCHES } = require('./config');
+
+// Strip control characters from text destined for PDF rendering
+function sanitizePdfText(str) {
+  if (typeof str !== 'string') return '';
+  return str.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '').slice(0, 4000);
+}
 
 const FONT_DIR = path.join(__dirname, 'fonts');
 const LOGO_WHITE = path.join(FONT_DIR, 'dstrict_CI_WHITE.png');
@@ -16,7 +22,7 @@ function generateAnnualPDF(logs, year, lang, history, assets, region, comment) {
   history = Array.isArray(history) ? history : [];
   assets = Array.isArray(assets) ? assets : [];
   region = ['korea','global'].includes(region) ? region : 'global';
-  const safeComment = typeof comment === 'string' ? comment.trim().slice(0, 2000) : '';
+  const safeComment = sanitizePdfText(typeof comment === 'string' ? comment.trim() : '').slice(0, 2000);
 
   return new Promise((resolve, reject) => {
     const doc = new PDFDocument({ size: 'A4', margins: { top: 40, left: 40, right: 40, bottom: 0 }, bufferPages: true });

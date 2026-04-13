@@ -5,18 +5,32 @@ var _isLoading = false;
 var _autoRefreshTimer = null;
 var _AUTO_REFRESH_MS = 60000; // 1 minute
 
+var _loadRetryCount = 0;
+var _MAX_LOAD_RETRIES = 1;
+
 async function loadData(silent){
   if(_isLoading)return;_isLoading=true;
   var loadEl=el('loading'), loadS=el('load-s');
   if(!silent && loadEl){
     loadEl.style.display='flex';
-    if(loadS) loadS.textContent=typeof t==='function'?t('loadingSteps'):'Connecting → Authenticating → Loading data';
+    var isRetry = _loadRetryCount > 0;
+    if(loadS) loadS.textContent = isRetry
+      ? (typeof t==='function'?t('retryingLoad'):'Retrying connection...')
+      : (typeof t==='function'?t('loadingSteps'):'Connecting \u2192 Authenticating \u2192 Loading data');
+    // Show shimmer effect during retry for premium feel
+    if(isRetry && loadEl) loadEl.classList.add('retry-loading');
   }
   if(_timer){clearTimeout(_timer);_timer=null}
   try{
     var r=await fetch('/api/data');
     if(r.status===401){window.location.href='/login';return}
-    if(!r.ok)throw new Error('Server '+r.status);
+    if(!r.ok){
+      // Backend returns standardized { error: 'message' } on failure
+      var errBody = null;
+      try { errBody = await r.json(); } catch(je){}
+      var serverMsg = (errBody && errBody.error) ? errBody.error : 'Server error ('+r.status+')';
+      throw new Error(serverMsg);
+    }
     var d=null;
     try { d=await r.json(); } catch(je){ throw new Error('Invalid JSON response'); }
     if(!d || typeof d !== 'object') throw new Error('Invalid response format');
@@ -25,6 +39,7 @@ async function loadData(silent){
     G.history=((Array.isArray(d.history)?d.history:[])).filter(function(h){return h&&(h.zone||h.detail)});
     G.assets=((Array.isArray(d.assets)?d.assets:[])).filter(function(a){return a&&a.Name});
     G.meta=d.meta||{};
+    _loadRetryCount = 0; // Reset on success
     var syncInfo=el('sync-info');
     if(syncInfo) syncInfo.textContent='\u2705 SharePoint Live \u00b7 '+(G.meta.lastSync||'');
     var syncEl=el('last-refresh');
@@ -32,23 +47,36 @@ async function loadData(silent){
       var syncTime=new Date().toLocaleTimeString(_lang==='ko'?'ko-KR':'en-US',{hour:'numeric',minute:'2-digit',second:'2-digit',hour12:true});
       syncEl.textContent=(_lang==='ko'?'\ucd5c\uc885 \ub3d9\uae30\ud654: ':'Last sync: ')+syncTime;
     }
-    if(!silent) toast('Data loaded — '+G.logs.length+'건','success');
+    if(!silent) toast('Data loaded \u2014 '+G.logs.length+'\uAC74','success');
     // Admin 페이지 pending render 처리
     if(typeof window._onAdminGLoaded==='function') window._onAdminGLoaded();
 
   }catch(e){
-    var errMsg=(e&&e.message)?e.message:'Unknown error';
-    errMsg=errMsg.length>60?errMsg.slice(0,60)+'\u2026':errMsg;
+    var isNetworkErr = e && (e.name === 'TypeError' || e.message === 'Failed to fetch');
+    var errMsg = isNetworkErr
+      ? '\ub124\ud2b8\uc6cc\ud06c \uc624\ub958 \u2014 \ub2e4\uc2dc \uc2dc\ub3c4\ud574 \uc8fc\uc138\uc694'
+      : ((e&&e.message)?e.message:'Unknown error');
+    errMsg=errMsg.length>80?errMsg.slice(0,80)+'\u2026':errMsg;
     var syncInfo2=el('sync-info');
     if(syncInfo2) syncInfo2.textContent='\u26a0\ufe0f '+errMsg;
-    if(!silent) toast('Data load failed: '+errMsg,'error');
+    if(!silent) toast(errMsg,'error');
+
+    // Auto-retry once after 3 seconds if first attempt failed
+    if(_loadRetryCount < _MAX_LOAD_RETRIES){
+      _loadRetryCount++;
+      _isLoading=false;
+      if(loadEl){ loadEl.classList.remove('retry-loading'); }
+      setTimeout(function(){ loadData(silent); }, 3000);
+      return;
+    }
+    _loadRetryCount = 0;
   }finally{
     _isLoading=false;
-    if(!silent && loadEl) loadEl.style.display='none';
+    if(!silent && loadEl){ loadEl.style.display='none'; loadEl.classList.remove('retry-loading'); }
   }
   waitForChart(function(){ initApp(); });
 }
-function reloadData(){loadData(false)}
+function reloadData(){_loadRetryCount=0;loadData(false)}
 
 // ═══ AUTO-REFRESH (1 min interval) ═══
 function _startAutoRefresh(){

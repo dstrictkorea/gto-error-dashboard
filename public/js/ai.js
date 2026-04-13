@@ -69,11 +69,17 @@ async function generateAnnualReport(action){
   if(isNaN(y))y=CY;
   var status=document.getElementById('annual-report-status');
   if(!status) return;
+
+  // Find the trigger button and set loading state
+  var triggerBtn = document.querySelector('[onclick*="generateAnnualReport"]');
+  var _origBtnText = triggerBtn ? triggerBtn.textContent : '';
+  if(triggerBtn){ triggerBtn.disabled=true; triggerBtn.innerHTML='<span class="spinner-sm"></span> \uc0dd\uc131 \uc911...'; }
+
   status.style.display='block';
   // Accessibility: mark report status as live region
   status.setAttribute('role','status');
   status.setAttribute('aria-live','polite');
-  var loadLabel = lang==='ko' ? '연간 PDF 리포트 생성 중... SharePoint 데이터 수집 → 분석 → PDF 생성' : 'Generating Annual PDF report... Collecting data → Analysis → PDF generation';
+  var loadLabel = lang==='ko' ? '연간 PDF 리포트 생성 중... SharePoint 데이터 수집 \u2192 분석 \u2192 PDF 생성' : 'Generating Annual PDF report... Collecting data \u2192 Analysis \u2192 PDF generation';
   status.innerHTML='<div style="display:flex;align-items:center;gap:8px;padding:8px;background:var(--bg);border-radius:8px">'
     +'<div style="width:16px;height:16px;border:2px solid var(--border);border-top-color:var(--purple);border-radius:50%;animation:spin .8s linear infinite" aria-hidden="true"></div>'
     +'<span style="font-size:12px;color:var(--t2)">'+loadLabel+'</span></div>';
@@ -84,7 +90,13 @@ async function generateAnnualReport(action){
       body:JSON.stringify({year:y,action:action,lang:lang,region:region})
     });
     var d=await resp.json();
-    if(d.error) throw new Error(d.error);
+    if(!resp.ok || d.error){
+      // 400 = validation error (show specific message), 500 = server error
+      var errText = d.error || (resp.status === 400
+        ? 'Invalid request parameters'
+        : '\ub9ac\ud3ec\ud2b8 \uc0dd\uc131 \uc2e4\ud328 \u2014 \ub2e4\uc2dc \uc2dc\ub3c4\ud574 \uc8fc\uc138\uc694');
+      throw new Error(errText);
+    }
 
     var byteChars=atob(d.pdfBase64);
     var byteArr=new Uint8Array(byteChars.length);

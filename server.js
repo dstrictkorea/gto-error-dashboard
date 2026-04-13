@@ -234,7 +234,13 @@ app.get('/logout', (req, res) => {
 
 // Health check (no auth required)
 app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok', version: '5.7.3', uptime: Math.floor(process.uptime()), timestamp: new Date().toISOString() });
+  res.json({
+    status: 'ok', version: '5.7.5',
+    uptime: Math.floor(process.uptime()),
+    timestamp: new Date().toISOString(),
+    memory: Math.round(process.memoryUsage().heapUsed / 1024 / 1024),
+    nodeVersion: process.version
+  });
 });
 
 // ══════════════════════════════════════════════
@@ -287,7 +293,7 @@ app.use((req, res, next) => {
 app.get('/api/data', async (req, res) => {
   const t0 = Date.now();
   try {
-    console.log('\n📡 SharePoint 데이터 요청 (Table_HQ + Past_History + Asset_List)...');
+    console.log(`[Server] ${new Date().toISOString()} — SharePoint data fetch (Table_HQ + Past_History + Asset_List)`);
     const results = await Promise.allSettled([
       getSheet(C.sheets.hq), getSheet(C.sheets.history), getSheet(C.sheets.assets)
     ]);
@@ -311,7 +317,7 @@ app.get('/api/data', async (req, res) => {
     const assets = assetRaw.map(normAsset).filter(a=>a.Name);
 
     const ms = Date.now()-t0;
-    console.log(`✅ logs ${logs.length} (from Table_HQ), history ${allHistory.length}, assets ${assets.length} (${ms}ms)`);
+    console.log(`[Server] ${new Date().toISOString()} — Data fetched: logs=${logs.length} history=${allHistory.length} assets=${assets.length} (${ms}ms)`);
     res.json({ logs, history: allHistory, assets,
       meta:{ lastSync:new Date().toLocaleString('ko-KR',{timeZone:'Asia/Seoul'}),
         counts:{logs:logs.length,history:allHistory.length,assets:assets.length}, elapsed:`${ms}ms` }
@@ -339,8 +345,10 @@ app.get('/api/data', async (req, res) => {
 app.get('/api/status', async (req,res) => {
   try { await getToken(); res.json({ok:true}); }
   catch(e) {
+    console.error('[API] /api/status error:', e.message);
     const code = e.name === 'AbortError' ? 504 : e.message.includes('AADSTS') ? 401 : 500;
-    res.status(code).json({ok:false,error:e.message});
+    const msg = { 401: 'Authentication failed', 504: 'Request timed out' };
+    res.status(code).json({ ok: false, error: msg[code] || 'Service unavailable' });
   }
 });
 
@@ -362,12 +370,13 @@ app.post('/api/report', async (req, res) => {
     const validRegions = ['korea', 'global'];
     if (!validActions.includes(action)) return res.status(400).json({ error: 'Invalid action' });
     if (typeof month !== 'number' || month < 0 || month > 11) return res.status(400).json({ error: 'Invalid month' });
-    if (typeof year !== 'number' || year < 2000 || year > 2100) return res.status(400).json({ error: 'Invalid year' });
+    if (typeof year !== 'number' || year < 2020 || year > 2030) return res.status(400).json({ error: 'Invalid year (must be 2020-2030)' });
+    if (branchFilter && typeof branchFilter === 'string' && !ALL_BRANCHES.includes(branchFilter.toUpperCase())) return res.status(400).json({ error: 'Invalid branchFilter' });
     const safeLang = validLangs.includes(lang) ? lang : 'en';
     const safeType = validTypes.includes(reportType) ? reportType : 'monthly';
     const safeRegion = validRegions.includes(region) ? region : 'global';
     const regionBranches = safeRegion === 'korea' ? KOREA_BRANCHES : GLOBAL_BRANCHES;
-    console.log(`\n📄 Report: ${MONTHS_EN[month]} ${year} (${action}) lang=${safeLang} type=${safeType} region=${safeRegion}`);
+    console.log(`[Server] ${new Date().toISOString()} — Report: ${MONTHS_EN[month]} ${year} action=${action} lang=${safeLang} type=${safeType} region=${safeRegion}`);
 
     const [hq, hist, assetRaw] = await Promise.all([
       getSheet(C.sheets.hq), getSheet(C.sheets.history), getSheet(C.sheets.assets)
@@ -396,7 +405,7 @@ app.post('/api/report', async (req, res) => {
     const regionTag = safeRegion === 'korea' ? 'Korea' : 'Global';
     const fileName = `${langTag}_${regionTag}_${mm}${year}_Monthly Error Report.pdf`;
     const ms = Date.now() - t0;
-    console.log(`✅ PDF: ${fileName} (${(pdfBuffer.length/1024).toFixed(0)}KB, ${ms}ms)`);
+    console.log(`[Server] ${new Date().toISOString()} — PDF generated: ${fileName} (${(pdfBuffer.length/1024).toFixed(0)}KB, ${ms}ms)`);
 
     res.json({
       ok: true, action: action || 'download',
@@ -420,11 +429,12 @@ app.post('/api/annual-report', async (req, res) => {
     const validLangs = ['en', 'ko'];
     const validRegions = ['korea', 'global'];
     if (!validActions.includes(action)) return res.status(400).json({ error: 'Invalid action' });
-    if (typeof year !== 'number' || year < 2000 || year > 2100) return res.status(400).json({ error: 'Invalid year' });
+    if (typeof year !== 'number' || year < 2020 || year > 2030) return res.status(400).json({ error: 'Invalid year (must be 2020-2030)' });
+    if (branchFilter && typeof branchFilter === 'string' && !ALL_BRANCHES.includes(branchFilter.toUpperCase())) return res.status(400).json({ error: 'Invalid branchFilter' });
     const safeLang = validLangs.includes(lang) ? lang : 'en';
     const safeRegion = validRegions.includes(region) ? region : 'global';
     const regionBranches = safeRegion === 'korea' ? KOREA_BRANCHES : GLOBAL_BRANCHES;
-    console.log(`\n📄 Annual Report: ${year} (${action}) lang=${safeLang} region=${safeRegion}`);
+    console.log(`[Server] ${new Date().toISOString()} — Annual Report: ${year} action=${action} lang=${safeLang} region=${safeRegion}`);
 
     const [hq, hist, assetRaw] = await Promise.all([
       getSheet(C.sheets.hq), getSheet(C.sheets.history), getSheet(C.sheets.assets)
@@ -451,7 +461,7 @@ app.post('/api/annual-report', async (req, res) => {
     const regionTag = safeRegion === 'korea' ? 'Korea' : 'Global';
     const fileName = `${langTag}_${regionTag}_${year}_Annual Error Report.pdf`;
     const ms = Date.now() - t0;
-    console.log(`✅ Annual PDF: ${fileName} (${(pdfBuffer.length/1024).toFixed(0)}KB, ${ms}ms)`);
+    console.log(`[Server] ${new Date().toISOString()} — Annual PDF generated: ${fileName} (${(pdfBuffer.length/1024).toFixed(0)}KB, ${ms}ms)`);
 
     res.json({
       ok: true, action: action || 'download',
@@ -468,22 +478,27 @@ app.post('/api/annual-report', async (req, res) => {
 //  /admin — GTO Admin Dashboard (gto account only)
 // ══════════════════════════════════════════════
 app.get('/admin', (req, res) => {
-  // Check if logged in as gto
-  const authToken = req.cookies.dse_auth || '';
-  if (authToken !== VALID_TOKENS['gto']) {
-    // If logged in as another account, redirect to their page; else login
-    const isAnyValid = Object.values(VALID_TOKENS).some(t => t === authToken);
-    return isAnyValid ? res.redirect('/') : res.redirect('/login');
-  }
-  const fs = require('fs');
-  // Try public/admin.html first, then root admin.html
-  const adminPath = fs.existsSync(path.join(PUBLIC_DIR, 'admin.html'))
-    ? path.join(PUBLIC_DIR, 'admin.html')
-    : path.join(__dirname, 'admin.html');
-  if (fs.existsSync(adminPath)) {
-    res.sendFile(adminPath);
-  } else {
-    res.status(404).send('Admin page not found');
+  try {
+    // Check if logged in as gto
+    const authToken = req.cookies.dse_auth || '';
+    if (authToken !== VALID_TOKENS['gto']) {
+      // If logged in as another account, redirect to their page; else login
+      const isAnyValid = Object.values(VALID_TOKENS).some(t => t === authToken);
+      return isAnyValid ? res.redirect('/') : res.redirect('/login');
+    }
+    const fs = require('fs');
+    // Try public/admin.html first, then root admin.html
+    const adminPath = fs.existsSync(path.join(PUBLIC_DIR, 'admin.html'))
+      ? path.join(PUBLIC_DIR, 'admin.html')
+      : path.join(__dirname, 'admin.html');
+    if (fs.existsSync(adminPath)) {
+      res.sendFile(adminPath);
+    } else {
+      res.status(404).json({ error: 'Admin page not found' });
+    }
+  } catch (err) {
+    console.error('[API] /admin error:', err.message);
+    res.status(500).json({ error: 'Internal server error' });
   }
 });
 
@@ -496,27 +511,36 @@ app.all('/api/*', (req, res) => {
 //  SPA fallback (static already served above auth middleware)
 // ══════════════════════════════════════════════
 // Form app — separate SPA
-app.get('/form', (req,res) => res.sendFile(path.join(PUBLIC_DIR, 'form', 'index.html')));
+app.get('/form', (req,res) => {
+  try { res.sendFile(path.join(PUBLIC_DIR, 'form', 'index.html')); }
+  catch (err) { console.error('[Server] /form error:', err.message); if (!res.headersSent) res.status(500).json({ error: 'Internal server error' }); }
+});
 app.get('/form/*', (req,res) => {
-  const filePath = path.resolve(path.join(PUBLIC_DIR, req.path));
-  // Prevent path traversal — ensure resolved path stays inside PUBLIC_DIR
-  if (!filePath.startsWith(path.resolve(PUBLIC_DIR))) return res.status(403).send('Forbidden');
-  res.sendFile(filePath, err => { if(err && !res.headersSent) res.sendFile(path.join(PUBLIC_DIR, 'form', 'index.html')); });
+  try {
+    const filePath = path.resolve(path.join(PUBLIC_DIR, req.path));
+    // Prevent path traversal — ensure resolved path stays inside PUBLIC_DIR
+    if (!filePath.startsWith(path.resolve(PUBLIC_DIR))) return res.status(403).json({ error: 'Forbidden' });
+    res.sendFile(filePath, err => { if(err && !res.headersSent) res.sendFile(path.join(PUBLIC_DIR, 'form', 'index.html')); });
+  } catch (err) { console.error('[Server] /form/* error:', err.message); if (!res.headersSent) res.status(500).json({ error: 'Internal server error' }); }
 });
 // Locale-specific routes — serve index.html with locale manifest/SW injected
 app.get('/en', (req,res) => {
-  const fs = require('fs');
-  let html = fs.readFileSync(path.join(PUBLIC_DIR, 'index.html'), 'utf8');
-  html = html.replace('href="/manifest.json"', 'href="/en/manifest.json"');
-  html = html.replace("register('/sw.js')", "register('/en/sw.js',{scope:'/en'})");
-  res.type('html').send(html);
+  try {
+    const fs = require('fs');
+    let html = fs.readFileSync(path.join(PUBLIC_DIR, 'index.html'), 'utf8');
+    html = html.replace('href="/manifest.json"', 'href="/en/manifest.json"');
+    html = html.replace("register('/sw.js')", "register('/en/sw.js',{scope:'/en'})");
+    res.type('html').send(html);
+  } catch (err) { console.error('[Server] /en error:', err.message); if (!res.headersSent) res.status(500).json({ error: 'Internal server error' }); }
 });
 app.get('/kr', (req,res) => {
-  const fs = require('fs');
-  let html = fs.readFileSync(path.join(PUBLIC_DIR, 'index.html'), 'utf8');
-  html = html.replace('href="/manifest.json"', 'href="/kr/manifest.json"');
-  html = html.replace("register('/sw.js')", "register('/kr/sw.js',{scope:'/kr'})");
-  res.type('html').send(html);
+  try {
+    const fs = require('fs');
+    let html = fs.readFileSync(path.join(PUBLIC_DIR, 'index.html'), 'utf8');
+    html = html.replace('href="/manifest.json"', 'href="/kr/manifest.json"');
+    html = html.replace("register('/sw.js')", "register('/kr/sw.js',{scope:'/kr'})");
+    res.type('html').send(html);
+  } catch (err) { console.error('[Server] /kr error:', err.message); if (!res.headersSent) res.status(500).json({ error: 'Internal server error' }); }
 });
 // Main dashboard SPA fallback
 app.get('*', (req,res) => res.sendFile(path.join(PUBLIC_DIR, 'index.html')));
@@ -533,7 +557,7 @@ const PORT = process.env.PORT || 3000;
 
 // ── SERVER START (pm2 managed) ──
 const server = app.listen(PORT, () => {
-  console.log(`\n✅ Server running on port ${PORT} (${process.env.NODE_ENV || 'development'})`);
+  console.log(`[Server] ${new Date().toISOString()} — Listening on port ${PORT} (${process.env.NODE_ENV || 'development'})`);
   validateConfig();
 });
 
