@@ -28,10 +28,12 @@ function toggleAcc(btn){
   }
 }
 function renderHist(){
+  if(!G||!Array.isArray(G.history)) return;
+  if(!el('hist-s-main')||!el('hist-zn')||!el('hist-ca')) return;
   var s=(el('hist-s-main').value||'').toLowerCase();
   var fzn=el('hist-zn').value,fca=el('hist-ca').value;
   var hasFilters=fzn||fca||s;
-  var d=G.history.filter(function(h){
+  var d=(G.history||[]).filter(function(h){
     if(fzn&&(h.zone||'').toLowerCase()!==fzn.toLowerCase())return false;
     if(fca&&(h.cat||'').toLowerCase()!==fca.toLowerCase())return false;
     if(s&&![h.detail,h.zone,h.action,h.cat,h.hq,h.hqEng].some(function(v){return v&&v.toLowerCase().indexOf(s)>=0}))return false;

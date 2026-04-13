@@ -28,15 +28,26 @@ var _brTzMap={
    TIMEZONE-AWARE DATE HELPERS
    ══════════════════════════════ */
 
-/** Get "today" as YYYY-MM-DD in the branch's timezone */
+/** Get "today" as YYYY-MM-DD in the branch's timezone.
+ *  For ALL: use UTC (neutral) so no single regional timezone is assumed. */
 function _tzToday(br){
-  var info=_brTzMap[br]||{tz:'Asia/Seoul'};
+  if(!br||br==='ALL'){
+    // UTC as neutral default for ALL — avoids Seoul bias for global accounts
+    return new Date().toLocaleDateString('en-CA',{timeZone:'UTC'});
+  }
+  var info=_brTzMap[br]||{tz:'UTC'};
   return new Date().toLocaleDateString('en-CA',{timeZone:info.tz}); // en-CA → YYYY-MM-DD
 }
 
-/** Get date N days ago as YYYY-MM-DD in the branch's timezone */
+/** Get date N days ago as YYYY-MM-DD in the branch's timezone.
+ *  For ALL: use UTC as neutral default. */
 function _tzDaysAgo(br,n){
-  var info=_brTzMap[br]||{tz:'Asia/Seoul'};
+  if(!br||br==='ALL'){
+    var du=new Date();
+    du.setUTCDate(du.getUTCDate()-n);
+    return du.toLocaleDateString('en-CA',{timeZone:'UTC'});
+  }
+  var info=_brTzMap[br]||{tz:'UTC'};
   var d=new Date();
   d.setDate(d.getDate()-n);
   return d.toLocaleDateString('en-CA',{timeZone:info.tz});
@@ -49,7 +60,7 @@ function _isoDay(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(
 function _parseDay(s){ if(!s)return null; var p=s.split('T')[0].split('-'); return p.length===3?new Date(+p[0],p[1]-1,+p[2]):null; }
 
 function renderDaily(){
-  if(!G||!G.logs) return;
+  if(!G||!Array.isArray(G.logs)) return;
   _fillDailyBranchToggles();
   _updateDaily();
   _updateSubmitBtnState();
@@ -152,7 +163,7 @@ function _renderDailyKPI(ds,br){
   var pw_start=_tzDaysAgo(br,14);
   var pw_end=_tzDaysAgo(br,7);
   var regionBrs=typeof getRegionBranches==='function'?getRegionBranches():['AMNY','AMLV','AMDB'];
-  var prevWeekLogs=G.logs.filter(function(r){
+  var prevWeekLogs=(G.logs||[]).filter(function(r){
     var rd=(r.Date||'').split('T')[0];
     if(!rd||rd<pw_start||rd>=pw_end) return false;
     if(br&&br!=='ALL'&&r.Branch!==br) return false;

@@ -530,7 +530,7 @@ function applyLang() {
   // Footer
   var footerDivs = document.querySelectorAll('footer > div > div');
   if (footerDivs.length >= 3) {
-    footerDivs[0].innerHTML = "<strong style=\"color:var(--t2)\">D'strict Error Dashboard</strong> v5.4 — 2026 " + t('footer1');
+    footerDivs[0].innerHTML = "<strong style=\"color:var(--t2)\">D'strict Error Dashboard</strong> v5.7.2 — 2026 " + t('footer1');
     footerDivs[1].innerHTML = t('footer2') + ' <span id="footer-sync-time">--</span>';
     footerDivs[2].innerHTML = '<a href="#" style="color:var(--purple);text-decoration:none;font-weight:500">d\'strict</a> © 2026 · ' + t('footer3') + ' <span style="color:var(--t2);font-weight:600">Tony Hwang</span>';
   }

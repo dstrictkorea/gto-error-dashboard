@@ -3,15 +3,14 @@
 // ═══ PAGE 0: MONTHLY ═══
 var _charts = {};
 function renderP0(){
+  if(!G||!Array.isArray(G.logs)) return;
+  if(!el('monthSel')||!el('yearSel')) return;
   pulse();
   var isDark=document.documentElement.classList.contains('dark-mode');
   var gridC=isDark?'#2e2e2e':'#e5e4df', tickC=isDark?'#ededed':'#111110';
   var m=parseInt(el('monthSel').value),y=parseInt(el('yearSel').value);
   if(isNaN(m))m=CM;if(isNaN(y))y=CY;
   var md=getByMonth(m,y),lm=m===0?getByMonth(11,y-1):getByMonth(m-1,y);
-  var amny=md.filter(function(r){return r.Branch==='AMNY'}).length;
-  var amlv=md.filter(function(r){return r.Branch==='AMLV'}).length;
-  var amdb=md.filter(function(r){return r.Branch==='AMDB'}).length;
 
   // KPI cards with sparklines and clear delta labels
   var prevMonName=MONTHS[m===0?11:m-1].slice(0,3);

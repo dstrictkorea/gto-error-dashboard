@@ -22,6 +22,7 @@ function applyBrSort(d){
 }
 
 function renderBranchPage(){
+  if(!G||!Array.isArray(G.logs)) return;
   var isKorea=typeof _region!=='undefined'&&_region==='korea';
   var B=[{id:'ALL',col:'#1e293b',city:t('allBranchesLabel'),emoji:'🌐'}];
   if(isKorea){
@@ -62,7 +63,7 @@ function selBranch(b,btn){
 function renderBranchContent(){
   var b=curBranch;
   var regionBrs=typeof getRegionBranches==='function'?getRegionBranches():['AMNY','AMLV','AMDB'];
-  var allD=b==='ALL'?G.logs.filter(function(r){return regionBrs.indexOf(r.Branch)>=0}).sort(function(a,c){return new Date(c.Date)-new Date(a.Date)}):getByBranch(b);
+  var allD=b==='ALL'?(G.logs||[]).filter(function(r){return regionBrs.indexOf(r.Branch)>=0}).sort(function(a,c){return new Date(c.Date)-new Date(a.Date)}):getByBranch(b);
   var byVal=el('b-yr').value,bmVal=el('b-mn').value;
   var d=allD.filter(function(r){
     if(byVal){var p=(r.Date||'').split('-');if(p[0]!==byVal)return false;if(bmVal&&String(parseInt(p[1]))!==bmVal)return false}

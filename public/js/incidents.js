@@ -48,6 +48,8 @@ function applySortP1(){
 }
 
 function renderP1(){
+  if(!G||!Array.isArray(G.logs)) return;
+  if(!el('f1-br')||!el('f1-zn')||!el('f1-ca')||!el('f1-s')) return;
   pulse();var br=el('f1-br').value,zn=el('f1-zn').value,ca=el('f1-ca').value,s=(el('f1-s').value||'').toLowerCase();
   var fyr=el('f1-yr').value,fmn=el('f1-mn').value,fdf=el('f1-df').value;
   // Tag original indices for O(1) lookup in renderP1Page

@@ -42,7 +42,7 @@ function initMobileApp(){
   setupPageTransitions();
   // Inject skeleton into P1 container immediately
   showP1Skeleton();
-  console.log('[MobileApp] v2.0 — Expert mode activated');
+  // MobileApp v2.0 — Expert mode activated
 }
 
 // ══════════════════════════════════════

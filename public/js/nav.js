@@ -146,6 +146,48 @@ window.addEventListener('popstate', function(e) {
   }
 })();
 
+// ═══ MOBILE DRAWER NAV — open/close/go ═══
+function toggleMobileNav() {
+  var nav = document.getElementById('mobileNav');
+  var overlay = document.getElementById('mobileOverlay');
+  if (!nav) return;
+  var isOpen = nav.classList.contains('active');
+  if (isOpen) {
+    nav.classList.remove('active');
+    if (overlay) overlay.classList.remove('active');
+  } else {
+    nav.classList.add('active');
+    if (overlay) overlay.classList.add('active');
+  }
+}
+
+function closeMobileNav() {
+  var nav = document.getElementById('mobileNav');
+  var overlay = document.getElementById('mobileOverlay');
+  if (nav) nav.classList.remove('active');
+  if (overlay) overlay.classList.remove('active');
+}
+
+function mobileGoPage(i) {
+  closeMobileNav();
+  var desktopTabs = document.querySelectorAll('.ntab');
+  goPage(i, desktopTabs[i] || null);
+  // Update drawer active state
+  document.querySelectorAll('.mobile-nav-item').forEach(function(btn, idx) {
+    btn.classList.toggle('active', idx === i);
+  });
+}
+
+// Close mobile nav on Escape key
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') closeMobileNav();
+});
+
+// Close mobile nav on resize to desktop
+window.addEventListener('resize', function() {
+  if (window.innerWidth > 768) closeMobileNav();
+});
+
 // ═══ MOBILE BOTTOM TAB NAVIGATION ═══
 function mobileTabGo(i, btn) {
   _currentMobilePage = i;
