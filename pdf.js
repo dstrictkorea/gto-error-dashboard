@@ -109,8 +109,14 @@ function generatePDF(logs, month, year, lang, history, assets, reportType, regio
   reportType = reportType === 'annual' ? 'annual' : 'monthly'; // default monthly
   region = ['korea','global'].includes(region) ? region : 'global';
   const safeComment = typeof comment === 'string' ? comment.trim().slice(0, 2000) : '';
-  branchFilter = typeof branchFilter === 'string' ? branchFilter.trim() : '';
-  const PDF_BRANCHES = region === 'korea' ? KOREA_BRANCHES : GLOBAL_BRANCHES;
+  branchFilter = typeof branchFilter === 'string' ? branchFilter.trim().toUpperCase() : '';
+  // Validate branchFilter against known branches
+  const ALL_BRANCHES_LIST = KOREA_BRANCHES.concat(GLOBAL_BRANCHES);
+  if (branchFilter && !ALL_BRANCHES_LIST.includes(branchFilter)) branchFilter = '';
+  // When single-branch report: restrict PDF_BRANCHES to just that branch
+  const PDF_BRANCHES = branchFilter
+    ? [branchFilter]
+    : (region === 'korea' ? KOREA_BRANCHES : GLOBAL_BRANCHES);
 
   // If Korean, translate IssueDetail and ActionTaken via AI before PDF generation
   const translationReady = (lang === 'ko')
@@ -772,6 +778,28 @@ function generatePDF(logs, month, year, lang, history, assets, reportType, regio
     // ══════════ FIRST CONTENT PAGE (cover removed) ══════════
     _drawPageBranding();
 
+    // ══════════ BRANCH REPORT TITLE (single-branch reports only) ══════════
+    if (branchFilter) {
+      const brName = BR_NAMES[branchFilter] || branchFilter;
+      const titleY = doc.y;
+      // Full-width title block with branch color accent
+      const brColor = BR_COLORS[branchFilter] || CP;
+      doc.save().rect(ML, titleY, PW, 56).fill('#f6f5f0').restore();
+      doc.save().rect(ML, titleY, PW, 4).fill(brColor).restore();
+      // Branch name large
+      doc.fillColor(brColor).fontSize(22).font(F.black)
+        .text(branchFilter + '  ' + brName.toUpperCase(), ML, titleY + 10, { width: PW, align: 'center', lineBreak: false });
+      // Report subtitle
+      const titleSub = isKo
+        ? MONTHS_EN[month] + ' ' + year + ' 월간 에러 리포트'
+        : MONTHS_EN[month] + ' ' + year + ' Monthly Error Report';
+      doc.fillColor(CT).fontSize(13).font(F.med)
+        .text(titleSub, ML, titleY + 34, { width: PW, align: 'center', lineBreak: false });
+      doc.y = titleY + 62;
+      doc.x = ML;
+      _markPage();
+    }
+
     // ══════════ MANAGER COMMENT (if provided) ══════════
     // Inserted on first content page, before Executive Summary
     if (safeComment) {
@@ -861,7 +889,10 @@ function generatePDF(logs, month, year, lang, history, assets, reportType, regio
     // ── Executive Summary: Visual Dashboard (4-Quadrant Grid) ──
 
     if(total===0){
-      doc.fillColor(CS).fontSize(11).font(F.reg).text(monName+' '+year+': '+L.noIncidents, ML);
+      const noIncText = branchFilter
+        ? (isKo ? monName+' '+year+': 해당 월 장애 발생 없음. '+branchFilter+'지점 시스템 정상 운영 중.' : monName+' '+year+': No errors recorded. '+branchFilter+' operating normally.')
+        : L.noIncidents;
+      doc.fillColor(CS).fontSize(11).font(F.reg).text(noIncText, ML);
     } else {
       const momDiff = total-prevTotal;
       const momPct = prevTotal ? Math.round(Math.abs(momDiff)/prevTotal*100) : 0;
@@ -1036,97 +1067,119 @@ function generatePDF(logs, month, year, lang, history, assets, reportType, regio
 
     // ══════════ BRANCH-SPECIFIC SUMMARY (if single branch selected) ══════════
     if(branchFilter && reportType === 'monthly'){
-      const filterBranch = branchFilter.toUpperCase();
-      const branchLogs = logs.filter(r => {
-        const p = (r.Date || '').split('-');
-        return parseInt(p[0]) === year && parseInt(p[1]) === month + 1 && r.Branch === filterBranch;
-      });
+      // branchFilter already uppercased and validated. logs already filtered server-side.
+      const branchLogs = md; // md is already filtered to this month + this branch (server filtered logs)
       const branchCritical = branchLogs.filter(r => r.Difficulty >= 4);
       const branchCatCount = {};
-      branchLogs.forEach(r => { branchCatCount[r.Category] = (branchCatCount[r.Category] || 0) + 1; });
+      branchLogs.forEach(r => { branchCatCount[r.Category||'Other'] = (branchCatCount[r.Category||'Other'] || 0) + 1; });
       const topCategories = Object.entries(branchCatCount).sort((a,b) => b[1] - a[1]).slice(0, 5);
+      const dynMonth = MONTHS_EN[month] + ' ' + year;
 
-      sect('', isKo ? '지점별 요약' : 'Branch Summary');
+      sect('2', isKo ? '지점 상세 현황' : 'Branch Detail');
 
+      // ── Status badge (page-break safe: pc before setting Y) ──
+      pc(100);
       const sumY = doc.y;
-      pc(80);
+      doc.x = ML;
 
-      // Status line
       if(branchCritical.length === 0){
-        const dynMonthOk = MONTHS_EN[month] + ' ' + year;
         const statusText = isKo
-          ? '[OK] 금월 크리티컬(Lv.4+) 장애 미발생 — ' + filterBranch + '지점 정상 운영중.'
-          : '[OK] No critical (Lv.4+) incidents this month — ' + filterBranch + ' branch operating normally.';
-        doc.save().roundedRect(ML, sumY, PW, 24, 4).fill('#EAF3DE').restore();
-        doc.save().rect(ML, sumY, 4, 24).fill(COK).restore();
-        doc.fillColor(COK).fontSize(10).font(F.bold).text(statusText, ML + 12, sumY + 5, { width: PW - 20, lineBreak: false });
-        // Additional detail line
-        doc.y = sumY + 28;
+          ? '[OK] 금월 크리티컬(Lv.4+) 장애 미발생 — ' + branchFilter + '지점 정상 운영중.'
+          : '[OK] No critical (Lv.4+) incidents this month — ' + branchFilter + ' branch operating normally.';
+        doc.save().roundedRect(ML, sumY, PW, 26, 4).fill('#EAF3DE').restore();
+        doc.save().rect(ML, sumY, 4, 26).fill(COK).restore();
+        doc.fillColor(COK).fontSize(10).font(F.bold)
+          .text(statusText, ML + 12, sumY + 7, { width: PW - 20, lineBreak: false });
+        doc.y = sumY + 32;
+        doc.x = ML;
         const noErrDetail = isKo
-          ? dynMonthOk + ': 해당 월 장애 발생 없음. ' + filterBranch + '지점 시스템 정상 운영 중'
-          : dynMonthOk + ': No incidents this month. ' + filterBranch + ' systems operating normally';
-        doc.fillColor(CS).fontSize(9).font(F.med).text(noErrDetail, ML + 12, doc.y, { width: PW - 24, lineBreak: false });
-        doc.y += 16;
+          ? dynMonth + ': 해당 월 장애 발생 없음. ' + branchFilter + '지점 시스템 정상 운영 중.'
+          : dynMonth + ': No incidents recorded. ' + branchFilter + ' systems operating normally.';
+        doc.fillColor(CS).fontSize(9).font(F.med)
+          .text(noErrDetail, ML + 12, doc.y, { width: PW - 24, lineBreak: false });
+        doc.y += 18;
       } else {
-        const dynMonth = MONTHS_EN[month] + ' ' + year;
         const statusText = isKo
-          ? dynMonth + ': 해당 월 장애 발생: ' + branchCritical.length + '건'
-          : dynMonth + ': Critical incidents detected: ' + branchCritical.length + ' case(s)';
-        doc.save().roundedRect(ML, sumY, PW, 24, 4).fill('#FCEBEB').restore();
-        doc.save().rect(ML, sumY, 4, 24).fill(CE).restore();
-        doc.fillColor(CE).fontSize(10).font(F.bold).text(statusText, ML + 12, sumY + 5, { width: PW - 20, lineBreak: false });
+          ? '[!] ' + dynMonth + ' — 심각 장애 ' + branchCritical.length + '건 발생. 즉각 확인 필요.'
+          : '[!] ' + dynMonth + ' — ' + branchCritical.length + ' critical incident(s). Immediate attention required.';
+        doc.save().roundedRect(ML, sumY, PW, 26, 4).fill('#FCEBEB').restore();
+        doc.save().rect(ML, sumY, 4, 26).fill(CE).restore();
+        doc.fillColor(CE).fontSize(10).font(F.bold)
+          .text(statusText, ML + 12, sumY + 7, { width: PW - 20, lineBreak: false });
+        doc.y = sumY + 32;
+        doc.x = ML;
       }
-      doc.y = sumY + 30;
 
-      // Top issues section
+      // ── Top Categories ──
       if(topCategories.length > 0){
-        doc.fillColor(CT).fontSize(10).font(F.bold).text(isKo ? '주요 장애 유형' : 'Top Issue Categories', ML);
+        pc(50);
+        doc.x = ML;
+        doc.fillColor(CT).fontSize(10).font(F.bold)
+          .text(isKo ? '주요 장애 유형' : 'Top Issue Categories', ML, doc.y);
         doc.moveDown(0.3);
-        topCategories.forEach((cat, idx) => {
-          const catName = cat[0];
-          const catCount = cat[1];
-          const pct = branchLogs.length ? Math.round(catCount / branchLogs.length * 100) : 0;
-          const label = (idx + 1) + '. ' + (isKo ? trCat(catName) : catName) + ': ' + catCount + ' (' + pct + '%)';
-          doc.fillColor(CS).fontSize(9).font(F.med).text(label, ML + 10, undefined, { lineBreak: false });
-          doc.moveDown(0.4);
+        topCategories.forEach((cat) => {
+          pc(16);
+          doc.x = ML;
+          const catName = cat[0], catCnt = cat[1];
+          const pct = branchLogs.length ? Math.round(catCnt / branchLogs.length * 100) : 0;
+          const catLabel = (isKo ? trCat(catName) : catName) + ': ' + catCnt + ' (' + pct + '%)';
+          doc.fillColor(CS).fontSize(9).font(F.med)
+            .text('• ' + catLabel, ML + 10, doc.y, { width: PW - 20, lineBreak: false });
+          doc.moveDown(0.5);
         });
+        doc.moveDown(0.3);
       }
 
-      // Critical/severe issues listing (Difficulty 4+)
+      // ── Critical Issues Listing (Lv.4+) ──
       if(branchCritical.length > 0){
-        doc.moveDown(0.5);
-        pc(60);
-        doc.fillColor(CT).fontSize(10).font(F.bold).text(isKo ? '심각 장애 목록 (Lv.4+)' : 'Critical Issues (Difficulty 4+)', ML);
+        pc(50);
+        doc.x = ML;
+        doc.fillColor(CT).fontSize(10).font(F.bold)
+          .text(isKo ? '심각 장애 목록 (Lv.4+)' : 'Critical Issues (Difficulty 4+)', ML, doc.y);
         doc.moveDown(0.3);
-        branchCritical.slice(0, 10).forEach((r, idx) => {
+        branchCritical.slice(0, 10).forEach((r) => {
+          pc(28);
+          doc.x = ML;
           const dateStr = (r.Date||'').split('T')[0];
           const diff = r.Difficulty||0;
-          const label = (idx+1)+'. [Lv.'+diff+'] '+(r.Zone||'--')+' — '+(isKo && r.IssueDetail_ko ? r.IssueDetail_ko : (r.IssueDetail||'--')).slice(0,80) + ' ('+dateStr+')';
-          doc.fillColor(diff>=5?CE:CW).fontSize(9).font(F.med).text(label, ML + 10, undefined, { width: PW - 20, lineBreak: true });
-          doc.moveDown(0.3);
+          const issueText = trText(r.IssueDetail||'--').slice(0, 90);
+          const label = '[Lv.' + diff + '] ' + (r.Zone||'--') + ' — ' + issueText + ' (' + dateStr + ')';
+          doc.save().roundedRect(ML, doc.y, PW, 22, 3)
+            .fill(diff >= 5 ? '#FFF0F0' : '#FFF5E6').restore();
+          doc.save().rect(ML, doc.y, 3, 22).fill(diff >= 5 ? CE : CW).restore();
+          doc.fillColor(diff >= 5 ? CE : CW).fontSize(8.5).font(F.med)
+            .text(label, ML + 9, doc.y + 5, { width: PW - 16, lineBreak: false });
+          doc.y += 26;
+          doc.x = ML;
         });
+        doc.moveDown(0.3);
       }
 
-      // Most frequent issues listing
+      // ── Most Frequent Issues ──
       const issueFreq = {};
       branchLogs.forEach(r => {
-        const key = (r.IssueDetail||'unknown').toLowerCase().trim().slice(0,100);
+        const key = (r.IssueDetail||'unknown').toLowerCase().trim().slice(0, 100);
         issueFreq[key] = (issueFreq[key]||0) + 1;
       });
       const topFreqIssues = Object.entries(issueFreq).sort((a,b)=>b[1]-a[1]).slice(0,5).filter(e=>e[1]>1);
       if(topFreqIssues.length > 0){
-        doc.moveDown(0.5);
-        pc(60);
-        doc.fillColor(CT).fontSize(10).font(F.bold).text(isKo ? '가장 빈번한 이슈' : 'Most Frequent Issues', ML);
+        pc(50);
+        doc.x = ML;
+        doc.fillColor(CT).fontSize(10).font(F.bold)
+          .text(isKo ? '가장 빈번한 이슈' : 'Most Frequent Issues', ML, doc.y);
         doc.moveDown(0.3);
         topFreqIssues.forEach((entry, idx) => {
-          const label = (idx+1)+'. '+entry[0].slice(0,80)+' — '+entry[1]+(isKo?'건':' cases');
-          doc.fillColor(CS).fontSize(9).font(F.med).text(label, ML + 10, undefined, { width: PW - 20, lineBreak: true });
-          doc.moveDown(0.3);
+          pc(16);
+          doc.x = ML;
+          const freqLabel = (idx+1)+'. '+entry[0].slice(0,80)+' — '+entry[1]+(isKo?'건':' cases');
+          doc.fillColor(CS).fontSize(9).font(F.med)
+            .text(freqLabel, ML + 10, doc.y, { width: PW - 20, lineBreak: true });
+          doc.moveDown(0.5);
         });
       }
 
       doc.moveDown(0.5);
+      doc.x = ML;
       _markPage();
     }
 
@@ -1662,9 +1715,13 @@ function generatePDF(logs, month, year, lang, history, assets, reportType, regio
     }
     const totalContent=contentPageList.length;
     const monthLabel=MONTHS_EN[month]||('Month '+(month+1));
-    const footerTitle=isKo
-      ? ("d'strict Error  |  "+monthLabel+' '+year+' 월간 리포트')
-      : ("d'strict Error  |  "+monthLabel+' '+year+' Monthly Report');
+    const footerTitle = branchFilter
+      ? (isKo
+          ? ("d'strict Error  |  "+branchFilter+' '+monthLabel+' '+year+' 지점 리포트')
+          : ("d'strict Error  |  "+branchFilter+' '+monthLabel+' '+year+' Branch Report'))
+      : (isKo
+          ? ("d'strict Error  |  "+monthLabel+' '+year+' 월간 리포트')
+          : ("d'strict Error  |  "+monthLabel+' '+year+' Monthly Report'));
     for(let ci=0;ci<contentPageList.length;ci++){
       const i=contentPageList[ci];
       doc.switchToPage(i);

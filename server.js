@@ -234,7 +234,7 @@ app.get('/logout', (req, res) => {
 
 // Health check (no auth required)
 app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok', version: '5.6.0', uptime: Math.floor(process.uptime()), timestamp: new Date().toISOString() });
+  res.json({ status: 'ok', version: '5.7.2', uptime: Math.floor(process.uptime()), timestamp: new Date().toISOString() });
 });
 
 // ══════════════════════════════════════════════

@@ -127,16 +127,14 @@ function mobileTabGo(i, btn) {
   goPage(i, document.querySelectorAll('.ntab')[
     (typeof _loggedId !== 'undefined' && _loggedId === 'gto') ? i + 1 : i
   ]);
-  // Update bottom nav active state
-  document.querySelectorAll('#mobileBottomNav button').forEach(function(b, idx) {
-    // Skip admin tab (first button if visible) — match by data or position
-    if (b.id === 'mobileAdminTab') return;
-    b.classList.remove('bnav-active');
-  });
-  if (btn) btn.classList.add('bnav-active');
-  // Deactivate mobile admin tab
+  // Update bottom nav active state — works both for click (btn provided) and swipe (btn not provided)
+  var navBtns = document.querySelectorAll('#mobileBottomNav button:not(#mobileAdminTab)');
+  navBtns.forEach(function(b) { b.classList.remove('bnav-active'); });
   var mAdm = document.getElementById('mobileAdminTab');
   if (mAdm) mAdm.classList.remove('bnav-active');
+  // Activate the correct button by index position among non-admin buttons
+  var targetBtn = btn || navBtns[i];
+  if (targetBtn) targetBtn.classList.add('bnav-active');
   // Scroll to top
   window.scrollTo({ top: 0, behavior: 'smooth' });
   // Mobile app: render mobile-specific content
