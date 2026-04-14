@@ -92,10 +92,12 @@ async function adminReport(region,action){
   var year=parseInt(yearEl.value), monthVal=parseInt(monthEl.value);
   var commentEl=document.getElementById(region==='global'?'adm-g-comment':'adm-k-comment');
   var comment=commentEl?commentEl.value:'';
+  var titleEl=document.getElementById(region==='global'?'adm-g-title':'adm-k-title');
+  var customTitle=titleEl?titleEl.value.trim():'';
   var isAnnual=isNaN(monthVal)||monthVal===-1;
   var endpoint=isAnnual?'/api/annual-report':'/api/report';
-  var body=isAnnual?{year:year,action:action,lang:lang,region:region,comment:comment}
-    :{month:monthVal,year:year,action:action,lang:lang,reportType:'monthly',region:region,comment:comment};
+  var body=isAnnual?{year:year,action:action,lang:lang,region:region,comment:comment,title:customTitle}
+    :{month:monthVal,year:year,action:action,lang:lang,reportType:'monthly',region:region,comment:comment,title:customTitle};
   statusEl.style.cssText='display:block;padding:8px 12px;border-radius:8px;font-size:12px;font-weight:600;background:var(--bg);border:1px solid var(--border);margin-top:8px;color:var(--t2)';
   statusEl.innerHTML='<div style="display:flex;align-items:center;gap:8px"><div style="width:12px;height:12px;border:2px solid var(--border);border-top-color:#534AB7;border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0"></div>PDF 생성 중...</div>';
   try{

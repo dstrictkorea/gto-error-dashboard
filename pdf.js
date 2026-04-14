@@ -106,7 +106,7 @@ ${numbered}`;
   }
 }
 
-function generatePDF(logs, month, year, lang, history, assets, reportType, region, comment, branchFilter) {
+function generatePDF(logs, month, year, lang, history, assets, reportType, region, comment, branchFilter, customTitle) {
   if (!Array.isArray(logs)) throw new Error('logs must be an array');
   month = Math.max(0, Math.min(11, parseInt(month, 10) || 0));
   year = Math.max(2000, Math.min(2100, parseInt(year, 10) || new Date().getFullYear()));
@@ -116,6 +116,7 @@ function generatePDF(logs, month, year, lang, history, assets, reportType, regio
   reportType = reportType === 'annual' ? 'annual' : 'monthly'; // default monthly
   region = ['korea','global'].includes(region) ? region : 'global';
   const safeComment = sanitizePdfText(typeof comment === 'string' ? comment.trim() : '').slice(0, 2000);
+  const safeTitle = sanitizePdfText(typeof customTitle === 'string' ? customTitle.trim() : '').slice(0, 200);
   branchFilter = typeof branchFilter === 'string' ? branchFilter.trim().toUpperCase() : '';
   // Validate branchFilter against known branches
   if (branchFilter && !ALL_BRANCHES.includes(branchFilter)) branchFilter = '';
@@ -783,6 +784,24 @@ function generatePDF(logs, month, year, lang, history, assets, reportType, regio
 
     // ══════════ FIRST CONTENT PAGE (cover removed) ══════════
     _drawPageBranding();
+
+    // ══════════ REPORT TITLE HEADER (admin or branch) ══════════
+    if (!branchFilter && safeTitle) {
+      // Admin report with custom title
+      const titleY = doc.y;
+      doc.save().rect(ML, titleY, PW, 48).fill('#f6f5f0').restore();
+      doc.save().rect(ML, titleY, PW, 4).fill(CP).restore();
+      doc.fillColor(CP).fontSize(18).font(F.black)
+        .text(safeTitle, ML, titleY + 10, { width: PW, align: 'center', lineBreak: false });
+      // Auto subtitle: region + period
+      const regionLabel = region === 'korea' ? (isKo ? '국내' : 'Korea') : (isKo ? '글로벌' : 'Global');
+      const periodLabel = monthLabel + ' ' + year;
+      doc.fillColor(CT).fontSize(11).font(F.med)
+        .text(regionLabel + '  ·  ' + periodLabel, ML, titleY + 32, { width: PW, align: 'center', lineBreak: false });
+      doc.y = titleY + 54;
+      doc.x = ML;
+      _markPage();
+    }
 
     // ══════════ BRANCH REPORT TITLE (single-branch reports only) ══════════
     if (branchFilter) {
@@ -1721,13 +1740,14 @@ function generatePDF(logs, month, year, lang, history, assets, reportType, regio
     }
     const totalContent=contentPageList.length;
     const monthLabel=MONTHS_EN[month]||('Month '+(month+1));
-    const footerTitle = branchFilter
+    const autoTitle = branchFilter
       ? (isKo
           ? ("d'strict Error  |  "+branchFilter+' '+monthLabel+' '+year+' 지점 리포트')
           : ("d'strict Error  |  "+branchFilter+' '+monthLabel+' '+year+' Branch Report'))
       : (isKo
           ? ("d'strict Error  |  "+monthLabel+' '+year+' 월간 리포트')
           : ("d'strict Error  |  "+monthLabel+' '+year+' Monthly Report'));
+    const footerTitle = safeTitle ? ("d'strict Error  |  " + safeTitle) : autoTitle;
     for(let ci=0;ci<contentPageList.length;ci++){
       const i=contentPageList[ci];
       doc.switchToPage(i);

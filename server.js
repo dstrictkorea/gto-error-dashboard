@@ -363,7 +363,7 @@ app.use('/api', aiRouter);
 app.post('/api/report', async (req, res) => {
   const t0 = Date.now();
   try {
-    const { month, year, action, lang, reportType, region, comment, branchFilter } = req.body;
+    const { month, year, action, lang, reportType, region, comment, branchFilter, title } = req.body;
     const validActions = ['download', 'preview', 'email'];
     const validLangs = ['en', 'ko'];
     const validTypes = ['monthly', 'annual'];
@@ -398,7 +398,8 @@ app.post('/api/report', async (req, res) => {
       ? regionLogs.filter(r => r.Branch === branchFilter)
       : regionLogs;
     const safeComment = typeof comment === 'string' ? comment.slice(0, 2000) : '';
-    const pdfBuffer = await generatePDF(finalLogs, month, year, safeLang, allHistory, assets, safeType, safeRegion, safeComment, branchFilter);
+    const safeTitle = typeof title === 'string' ? title.trim().slice(0, 200) : '';
+    const pdfBuffer = await generatePDF(finalLogs, month, year, safeLang, allHistory, assets, safeType, safeRegion, safeComment, branchFilter, safeTitle);
     const pdfBase64 = pdfBuffer.toString('base64');
     const mm = String(month + 1).padStart(2, '0');
     const langTag = safeLang === 'ko' ? '(KOR)' : '(ENG)';
@@ -424,7 +425,7 @@ app.post('/api/report', async (req, res) => {
 app.post('/api/annual-report', async (req, res) => {
   const t0 = Date.now();
   try {
-    const { year, action, lang, region, comment, branchFilter } = req.body;
+    const { year, action, lang, region, comment, branchFilter, title } = req.body;
     const validActions = ['download', 'preview', 'email'];
     const validLangs = ['en', 'ko'];
     const validRegions = ['korea', 'global'];
@@ -455,7 +456,8 @@ app.post('/api/annual-report', async (req, res) => {
       ? regionLogs.filter(r => r.Branch === branchFilter)
       : regionLogs;
     const safeAnnualComment = typeof comment === 'string' ? comment.slice(0, 2000) : '';
-    const pdfBuffer = await generateAnnualPDF(finalAnnualLogs, year, safeLang, allHistory, assets, safeRegion, safeAnnualComment);
+    const safeAnnualTitle = typeof title === 'string' ? title.trim().slice(0, 200) : '';
+    const pdfBuffer = await generateAnnualPDF(finalAnnualLogs, year, safeLang, allHistory, assets, safeRegion, safeAnnualComment, safeAnnualTitle);
     const pdfBase64 = pdfBuffer.toString('base64');
     const langTag = safeLang === 'ko' ? '(KOR)' : '(ENG)';
     const regionTag = safeRegion === 'korea' ? 'Korea' : 'Global';

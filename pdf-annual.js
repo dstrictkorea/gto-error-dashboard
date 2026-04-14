@@ -15,7 +15,7 @@ const LOGO_WHITE = path.join(FONT_DIR, 'dstrict_CI_WHITE.png');
 const LOGO_BLACK = path.join(FONT_DIR, 'dstrict_CI_BLACK.png');
 const MAX_PDF_SIZE = 50 * 1024 * 1024;
 
-function generateAnnualPDF(logs, year, lang, history, assets, region, comment) {
+function generateAnnualPDF(logs, year, lang, history, assets, region, comment, customTitle) {
   if (!Array.isArray(logs)) throw new Error('logs must be an array');
   year = Math.max(2000, Math.min(2100, parseInt(year, 10) || new Date().getFullYear()));
   lang = ['en','ko'].includes(lang) ? lang : 'en';
@@ -23,6 +23,7 @@ function generateAnnualPDF(logs, year, lang, history, assets, region, comment) {
   assets = Array.isArray(assets) ? assets : [];
   region = ['korea','global'].includes(region) ? region : 'global';
   const safeComment = sanitizePdfText(typeof comment === 'string' ? comment.trim() : '').slice(0, 2000);
+  const safeTitle = sanitizePdfText(typeof customTitle === 'string' ? customTitle.trim() : '').slice(0, 200);
 
   return new Promise((resolve, reject) => {
     const doc = new PDFDocument({ size: 'A4', margins: { top: 40, left: 40, right: 40, bottom: 0 }, bufferPages: true });
@@ -271,6 +272,23 @@ function generateAnnualPDF(logs, year, lang, history, assets, region, comment) {
     //  FIRST CONTENT PAGE (cover removed)
     // ══════════════════════════════════════════════
     _drawPageBranding();
+
+    // ══════════════════════════════════════════════
+    //  REPORT TITLE HEADER (if custom title provided)
+    // ══════════════════════════════════════════════
+    if (safeTitle) {
+      const titleY = doc.y;
+      doc.save().rect(ML, titleY, PW, 48).fill('#f6f5f0').restore();
+      doc.save().rect(ML, titleY, PW, 4).fill(CP).restore();
+      doc.fillColor(CP).fontSize(18).font(F.black)
+        .text(safeTitle, ML, titleY + 10, { width: PW, align: 'center', lineBreak: false });
+      const regionLabel = region === 'korea' ? (isKo ? '국내' : 'Korea') : (isKo ? '글로벌' : 'Global');
+      doc.fillColor(CT).fontSize(11).font(F.med)
+        .text(regionLabel + '  ·  ' + year + ' Annual', ML, titleY + 32, { width: PW, align: 'center', lineBreak: false });
+      doc.y = titleY + 54;
+      doc.x = ML;
+      _markPage();
+    }
 
     // ══════════════════════════════════════════════
     //  COMMENT (if provided)
@@ -772,7 +790,8 @@ function generateAnnualPDF(logs, year, lang, history, assets, region, comment) {
       doc.switchToPage(i);
       doc.save().rect(0,818,595,24).fill(CT).restore();
       doc.fillColor('#a3a29c').fontSize(7.5).font(F.light);
-      doc.text("d'strict Error  |  "+year+' Annual Error Report',ML,823,{width:PW-60,lineBreak:false});
+      const annualFooterTitle = safeTitle ? ("d'strict Error  |  " + safeTitle) : ("d'strict Error  |  "+year+' Annual Error Report');
+      doc.text(annualFooterTitle,ML,823,{width:PW-60,lineBreak:false});
       doc.text('Page '+(ci+1)+'/'+totalContent,MR-60,823,{width:60,align:'right',lineBreak:false});
       doc.save().rect(0,0,595,4).fill(CP).restore();
     }
