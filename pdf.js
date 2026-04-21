@@ -256,7 +256,7 @@ function generatePDF(logs, month, year, lang, history, assets, reportType, regio
       return r;
     }
     const trText = (v) => (lang==='ko' && koMap[v]) ? koMap[v] : _trStatic(v);
-    const doc = new PDFDocument({ size: 'A4', margins: { top: 40, left: 40, right: 40, bottom: 0 }, bufferPages: true });
+    const doc = new PDFDocument({ size: 'A4', layout: 'landscape', margins: { top: 20, left: 22, right: 22, bottom: 0 }, bufferPages: true });
     const chunks = [];
     let totalSize = 0;
     doc.on('data', c => {
@@ -295,7 +295,8 @@ function generatePDF(logs, month, year, lang, history, assets, reportType, regio
       console.error('[PDF] Korean font registration failed:', e.message);
     }
 
-    const PW = 515, ML = 40, MR = 555, BOT = 770;
+    // Landscape A4: 841.89 × 595.28 pt. Margins left/right 22, top 20.
+    const PW = 797, ML = 22, MR = 819, BOT = 558;
 
     const isKo = lang === 'ko';
 
@@ -575,19 +576,19 @@ function generatePDF(logs, month, year, lang, history, assets, reportType, regio
     function _drawPageBranding() {
       doc.save();
       // Top-left mini CI logo
-      try { if(_hasLogoBlack) doc.image(LOGO_BLACK, ML, 14, {width:60}); } catch(_) {}
-      doc.fillColor(CS).fontSize(7).font(F.light).text("Error Report", ML+65, 18, {lineBreak:false});
+      try { if(_hasLogoBlack) doc.image(LOGO_BLACK, ML, 10, {width:56}); } catch(_) {}
+      doc.fillColor(CS).fontSize(7).font(F.light).text("Error Report", ML+62, 14, {lineBreak:false});
       // Top accent line
-      doc.moveTo(ML, 34).lineTo(MR, 34).strokeColor(CL).lineWidth(0.5).stroke();
-      // Diagonal watermark (subtle logo)
+      doc.moveTo(ML, 28).lineTo(MR, 28).strokeColor(CL).lineWidth(0.5).stroke();
+      // Diagonal watermark — centre of landscape A4 (421, 297)
       doc.save();
       doc.opacity(0.02);
-      doc.translate(297, 421);
+      doc.translate(421, 297);
       doc.rotate(-35, {origin:[0,0]});
       try { if(_hasLogoBlack) doc.image(LOGO_BLACK, -160, -25, {width:320}); } catch(_) {}
       doc.restore();
       doc.restore();
-      doc.y = 40;
+      doc.y = 32;
     }
     function pc(need) {
       if(doc.y+(need||60)>BOT) {
@@ -606,19 +607,19 @@ function generatePDF(logs, month, year, lang, history, assets, reportType, regio
         doc.addPage();
         _drawPageBranding();
       } else if(doc.y > 80) {
-        // Add spacing between sections on the same page
-        doc.y = doc.y + 20;
+        // Tight spacing between sections
+        doc.y = doc.y + 12;
       } else {
-        doc.y = 40;
+        doc.y = 32;
       }
       const y = doc.y;
-      // Section header with background band for clear visual separation
-      doc.save().rect(ML,y,PW,28).fill('#f0eff8').restore();
-      doc.save().rect(ML,y,4,28).fill(CP).restore();
-      doc.fillColor(CT).fontSize(isKo?14:15).font(F.bold).text(n+'. '+title.toUpperCase(), ML+14, y+6, {lineBreak:false});
-      doc.y = y + 32;
+      // Section header — compact band
+      doc.save().rect(ML,y,PW,22).fill('#f0eff8').restore();
+      doc.save().rect(ML,y,4,22).fill(CP).restore();
+      doc.fillColor(CT).fontSize(isKo?12:13).font(F.bold).text(n+'. '+title.toUpperCase(), ML+10, y+5, {lineBreak:false});
+      doc.y = y + 26;
       doc.moveTo(ML,doc.y-2).lineTo(MR,doc.y-2).strokeColor(CP).lineWidth(0.8).stroke();
-      doc.moveDown(0.7);
+      doc.moveDown(0.4);
       doc.x = ML;
       doc.font(F.reg).fillColor(CT);
     }
@@ -830,17 +831,17 @@ function generatePDF(logs, month, year, lang, history, assets, reportType, regio
       const yearShortHdr = String(year).slice(2);
       const dstrictId = 'DSKR-GTO-Monthly Error Report_' + monthShortHdr + yearShortHdr;
       const mainTitle = safeTitle || dstrictId;
-      doc.save().rect(ML, titleY, PW, 52).fill('#f6f5f0').restore();
+      doc.save().rect(ML, titleY, PW, 38).fill('#f6f5f0').restore();
       doc.save().rect(ML, titleY, PW, 3).fill(CP).restore();
       // Main title
-      doc.fillColor(CP).fontSize(16).font(F.bold)
-        .text(mainTitle, ML, titleY + 10, { width: PW, align: 'center', lineBreak: false });
-      // Subtitle: period + scope
+      doc.fillColor(CP).fontSize(14).font(F.bold)
+        .text(mainTitle, ML, titleY + 8, { width: PW, align: 'center', lineBreak: false });
+      // Subtitle: period + region (no "scope" label)
       const regionLabel = region === 'korea' ? (isKo ? 'Korea (국내 4지점)' : 'Korea (4 branches)') : (isKo ? 'Global (해외 3지점)' : 'Global (3 branches)');
       const periodLabel = MONTHS_EN[month] + ' ' + year;
-      doc.fillColor(CS).fontSize(10).font(F.reg)
-        .text(periodLabel + '  ·  ' + regionLabel, ML, titleY + 32, { width: PW, align: 'center', lineBreak: false });
-      doc.y = titleY + 58;
+      doc.fillColor(CS).fontSize(9).font(F.reg)
+        .text(periodLabel + '  ·  ' + regionLabel, ML, titleY + 26, { width: PW, align: 'center', lineBreak: false });
+      doc.y = titleY + 44;
       doc.x = ML;
       _markPage();
     }
@@ -853,16 +854,16 @@ function generatePDF(logs, month, year, lang, history, assets, reportType, regio
       // d'strict identity: [Branch]-Monthly Error Report_MMMYY
       const dstrictIdBr = branchFilter + '-Monthly Error Report_' +
         (MONTHS_EN[month]||'').slice(0,3).toUpperCase() + String(year).slice(2);
-      doc.save().rect(ML, titleY, PW, 52).fill('#f6f5f0').restore();
+      doc.save().rect(ML, titleY, PW, 38).fill('#f6f5f0').restore();
       doc.save().rect(ML, titleY, PW, 3).fill(brColor).restore();
       // Main title: d'strict identity format (compact, not oversized)
-      doc.fillColor(brColor).fontSize(16).font(F.bold)
-        .text(dstrictIdBr, ML, titleY + 10, { width: PW, align: 'center', lineBreak: false });
-      // Subtitle: branch name + scope
-      const scopeLabel = isKo ? ('지점: ' + brName) : (brName + ' · Scope: Branch');
-      doc.fillColor(CS).fontSize(10).font(F.reg)
-        .text(scopeLabel, ML, titleY + 32, { width: PW, align: 'center', lineBreak: false });
-      doc.y = titleY + 58;
+      doc.fillColor(brColor).fontSize(14).font(F.bold)
+        .text(dstrictIdBr, ML, titleY + 8, { width: PW, align: 'center', lineBreak: false });
+      // Subtitle: branch name only — scope label removed per d'strict spec
+      const scopeLabel = isKo ? ('지점: ' + brName) : brName;
+      doc.fillColor(CS).fontSize(9).font(F.reg)
+        .text(scopeLabel, ML, titleY + 26, { width: PW, align: 'center', lineBreak: false });
+      doc.y = titleY + 44;
       doc.x = ML;
       _markPage();
     }
@@ -875,21 +876,21 @@ function generatePDF(logs, month, year, lang, history, assets, reportType, regio
         doc.addPage();
         _drawPageBranding();
       } else if(doc.y > 80) {
-        doc.y = doc.y + 20;
+        doc.y = doc.y + 12;
       } else {
-        doc.y = 40;
+        doc.y = 32;
       }
       const headerY = doc.y;
-      // Section header with background band — CENTER-ALIGNED
-      doc.save().rect(ML, headerY, PW, 28).fill('#f0eff8').restore();
-      doc.save().rect(ML, headerY, 4, 28).fill(CP).restore();
+      // Section header with background band — compact
+      doc.save().rect(ML, headerY, PW, 22).fill('#f0eff8').restore();
+      doc.save().rect(ML, headerY, 4, 22).fill(CP).restore();
       // d'strict comment rules: branch report → Tech-op Comment; all-branch → GSKR-GTO Comment
       const headerTitle = branchFilter
         ? (isKo ? '현장 코멘트 (Tech-op Comment)' : 'Tech-op Comment')
         : (isKo ? '본사 코멘트 (GSKR-GTO Comment)' : 'GSKR-GTO Comment');
-      doc.fillColor(CT).fontSize(isKo ? 14 : 15).font(F.bold)
-        .text(headerTitle.toUpperCase(), ML, headerY + 6, { width: PW, align: 'center', lineBreak: false });
-      doc.y = headerY + 32;
+      doc.fillColor(CT).fontSize(isKo ? 12 : 13).font(F.bold)
+        .text(headerTitle.toUpperCase(), ML, headerY + 5, { width: PW, align: 'center', lineBreak: false });
+      doc.y = headerY + 26;
       doc.moveTo(ML, doc.y - 2).lineTo(MR, doc.y - 2).strokeColor(CP).lineWidth(0.8).stroke();
       doc.moveDown(0.7);
       doc.x = ML;
@@ -910,7 +911,7 @@ function generatePDF(logs, month, year, lang, history, assets, reportType, regio
       // Remove markdown list markers (-, *, +) at line start
       cleanComment = cleanComment.replace(/^\s*[-*+]\s+/gm, '');
       const cmtLines = cleanComment.split('\n');
-      const cmtHeight = Math.max(60, cmtLines.length * (isKo ? 16 : 15) + 20);
+      const cmtHeight = Math.max(50, cmtLines.length * (isKo ? 14 : 13) + 14);
       pc(cmtHeight + 20);
       const cmtBodyY = doc.y;
       doc.save().roundedRect(ML, cmtBodyY, PW, cmtHeight + 12, 6).fill('#FFFBEB').stroke('#FDE68A').restore();
@@ -1495,7 +1496,7 @@ function generatePDF(logs, month, year, lang, history, assets, reportType, regio
       const ytdHeaders = isKo ?
         ['', H.prevYrAvg, H.curYrAvg, H.curYrTotal] :
         ['', prevYear+' Monthly Avg', curYear+' Monthly Avg', curYear+' Total Errors'];
-      const ytdW = [80, 145, 145, 145];
+      const ytdW = [124, 224, 224, 225];
       const ytdRows = PDF_BRANCHES.map(b=>{
         const prevC=prevYrLogs.filter(r=>r.Branch===b).length;
         const curC=ytdLogs.filter(r=>r.Branch===b).length;
@@ -1527,8 +1528,8 @@ function generatePDF(logs, month, year, lang, history, assets, reportType, regio
       const cthY=doc.y;
       doc.save().rect(ML,cthY,PW,20).fill(CT).restore();
       doc.fillColor('#fff').fontSize(9).font(F.bold);
-      const catColX = isKo ? [8,120,175,225,445] : [8,110,165,215,435];
-      const catColW = isKo ? [110,50,45,210,65] : [100,50,40,210,70];
+      const catColX = isKo ? [12,186,271,348,689] : [12,170,255,333,673];
+      const catColW = isKo ? [170,77,70,325,101] : [155,77,62,325,108];
       doc.text(H.category,ML+catColX[0],cthY+5,{width:catColW[0],align:'center',lineBreak:false});
       doc.text(H.count,ML+catColX[1],cthY+5,{width:catColW[1],align:'center',lineBreak:false});
       doc.text(H.pct,ML+catColX[2],cthY+5,{width:catColW[2],align:'center',lineBreak:false});
@@ -1567,11 +1568,11 @@ function generatePDF(logs, month, year, lang, history, assets, reportType, regio
       const dthY=doc.y;
       doc.save().rect(ML,dthY,PW,20).fill(CT).restore();
       doc.fillColor('#fff').fontSize(9).font(F.bold);
-      doc.text(H.level,ML+8,dthY+5,{width:60,align:'center',lineBreak:false});
-      doc.text(H.count,ML+75,dthY+5,{width:55,align:'center',lineBreak:false});
-      doc.text(H.pct,ML+135,dthY+5,{width:45,align:'center',lineBreak:false});
-      doc.text(H.distribution,ML+185,dthY+5,{width:240,align:'center',lineBreak:false});
-      doc.text(H.severity,ML+430,dthY+5,{width:85,align:'center',lineBreak:false});
+      doc.text(H.level,ML+12,dthY+5,{width:93,align:'center',lineBreak:false});
+      doc.text(H.count,ML+116,dthY+5,{width:85,align:'center',lineBreak:false});
+      doc.text(H.pct,ML+209,dthY+5,{width:70,align:'center',lineBreak:false});
+      doc.text(H.distribution,ML+286,dthY+5,{width:372,align:'center',lineBreak:false});
+      doc.text(H.severity,ML+665,dthY+5,{width:131,align:'center',lineBreak:false});
       doc.y=dthY+20;
       [1,2,3,4,5].forEach((d,di)=>{
         const n=diffCount[d]||0;
@@ -1580,15 +1581,15 @@ function generatePDF(logs, month, year, lang, history, assets, reportType, regio
         const ry=doc.y;
         doc.save().rect(ML,ry,PW,20).fill(di%2===0?CCARD:CBG).restore();
         doc.moveTo(ML,ry+20).lineTo(MR,ry+20).strokeColor(CL).lineWidth(0.3).stroke();
-        doc.fillColor(CT).fontSize(9).font(F.med).text('Lv.'+d,ML+8,ry+5,{width:60,align:'center',lineBreak:false});
-        doc.fillColor(CT).fontSize(10).font(F.bold).text(String(n),ML+75,ry+4,{width:55,align:'center',lineBreak:false});
-        doc.fillColor(CT).fontSize(9).font(F.med).text(pct+'%',ML+135,ry+5,{width:45,align:'center',lineBreak:false});
+        doc.fillColor(CT).fontSize(9).font(F.med).text('Lv.'+d,ML+12,ry+5,{width:93,align:'center',lineBreak:false});
+        doc.fillColor(CT).fontSize(10).font(F.bold).text(String(n),ML+116,ry+4,{width:85,align:'center',lineBreak:false});
+        doc.fillColor(CT).fontSize(9).font(F.med).text(pct+'%',ML+209,ry+5,{width:70,align:'center',lineBreak:false});
         // Inline bar
-        drawBar(ML+185,ry+4,240,diffMax>0?Math.round(n/diffMax*100):0,diffCols[d]||CT,12);
+        drawBar(ML+286,ry+4,372,diffMax>0?Math.round(n/diffMax*100):0,diffCols[d]||CT,12);
         // Severity label
         const sevLabels=H.sev;
         const sevColors={1:'#a3a29c',2:'#185FA5',3:CW,4:'#993C1D',5:CE};
-        doc.fillColor(sevColors[d]||CS).fontSize(8).font(F.bold).text(sevLabels[d]||'',ML+430,ry+5,{width:85,align:'center',lineBreak:false});
+        doc.fillColor(sevColors[d]||CS).fontSize(8).font(F.bold).text(sevLabels[d]||'',ML+665,ry+5,{width:131,align:'center',lineBreak:false});
         doc.y=ry+20;
       });
     } // end section 3 if(total>0)
@@ -1607,7 +1608,7 @@ function generatePDF(logs, month, year, lang, history, assets, reportType, regio
           const tcDisp = trCat(tc);
           return [i+1, z, cnt, Math.round(cnt/total*100)+'%', mb, tcDisp, (zl.reduce((s,r)=>s+(r.Difficulty||1),0)/zl.length).toFixed(1)];
         }),
-        [28,140,50,45,65,130,57],
+        [43,217,77,70,101,201,88],
         {colColors:{6:v=>parseFloat(v)>=4?CE:parseFloat(v)>=3?CW:COK}}
       );
     } // end section 4 if(total>0)
@@ -1630,7 +1631,7 @@ function generatePDF(logs, month, year, lang, history, assets, reportType, regio
       doc.fillColor(CT).fontSize(10).font(F.bold).text(H.overview,ML);
       doc.moveDown(0.25);
       const ciHeaders = [H.rank, H.branch, H.zone, H.date, H.difficulty, H.duration, H.solvedBy];
-      const ciWidths = [25,55,120,65,60,65,125];
+      const ciWidths = [39,85,186,101,93,101,192];
       const ciRows = critical.sort((a,b)=>(b.Difficulty||0)-(a.Difficulty||0)).map((r,i)=>[
         i+1,
         r.Branch||'?',
@@ -1757,7 +1758,7 @@ function generatePDF(logs, month, year, lang, history, assets, reportType, regio
 
       // Recommendations table
       const recHeaders = [H.priority, H.category, H.recommendation, H.status];
-      const recWidths = isKo ? [50, 55, 355, 55] : [50, 70, 335, 60];
+      const recWidths = isKo ? [77, 85, 549, 86] : [77, 108, 519, 93];
       const koTag = {ZONE:'Zone',CATEGORY:'유형',CRITICAL:'위험',STABILITY:'안정',TREND:'추이',RESPONSE:'대응'};
       const recRows = recs.map((rec,i)=>{
         const status = rec.color===CE?(isKo?'긴급':'URGENT'):rec.color===CW?(isKo?'주의':'WARNING'):(isKo?'양호':'OK');

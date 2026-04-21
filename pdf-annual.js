@@ -41,7 +41,7 @@ function generateAnnualPDF(logs, year, lang, history, assets, region, comment, c
   const safeTitle = pdfSafeText(typeof customTitle === 'string' ? customTitle.trim() : '').slice(0, 200);
 
   return new Promise((resolve, reject) => {
-    const doc = new PDFDocument({ size: 'A4', margins: { top: 40, left: 40, right: 40, bottom: 0 }, bufferPages: true });
+    const doc = new PDFDocument({ size: 'A4', layout: 'landscape', margins: { top: 20, left: 22, right: 22, bottom: 0 }, bufferPages: true });
     const chunks = [];
     let totalSize = 0;
     doc.on('data', c => {
@@ -77,7 +77,8 @@ function generateAnnualPDF(logs, year, lang, history, assets, region, comment, c
       console.error('[PDF-Annual] Korean font registration failed:', e.message);
     }
 
-    const PW = 515, ML = 40, MR = 555, BOT = 770;
+    // Landscape A4: 841.89 × 595.28 pt. Margins left/right 22, top 20.
+    const PW = 797, ML = 22, MR = 819, BOT = 558;
     const isKo = lang === 'ko';
     // Always use NotoSansKR for body text — has full Latin + Korean coverage.
     // Uniform has no Korean glyphs → would render tofu boxes on any Korean branch/zone name.
@@ -205,17 +206,17 @@ function generateAnnualPDF(logs, year, lang, history, assets, region, comment, c
     const _hasLogoBlack = require('fs').existsSync(LOGO_BLACK);
     function _drawPageBranding() {
       doc.save();
-      try { if(_hasLogoBlack) doc.image(LOGO_BLACK, ML, 14, {width:60}); } catch(_) {}
-      doc.fillColor(CS).fontSize(7).font(F.light).text("Error Report", ML+65, 18, {lineBreak:false});
-      doc.moveTo(ML, 34).lineTo(MR, 34).strokeColor(CL).lineWidth(0.5).stroke();
+      try { if(_hasLogoBlack) doc.image(LOGO_BLACK, ML, 10, {width:56}); } catch(_) {}
+      doc.fillColor(CS).fontSize(7).font(F.light).text("Error Report", ML+62, 14, {lineBreak:false});
+      doc.moveTo(ML, 28).lineTo(MR, 28).strokeColor(CL).lineWidth(0.5).stroke();
       doc.save();
       doc.opacity(0.02);
-      doc.translate(297, 421);
+      doc.translate(421, 297);
       doc.rotate(-35, {origin:[0,0]});
       try { if(_hasLogoBlack) doc.image(LOGO_BLACK, -160, -25, {width:320}); } catch(_) {}
       doc.restore();
       doc.restore();
-      doc.y = 40;
+      doc.y = 32;
     }
     function pc(need) { if(doc.y+(need||60)>BOT) { _markPage(); doc.addPage(); _drawPageBranding(); } }
     function trend(c,p) { if(!p&&!c)return '--'; if(!p)return '+'+c; const d=c-p,pct=Math.round(Math.abs(d)/p*100); return d>0?'+'+d+' (+'+pct+'%)':d<0?d+' (-'+pct+'%)':'0'; }
@@ -223,14 +224,14 @@ function generateAnnualPDF(logs, year, lang, history, assets, region, comment, c
     function sect(n, title) {
       _markPage();
       if(doc.y > BOT - 200) { doc.addPage(); _drawPageBranding(); }
-      else if(doc.y > 80) { doc.y = doc.y + 20; } else { doc.y = 40; }
+      else if(doc.y > 80) { doc.y = doc.y + 12; } else { doc.y = 32; }
       const y = doc.y;
-      doc.save().rect(ML,y,PW,28).fill('#f0eff8').restore();
-      doc.save().rect(ML,y,4,28).fill(CP).restore();
-      doc.fillColor(CT).fontSize(isKo?14:15).font(F.bold).text(n+'. '+title.toUpperCase(), ML+14, y+6, {lineBreak:false});
-      doc.y = y + 32;
+      doc.save().rect(ML,y,PW,22).fill('#f0eff8').restore();
+      doc.save().rect(ML,y,4,22).fill(CP).restore();
+      doc.fillColor(CT).fontSize(isKo?12:13).font(F.bold).text(n+'. '+title.toUpperCase(), ML+10, y+5, {lineBreak:false});
+      doc.y = y + 26;
       doc.moveTo(ML,doc.y-2).lineTo(MR,doc.y-2).strokeColor(CP).lineWidth(0.8).stroke();
-      doc.moveDown(0.7);
+      doc.moveDown(0.4);
       doc.x = ML;
       doc.font(F.reg).fillColor(CT);
     }
@@ -301,14 +302,14 @@ function generateAnnualPDF(logs, year, lang, history, assets, region, comment, c
     // ══════════════════════════════════════════════
     if (safeTitle) {
       const titleY = doc.y;
-      doc.save().rect(ML, titleY, PW, 48).fill('#f6f5f0').restore();
+      doc.save().rect(ML, titleY, PW, 38).fill('#f6f5f0').restore();
       doc.save().rect(ML, titleY, PW, 4).fill(CP).restore();
-      doc.fillColor(CP).fontSize(18).font(F.black)
-        .text(safeTitle, ML, titleY + 10, { width: PW, align: 'center', lineBreak: false });
+      doc.fillColor(CP).fontSize(14).font(F.bold)
+        .text(safeTitle, ML, titleY + 8, { width: PW, align: 'center', lineBreak: false });
       const regionLabel = region === 'korea' ? (isKo ? '국내' : 'Korea') : (isKo ? '글로벌' : 'Global');
-      doc.fillColor(CT).fontSize(11).font(F.med)
-        .text(regionLabel + '  ·  ' + year + ' Annual', ML, titleY + 32, { width: PW, align: 'center', lineBreak: false });
-      doc.y = titleY + 54;
+      doc.fillColor(CT).fontSize(9).font(F.med)
+        .text(regionLabel + '  ·  ' + year + ' Annual', ML, titleY + 26, { width: PW, align: 'center', lineBreak: false });
+      doc.y = titleY + 44;
       doc.x = ML;
       _markPage();
     }
@@ -319,12 +320,12 @@ function generateAnnualPDF(logs, year, lang, history, assets, region, comment, c
     if (safeComment) {
       // Section header
       const cmtSecY = doc.y;
-      doc.save().rect(ML, cmtSecY, PW, 28).fill('#f0eff8').restore();
-      doc.save().rect(ML, cmtSecY, 4, 28).fill(CP).restore();
-      doc.fillColor(CT).fontSize(isKo ? 14 : 13).font(F.bold)
+      doc.save().rect(ML, cmtSecY, PW, 22).fill('#f0eff8').restore();
+      doc.save().rect(ML, cmtSecY, 4, 22).fill(CP).restore();
+      doc.fillColor(CT).fontSize(isKo ? 12 : 13).font(F.bold)
         .text(isKo ? '본사 코멘트 (GSKR-GTO Comment)' : 'GSKR-GTO Comment',
-          ML + 14, cmtSecY + 7, { lineBreak: false });
-      doc.y = cmtSecY + 36;
+          ML + 10, cmtSecY + 5, { lineBreak: false });
+      doc.y = cmtSecY + 28;
       // Notice bar
       const ntcY = doc.y;
       doc.save().roundedRect(ML, ntcY, PW, 16, 3).fill('#FEF3C7').restore();
@@ -337,7 +338,7 @@ function generateAnnualPDF(logs, year, lang, history, assets, region, comment, c
       doc.y = ntcY + 22;
       // Comment body
       const cmtLines = safeComment.split('\n');
-      const cmtH = Math.max(60, cmtLines.length * (isKo ? 16 : 15) + 20);
+      const cmtH = Math.max(50, cmtLines.length * (isKo ? 14 : 13) + 14);
       const cmtBodyY = doc.y;
       doc.save().roundedRect(ML, cmtBodyY, PW, cmtH + 12, 6)
         .fill('#FFFBEB').stroke('#FDE68A').restore();
@@ -414,7 +415,7 @@ function generateAnnualPDF(logs, year, lang, history, assets, region, comment, c
       return [(BR_NAMES[b]||b)+' ('+b+')', c, p, trend(c,p), total?Math.round(c/total*100)+'%':'0%', bCrit, bDiff];
     });
     brRows.push([isKo?'합계':'TOTAL', total, prevTotal, trend(total,prevTotal), '100%', critical.length, avgDiff]);
-    tbl(brHeaders, brRows, [110,65,65,85,60,65,65], {
+    tbl(brHeaders, brRows, [170,101,101,132,93,101,99], {
       colColors: {3: v => { const s=String(v); return s.startsWith('+')?CE:s.startsWith('-')?COK:CT; }}
     });
 
@@ -437,7 +438,7 @@ function generateAnnualPDF(logs, year, lang, history, assets, region, comment, c
       return [mn.slice(0,3), c, p, trend(c,p), arrow];
     });
     trendRows.push([isKo?'합계':'TOTAL', total, prevTotal, trend(total,prevTotal), '--']);
-    tbl(trendHeaders, trendRows, [55,70,70,115,205], {
+    tbl(trendHeaders, trendRows, [85,108,108,178,318], {
       colColors: {4: v => { const n=parseInt(String(v)); return n>0?CE:n<0?COK:CS; }}
     });
 
@@ -480,7 +481,7 @@ function generateAnnualPDF(logs, year, lang, history, assets, region, comment, c
       return [c, cur, prev, trend(cur,prev), total?Math.round(cur/total*100)+'%':'0%'];
     });
     catRows.push([isKo?'합계':'TOTAL', total, prevTotal, trend(total,prevTotal), '100%']);
-    tbl(catHeaders, catRows, [110,80,80,120,125], {
+    tbl(catHeaders, catRows, [170,124,124,186,193], {
       colColors: {3: v => { const s=String(v); return s.startsWith('+')?CE:s.startsWith('-')?COK:CT; }}
     });
 
@@ -500,7 +501,7 @@ function generateAnnualPDF(logs, year, lang, history, assets, region, comment, c
       return ['Lv.'+d, c, pct+'%'];
     });
     diffRows.push([isKo?'합계':'TOTAL', total, '100%']);
-    tbl(diffHeaders, diffRows, [170,170,175], {
+    tbl(diffHeaders, diffRows, [263,263,271], {
       colColors: {0: v => diffCols[parseInt(String(v).replace('Lv.',''),10)]||CT}
     });
 
@@ -533,7 +534,7 @@ function generateAnnualPDF(logs, year, lang, history, assets, region, comment, c
       zonePcts.push(pct);
       return [i+1, z[0], z[1], pct+'%', topZoneCat?topZoneCat[0]:'--'];
     });
-    tbl(zoneHeaders, zoneRows, [35,175,60,55,190]);
+    tbl(zoneHeaders, zoneRows, [54,271,93,85,294]);
 
     // Visual bar chart for top zones (drawn shapes)
     doc.moveDown(0.5);
@@ -568,7 +569,7 @@ function generateAnnualPDF(logs, year, lang, history, assets, region, comment, c
       const critRows = critical.slice(0,20).map(r => [
         r.Date, r.Branch, r.Zone, r.Category||'', (r.IssueDetail||'').slice(0,60), r.Difficulty, r.TimeTaken||'--'
       ]);
-      tbl(critHeaders, critRows, [58,42,80,52,170,38,75], {leftCols:[4]});
+      tbl(critHeaders, critRows, [90,65,124,81,263,59,115], {leftCols:[4]});
     }
 
     // ══════════════════════════════════════════════
@@ -597,7 +598,7 @@ function generateAnnualPDF(logs, year, lang, history, assets, region, comment, c
         const cur=catCount[c]||0, prev=prevCatCount[c]||0;
         yoyRows.push([c, prev, cur, trend(cur,prev), cur>prev?(isKo?'증가':'UP'):(cur<prev?(isKo?'감소':'DOWN'):(isKo?'동일':'SAME'))]);
       });
-      tbl(yoyHeaders, yoyRows, [120,80,80,110,125], {
+      tbl(yoyHeaders, yoyRows, [186,124,124,170,193], {
         colColors: {4: v => {
           const s=String(v).toLowerCase();
           return (s.includes('worse')||s.includes('악화')||s.includes('up')||s.includes('증가'))?CE:
@@ -651,7 +652,7 @@ function generateAnnualPDF(logs, year, lang, history, assets, region, comment, c
         eq._score+'/100',
         eq._priority
       ]);
-      tbl(eqHeaders, eqRows, [30,110,70,45,60,55,145], {
+      tbl(eqHeaders, eqRows, [46,170,108,70,93,85,225], {
         colColors:{5:v=>{const n=parseInt(v);return n>=80?CE:n>=55?CW:n>=30?'#185FA5':COK;},
                    6:v=>{const s=v;return(s.includes('REPLACE')||s.includes('교체'))?CE:(s.includes('INSPECT')||s.includes('점검'))?CW:(s.includes('MONITOR')||s.includes('모니터'))?'#185FA5':COK;}}
       });
@@ -681,7 +682,7 @@ function generateAnnualPDF(logs, year, lang, history, assets, region, comment, c
         const crit4 = data.diffs.filter(d=>d>=4).length;
         return [i+1, name, data.count, total?Math.round(data.count/total*100)+'%':'0%', avgM?avgM+'min':'--', avgD, crit4];
       });
-      tbl(stHeaders, stRows, [30,110,55,50,80,65,125]);
+      tbl(stHeaders, stRows, [46,170,85,77,124,101,194]);
     }
 
     // ══════════════════════════════════════════════
