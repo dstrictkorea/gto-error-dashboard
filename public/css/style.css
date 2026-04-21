@@ -895,13 +895,41 @@ html.dark-mode .mc-val {
 .mc-val-row    { display: flex; align-items: baseline; gap: 8px; }
 .mc-spark-wrap { font-size: 11px; color: var(--t3); font-weight: 500; }
 
-/* ── Top-issues table cells ── */
-.medal-icon { font-size: 16px; }
-.rank-num   { color: var(--t3); font-weight: 700; }
-.td-rank    { width: 48px; white-space: nowrap; }
-.td-detail  { color: var(--t2); }
-.td-count   { font-size: 18px; font-weight: 800; color: var(--t0); width: 50px; }
+/* ── Top-issues table cells (d'strict numeric rules) ── */
+.medal-icon { font-size: 16px; line-height: 1; }
+.rank-num   { color: var(--t3); font-weight: 700; font-variant-numeric: tabular-nums; font-feature-settings: 'tnum'; }
+.td-rank    {
+  width: 56px;
+  min-width: 56px;
+  white-space: nowrap !important;
+  word-break: keep-all !important;
+  text-align: center !important;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum';
+}
+.td-detail  { color: var(--t2); word-break: break-word; line-height: 1.55; }
+.td-count   {
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--t0);
+  width: 72px;
+  min-width: 72px;
+  max-width: 100px;
+  white-space: nowrap !important;
+  word-break: keep-all !important;
+  text-align: right !important;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum';
+  line-height: 1.2;
+  padding-right: 16px;
+}
 .td-empty   { text-align: center; padding: 22px; color: var(--t3); }
+
+/* Enforce: no child element inside numeric cells can cause stacking */
+.td-count *, .td-rank *, td.td-num * {
+  display: inline !important;
+  white-space: nowrap !important;
+}
 
 /* ── BAR CHART (horizontal) ── */
 .bchart { display: flex; flex-direction: column; gap: 8px; }
@@ -3306,9 +3334,53 @@ html.dark-mode .ctx-card-purple { background: rgba(83,74,183,0.08); }
   white-space: nowrap;
 }
 
-/* Prevent widowed short words — date/time cells */
+/* Prevent widowed short words — date/time/numeric cells (d'strict rule) */
 td.td-num, td.td-nowrap, .td-rank, .td-count {
-  white-space: nowrap;
+  white-space: nowrap !important;
+  word-break: keep-all !important;
+  overflow-wrap: normal !important;
+}
+
+/* Any numeric cell — tabular nums + right align per d'strict spec */
+.td-count, td.td-num {
+  text-align: right !important;
+}
+
+/* Prevent flex column stacking inside numeric cells */
+td.td-num, .td-count, .td-rank {
+  display: table-cell !important;
+}
+
+/* Bar chart count label — never wrap */
+.bar-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--t0);
+  white-space: nowrap !important;
+  word-break: keep-all !important;
+  min-width: 32px;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum';
+  flex-shrink: 0;
+}
+
+/* Bar chart row must be horizontal, never column */
+.bar-track {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center;
+  width: 100%;
+  min-height: 18px;
+  background: var(--sub);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+/* Prevent text children wrapping inside any .mc-val */
+.mc-val {
+  white-space: nowrap !important;
+  word-break: keep-all !important;
 }
 
 /* Spacing utilities */
