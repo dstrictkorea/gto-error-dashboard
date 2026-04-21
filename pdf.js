@@ -785,20 +785,25 @@ function generatePDF(logs, month, year, lang, history, assets, reportType, regio
     // ══════════ FIRST CONTENT PAGE (cover removed) ══════════
     _drawPageBranding();
 
-    // ══════════ REPORT TITLE HEADER (admin or branch) ══════════
-    if (!branchFilter && safeTitle) {
-      // Admin report with custom title
+    // ══════════ REPORT TITLE HEADER (admin / all-branch) ══════════
+    if (!branchFilter) {
       const titleY = doc.y;
-      doc.save().rect(ML, titleY, PW, 48).fill('#f6f5f0').restore();
-      doc.save().rect(ML, titleY, PW, 4).fill(CP).restore();
-      doc.fillColor(CP).fontSize(18).font(F.black)
-        .text(safeTitle, ML, titleY + 10, { width: PW, align: 'center', lineBreak: false });
-      // Auto subtitle: region + period
-      const regionLabel = region === 'korea' ? (isKo ? '국내' : 'Korea') : (isKo ? '글로벌' : 'Global');
-      const periodLabel = monthLabel + ' ' + year;
-      doc.fillColor(CT).fontSize(11).font(F.med)
-        .text(regionLabel + '  ·  ' + periodLabel, ML, titleY + 32, { width: PW, align: 'center', lineBreak: false });
-      doc.y = titleY + 54;
+      // d'strict official identity: DSKR-GTO-Monthly Error Report_MMMYY
+      const monthShortHdr = (MONTHS_EN[month]||'').slice(0,3).toUpperCase();
+      const yearShortHdr = String(year).slice(2);
+      const dstrictId = 'DSKR-GTO-Monthly Error Report_' + monthShortHdr + yearShortHdr;
+      const mainTitle = safeTitle || dstrictId;
+      doc.save().rect(ML, titleY, PW, 52).fill('#f6f5f0').restore();
+      doc.save().rect(ML, titleY, PW, 3).fill(CP).restore();
+      // Main title
+      doc.fillColor(CP).fontSize(16).font(F.bold)
+        .text(mainTitle, ML, titleY + 10, { width: PW, align: 'center', lineBreak: false });
+      // Subtitle: period + scope
+      const regionLabel = region === 'korea' ? (isKo ? 'Korea (국내 4지점)' : 'Korea (4 branches)') : (isKo ? 'Global (해외 3지점)' : 'Global (3 branches)');
+      const periodLabel = MONTHS_EN[month] + ' ' + year;
+      doc.fillColor(CS).fontSize(10).font(F.reg)
+        .text(periodLabel + '  ·  ' + regionLabel, ML, titleY + 32, { width: PW, align: 'center', lineBreak: false });
+      doc.y = titleY + 58;
       doc.x = ML;
       _markPage();
     }
@@ -807,20 +812,20 @@ function generatePDF(logs, month, year, lang, history, assets, reportType, regio
     if (branchFilter) {
       const brName = BR_NAMES[branchFilter] || branchFilter;
       const titleY = doc.y;
-      // Full-width title block with branch color accent
       const brColor = BR_COLORS[branchFilter] || CP;
-      doc.save().rect(ML, titleY, PW, 56).fill('#f6f5f0').restore();
-      doc.save().rect(ML, titleY, PW, 4).fill(brColor).restore();
-      // Branch name large
-      doc.fillColor(brColor).fontSize(22).font(F.black)
-        .text(branchFilter + '  ' + brName.toUpperCase(), ML, titleY + 10, { width: PW, align: 'center', lineBreak: false });
-      // Report subtitle
-      const titleSub = isKo
-        ? MONTHS_EN[month] + ' ' + year + ' 월간 에러 리포트'
-        : MONTHS_EN[month] + ' ' + year + ' Monthly Error Report';
-      doc.fillColor(CT).fontSize(13).font(F.med)
-        .text(titleSub, ML, titleY + 34, { width: PW, align: 'center', lineBreak: false });
-      doc.y = titleY + 62;
+      // d'strict identity: [Branch]-Monthly Error Report_MMMYY
+      const dstrictIdBr = branchFilter + '-Monthly Error Report_' +
+        (MONTHS_EN[month]||'').slice(0,3).toUpperCase() + String(year).slice(2);
+      doc.save().rect(ML, titleY, PW, 52).fill('#f6f5f0').restore();
+      doc.save().rect(ML, titleY, PW, 3).fill(brColor).restore();
+      // Main title: d'strict identity format (compact, not oversized)
+      doc.fillColor(brColor).fontSize(16).font(F.bold)
+        .text(dstrictIdBr, ML, titleY + 10, { width: PW, align: 'center', lineBreak: false });
+      // Subtitle: branch name + scope
+      const scopeLabel = isKo ? ('지점: ' + brName) : (brName + ' · Scope: Branch');
+      doc.fillColor(CS).fontSize(10).font(F.reg)
+        .text(scopeLabel, ML, titleY + 32, { width: PW, align: 'center', lineBreak: false });
+      doc.y = titleY + 58;
       doc.x = ML;
       _markPage();
     }
@@ -841,7 +846,10 @@ function generatePDF(logs, month, year, lang, history, assets, reportType, regio
       // Section header with background band — CENTER-ALIGNED
       doc.save().rect(ML, headerY, PW, 28).fill('#f0eff8').restore();
       doc.save().rect(ML, headerY, 4, 28).fill(CP).restore();
-      const headerTitle = isKo ? '코멘트 / 비고' : 'Comment / Remarks';  // No "Manager"/"담당자" prefix
+      // d'strict comment rules: branch report → Tech-op Comment; all-branch → GSKR-GTO Comment
+      const headerTitle = branchFilter
+        ? (isKo ? '현장 코멘트 (Tech-op Comment)' : 'Tech-op Comment')
+        : (isKo ? '본사 코멘트 (GSKR-GTO Comment)' : 'GSKR-GTO Comment');
       doc.fillColor(CT).fontSize(isKo ? 14 : 15).font(F.bold)
         .text(headerTitle.toUpperCase(), ML, headerY + 6, { width: PW, align: 'center', lineBreak: false });
       doc.y = headerY + 32;
@@ -1740,14 +1748,13 @@ function generatePDF(logs, month, year, lang, history, assets, reportType, regio
     }
     const totalContent=contentPageList.length;
     const monthLabel=MONTHS_EN[month]||('Month '+(month+1));
-    const autoTitle = branchFilter
-      ? (isKo
-          ? ("d'strict Error  |  "+branchFilter+' '+monthLabel+' '+year+' 지점 리포트')
-          : ("d'strict Error  |  "+branchFilter+' '+monthLabel+' '+year+' Branch Report'))
-      : (isKo
-          ? ("d'strict Error  |  "+monthLabel+' '+year+' 월간 리포트')
-          : ("d'strict Error  |  "+monthLabel+' '+year+' Monthly Report'));
-    const footerTitle = safeTitle ? ("d'strict Error  |  " + safeTitle) : autoTitle;
+    // d'strict title format: DSKR-GTO-Monthly Error Report_MMMYY or [Branch]-Monthly Error Report_MMMYY
+    const monthShort = (monthLabel||'').slice(0,3).toUpperCase();
+    const yearShort = String(year).slice(2);
+    const dstrictId = branchFilter
+      ? (branchFilter + '-Monthly Error Report_' + monthShort + yearShort)
+      : ('DSKR-GTO-Monthly Error Report_' + monthShort + yearShort);
+    const footerTitle = safeTitle ? ("d'strict  |  " + safeTitle) : ("d'strict  |  " + dstrictId);
     for(let ci=0;ci<contentPageList.length;ci++){
       const i=contentPageList[ci];
       doc.switchToPage(i);

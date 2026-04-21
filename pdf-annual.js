@@ -299,7 +299,7 @@ function generateAnnualPDF(logs, year, lang, history, assets, region, comment, c
       doc.save().rect(ML, cmtSecY, PW, 28).fill('#f0eff8').restore();
       doc.save().rect(ML, cmtSecY, 4, 28).fill(CP).restore();
       doc.fillColor(CT).fontSize(isKo ? 14 : 13).font(F.bold)
-        .text(isKo ? '코멘트 / 비고' : 'Comment / Remarks',
+        .text(isKo ? '본사 코멘트 (GSKR-GTO Comment)' : 'GSKR-GTO Comment',
           ML + 14, cmtSecY + 7, { lineBreak: false });
       doc.y = cmtSecY + 36;
       // Notice bar
@@ -790,7 +790,8 @@ function generateAnnualPDF(logs, year, lang, history, assets, region, comment, c
       doc.switchToPage(i);
       doc.save().rect(0,818,595,24).fill(CT).restore();
       doc.fillColor('#a3a29c').fontSize(7.5).font(F.light);
-      const annualFooterTitle = safeTitle ? ("d'strict Error  |  " + safeTitle) : ("d'strict Error  |  "+year+' Annual Error Report');
+      const annualId = 'DSKR-GTO-Annual Error Report_' + String(year).slice(2);
+      const annualFooterTitle = safeTitle ? ("d'strict  |  " + safeTitle) : ("d'strict  |  " + annualId);
       doc.text(annualFooterTitle,ML,823,{width:PW-60,lineBreak:false});
       doc.text('Page '+(ci+1)+'/'+totalContent,MR-60,823,{width:60,align:'right',lineBreak:false});
       doc.save().rect(0,0,595,4).fill(CP).restore();

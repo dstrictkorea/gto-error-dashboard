@@ -401,10 +401,12 @@ app.post('/api/report', async (req, res) => {
     const safeTitle = typeof title === 'string' ? title.trim().slice(0, 200) : '';
     const pdfBuffer = await generatePDF(finalLogs, month, year, safeLang, allHistory, assets, safeType, safeRegion, safeComment, branchFilter, safeTitle);
     const pdfBase64 = pdfBuffer.toString('base64');
-    const mm = String(month + 1).padStart(2, '0');
-    const langTag = safeLang === 'ko' ? '(KOR)' : '(ENG)';
-    const regionTag = safeRegion === 'korea' ? 'Korea' : 'Global';
-    const fileName = `${langTag}_${regionTag}_${mm}${year}_Monthly Error Report.pdf`;
+    const MONTH_ABBR = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
+    const mmmYY = (MONTH_ABBR[month]||'') + String(year).slice(2);
+    // d'strict official format: DSKR-GTO-Monthly Error Report_MMMYY.pdf or [Branch]-Monthly Error Report_MMMYY.pdf
+    const fileName = branchFilter
+      ? `${branchFilter}-Monthly Error Report_${mmmYY}.pdf`
+      : `DSKR-GTO-Monthly Error Report_${mmmYY}.pdf`;
     const ms = Date.now() - t0;
     console.log(`[Server] ${new Date().toISOString()} — PDF generated: ${fileName} (${(pdfBuffer.length/1024).toFixed(0)}KB, ${ms}ms)`);
 
@@ -459,9 +461,11 @@ app.post('/api/annual-report', async (req, res) => {
     const safeAnnualTitle = typeof title === 'string' ? title.trim().slice(0, 200) : '';
     const pdfBuffer = await generateAnnualPDF(finalAnnualLogs, year, safeLang, allHistory, assets, safeRegion, safeAnnualComment, safeAnnualTitle);
     const pdfBase64 = pdfBuffer.toString('base64');
-    const langTag = safeLang === 'ko' ? '(KOR)' : '(ENG)';
-    const regionTag = safeRegion === 'korea' ? 'Korea' : 'Global';
-    const fileName = `${langTag}_${regionTag}_${year}_Annual Error Report.pdf`;
+    // d'strict official format: DSKR-GTO-Annual Error Report_YY.pdf or [Branch]-Annual Error Report_YY.pdf
+    const yearShortA = String(year).slice(2);
+    const fileName = branchFilter
+      ? `${branchFilter}-Annual Error Report_${yearShortA}.pdf`
+      : `DSKR-GTO-Annual Error Report_${yearShortA}.pdf`;
     const ms = Date.now() - t0;
     console.log(`[Server] ${new Date().toISOString()} — Annual PDF generated: ${fileName} (${(pdfBuffer.length/1024).toFixed(0)}KB, ${ms}ms)`);
 
