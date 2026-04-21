@@ -10,6 +10,20 @@ function sanitizePdfText(str) {
   return str.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '').slice(0, 4000);
 }
 
+// PDF-safe text: strip emoji and decorative unicode (prevents tofu boxes)
+function pdfSafeText(str) {
+  if (typeof str !== 'string') return '';
+  let s = str.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '');
+  s = s.replace(/[\u{1F300}-\u{1FAFF}]/gu, '');
+  s = s.replace(/[\u{2600}-\u{27BF}]/gu, '');
+  s = s.replace(/[\u{2300}-\u{23FF}]/gu, '');
+  s = s.replace(/[\u{1F000}-\u{1F2FF}]/gu, '');
+  s = s.replace(/[\uFE00-\uFE0F]/g, '');
+  s = s.replace(/[\u200B-\u200F\u2028-\u202F\u205F-\u206F]/g, '');
+  s = s.replace(/ {2,}/g, ' ').trim();
+  return s;
+}
+
 const FONT_DIR = path.join(__dirname, 'fonts');
 const LOGO_WHITE = path.join(FONT_DIR, 'dstrict_CI_WHITE.png');
 const LOGO_BLACK = path.join(FONT_DIR, 'dstrict_CI_BLACK.png');
@@ -22,8 +36,9 @@ function generateAnnualPDF(logs, year, lang, history, assets, region, comment, c
   history = Array.isArray(history) ? history : [];
   assets = Array.isArray(assets) ? assets : [];
   region = ['korea','global'].includes(region) ? region : 'global';
-  const safeComment = sanitizePdfText(typeof comment === 'string' ? comment.trim() : '').slice(0, 2000);
-  const safeTitle = sanitizePdfText(typeof customTitle === 'string' ? customTitle.trim() : '').slice(0, 200);
+  // pdfSafeText removes emoji/decorative unicode in addition to control chars
+  const safeComment = pdfSafeText(typeof comment === 'string' ? comment.trim() : '').slice(0, 2000);
+  const safeTitle = pdfSafeText(typeof customTitle === 'string' ? customTitle.trim() : '').slice(0, 200);
 
   return new Promise((resolve, reject) => {
     const doc = new PDFDocument({ size: 'A4', margins: { top: 40, left: 40, right: 40, bottom: 0 }, bufferPages: true });
@@ -58,16 +73,24 @@ function generateAnnualPDF(logs, year, lang, history, assets, region, comment, c
       doc.registerFont('KRLight', path.join(FONT_DIR, 'NotoSansKR-Light.otf'));
       doc.registerFont('KRBlack', path.join(FONT_DIR, 'NotoSansKR-Black.otf'));
       hasKR = true;
-    } catch(e) { /* fallback */ }
+    } catch(e) {
+      console.error('[PDF-Annual] Korean font registration failed:', e.message);
+    }
 
     const PW = 515, ML = 40, MR = 555, BOT = 770;
     const isKo = lang === 'ko';
+    // Always use NotoSansKR for body text — has full Latin + Korean coverage.
+    // Uniform has no Korean glyphs → would render tofu boxes on any Korean branch/zone name.
     const F = {
-      black: (isKo && hasKR) ? 'KRBlack' : 'UBlack',
-      bold:  (isKo && hasKR) ? 'KRBold'  : 'UBold',
-      med:   (isKo && hasKR) ? 'KRMedium': 'UMedium',
-      reg:   (isKo && hasKR) ? 'KRMedium': 'UReg',
-      light: (isKo && hasKR) ? 'KRLight' : 'ULight',
+      black: hasKR ? 'KRBlack'  : 'UBlack',
+      bold:  hasKR ? 'KRBold'   : 'UBold',
+      med:   hasKR ? 'KRMedium' : 'UMedium',
+      reg:   hasKR ? 'KRMedium' : 'UReg',
+      light: hasKR ? 'KRLight'  : 'ULight',
+      // Brand-only (ASCII-safe display text like d'strict logo)
+      brandBlk: 'UBlack',
+      brandBld: 'UBold',
+      brandReg: 'UReg',
     };
 
     // ── Colors ──

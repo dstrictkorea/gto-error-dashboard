@@ -12,6 +12,25 @@ function sanitizePdfText(str) {
   return str.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '').slice(0, 4000);
 }
 
+// PDF-safe text: strip emoji, decorative unicode, and glyphs outside NotoSansKR/Uniform coverage.
+// Prevents tofu boxes in generated PDFs.
+function pdfSafeText(str) {
+  if (typeof str !== 'string') return '';
+  let s = str.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '');
+  // Strip emoji (Emoticons, Misc Symbols & Pictographs, Transport, Supplemental Symbols, Flags)
+  s = s.replace(/[\u{1F300}-\u{1FAFF}]/gu, '');
+  s = s.replace(/[\u{2600}-\u{27BF}]/gu, ''); // Misc symbols, dingbats, arrows
+  s = s.replace(/[\u{2300}-\u{23FF}]/gu, ''); // Misc technical
+  s = s.replace(/[\u{1F000}-\u{1F2FF}]/gu, ''); // Mahjong/Domino/Playing cards
+  // Strip variation selectors that can break glyph shaping
+  s = s.replace(/[\uFE00-\uFE0F]/g, '');
+  // Strip zero-width joiners (cause issues with family/profession emoji)
+  s = s.replace(/[\u200B-\u200F\u2028-\u202F\u205F-\u206F]/g, '');
+  // Collapse multiple whitespace from emoji removal
+  s = s.replace(/ {2,}/g, ' ').trim();
+  return s;
+}
+
 const FONT_DIR = path.join(__dirname, 'fonts');
 const LOGO_WHITE = path.join(FONT_DIR, 'dstrict_CI_WHITE.png');
 const LOGO_BLACK = path.join(FONT_DIR, 'dstrict_CI_BLACK.png');
@@ -115,8 +134,9 @@ function generatePDF(logs, month, year, lang, history, assets, reportType, regio
   assets = Array.isArray(assets) ? assets : [];
   reportType = reportType === 'annual' ? 'annual' : 'monthly'; // default monthly
   region = ['korea','global'].includes(region) ? region : 'global';
-  const safeComment = sanitizePdfText(typeof comment === 'string' ? comment.trim() : '').slice(0, 2000);
-  const safeTitle = sanitizePdfText(typeof customTitle === 'string' ? customTitle.trim() : '').slice(0, 200);
+  // pdfSafeText removes emoji/decorative unicode in addition to control chars
+  const safeComment = pdfSafeText(typeof comment === 'string' ? comment.trim() : '').slice(0, 2000);
+  const safeTitle = pdfSafeText(typeof customTitle === 'string' ? customTitle.trim() : '').slice(0, 200);
   branchFilter = typeof branchFilter === 'string' ? branchFilter.trim().toUpperCase() : '';
   // Validate branchFilter against known branches
   if (branchFilter && !ALL_BRANCHES.includes(branchFilter)) branchFilter = '';
@@ -263,7 +283,7 @@ function generatePDF(logs, month, year, lang, history, assets, reportType, regio
       doc.registerFont('ULight', 'Helvetica');
     }
 
-    // ── Register Korean font (NotoSansKR) ──
+    // ── Register Korean font (NotoSansKR) — MUST succeed for bilingual safety ──
     let hasKR = false;
     try {
       doc.registerFont('KRBold', path.join(FONT_DIR, 'NotoSansKR-Bold.otf'));
@@ -272,19 +292,36 @@ function generatePDF(logs, month, year, lang, history, assets, reportType, regio
       doc.registerFont('KRBlack', path.join(FONT_DIR, 'NotoSansKR-Black.otf'));
       hasKR = true;
     } catch(e) {
-      console.warn('Korean font not available:', e.message);
+      console.error('[PDF] Korean font registration failed:', e.message);
     }
 
     const PW = 515, ML = 40, MR = 555, BOT = 770;
 
-    // Font selector: Korean text uses NotoSansKR, English uses Uniform
     const isKo = lang === 'ko';
+
+    // CRITICAL: NotoSansKR has full Latin + Korean coverage.
+    // Uniform has ONLY Latin glyphs → renders tofu on any Korean char.
+    // Strategy:
+    //   - Body text (reg/med/light) → ALWAYS NotoSansKR (safe for both languages)
+    //   - Display/bold/black → NotoSansKR when lang=ko OR data may contain Korean
+    //     (branch names, zone names, user comments can be Korean even in lang=en reports)
+    //   - Uniform reserved for English-only brand elements (KPI digits, d'strict ID)
     const F = {
-      black: (isKo && hasKR) ? 'KRBlack' : 'UBlack',
-      bold:  (isKo && hasKR) ? 'KRBold'  : 'UBold',
-      med:   (isKo && hasKR) ? 'KRMedium': 'UMedium',
-      reg:   (isKo && hasKR) ? 'KRMedium': 'UReg',
-      light: (isKo && hasKR) ? 'KRLight' : 'ULight',
+      black:    hasKR ? 'KRBlack'  : 'UBlack',
+      bold:     hasKR ? 'KRBold'   : 'UBold',
+      med:      hasKR ? 'KRMedium' : 'UMedium',
+      reg:      hasKR ? 'KRMedium' : 'UReg',
+      light:    hasKR ? 'KRLight'  : 'ULight',
+      // English-only brand fonts (use only when content is guaranteed ASCII)
+      brandBlk: 'UBlack',
+      brandBld: 'UBold',
+      brandReg: 'UReg',
+      // Legacy aliases for compatibility — still use safe Korean-capable fonts
+      _brandBlack: (isKo && hasKR) ? 'KRBlack' : 'UBlack',
+      _brandBold:  (isKo && hasKR) ? 'KRBold'  : 'UBold',
+      _brandMed:   (isKo && hasKR) ? 'KRMedium': 'UMedium',
+      _brandReg:   (isKo && hasKR) ? 'KRMedium': 'UReg',
+      _brandLight: (isKo && hasKR) ? 'KRLight' : 'ULight',
     };
 
     // Bilingual labels
