@@ -59,12 +59,12 @@
   z-index: 1000;
   min-height: var(--mah-h);
   padding: calc(var(--safe-top) + 8px) calc(14px + var(--safe-right)) 8px calc(14px + var(--safe-left));
-  /* Premium Glassmorphism */
-  background: rgba(255,255,255,0.68) !important;
-  backdrop-filter: blur(28px) saturate(200%) !important;
-  -webkit-backdrop-filter: blur(28px) saturate(200%) !important;
-  border-bottom: 1px solid rgba(255,255,255,0.4) !important;
-  box-shadow: 0 1px 0 rgba(0,0,0,0.02), 0 4px 32px rgba(0,0,0,0.02) !important;
+  /* Readable glass header */
+  background: rgba(255,255,255,0.92) !important;
+  backdrop-filter: blur(16px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(16px) saturate(180%) !important;
+  border-bottom: 1px solid var(--border, #e8e6df) !important;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.03) !important;
   align-items: center;
   justify-content: space-between;
 }
@@ -157,15 +157,14 @@
   z-index: 1000;
   height: var(--mab-h);
   padding-bottom: var(--safe-bottom);
-  /* Premium Glassmorphism */
-  background: rgba(255,255,255,0.68);
-  backdrop-filter: blur(28px) saturate(200%);
-  -webkit-backdrop-filter: blur(28px) saturate(200%);
-  border-top: 1px solid rgba(255,255,255,0.4);
+  /* Readable glass: opacity prioritised for legibility */
+  background: rgba(255,255,255,0.92);
+  backdrop-filter: blur(16px) saturate(180%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  border-top: 1px solid var(--border, #e8e6df);
   box-shadow:
-    0 -1px 0 rgba(0,0,0,0.02),
-    0 -4px 24px rgba(0,0,0,0.03),
-    0 -12px 48px rgba(0,0,0,0.02);
+    0 -1px 2px rgba(0,0,0,0.03),
+    0 -4px 16px rgba(0,0,0,0.04);
   align-items: stretch;
   justify-content: space-around;
 }
