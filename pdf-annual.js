@@ -812,18 +812,18 @@ function generateAnnualPDF(logs, year, lang, history, assets, region, comment, c
     for(let ci=0;ci<contentPageList.length;ci++){
       const i=contentPageList[ci];
       doc.switchToPage(i);
-      doc.save().rect(0,818,595,24).fill(CT).restore();
+      doc.save().rect(0,571,841,24).fill(CT).restore();
       doc.fillColor('#a3a29c').fontSize(7.5).font(F.light);
       const annualId = 'DSKR-GTO-Annual Error Report_' + String(year).slice(2);
       const annualFooterTitle = safeTitle ? ("d'strict  |  " + safeTitle) : ("d'strict  |  " + annualId);
-      doc.text(annualFooterTitle,ML,823,{width:PW-60,lineBreak:false});
-      doc.text('Page '+(ci+1)+'/'+totalContent,MR-60,823,{width:60,align:'right',lineBreak:false});
-      doc.save().rect(0,0,595,4).fill(CP).restore();
+      doc.text(annualFooterTitle,ML,576,{width:PW-60,lineBreak:false});
+      doc.text('Page '+(ci+1)+'/'+totalContent,MR-60,576,{width:60,align:'right',lineBreak:false});
+      doc.save().rect(0,0,841,4).fill(CP).restore();
     }
     // Add top purple bar to all pages
     for(let pi=0;pi<tp;pi++){
       doc.switchToPage(pi);
-      doc.save().rect(0,0,595,6).fill(CP).restore();
+      doc.save().rect(0,0,841,6).fill(CP).restore();
     }
     doc.switchToPage(tp - 1);
 

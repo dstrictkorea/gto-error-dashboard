@@ -1796,15 +1796,15 @@ function generatePDF(logs, month, year, lang, history, assets, reportType, regio
     for(let ci=0;ci<contentPageList.length;ci++){
       const i=contentPageList[ci];
       doc.switchToPage(i);
-      doc.save().rect(0,818,595,24).fill(CT).restore();
+      doc.save().rect(0,571,841,24).fill(CT).restore();
       doc.fillColor('#a3a29c').fontSize(7.5).font(F.light);
-      doc.text(footerTitle,ML,823,{width:PW-60,lineBreak:false});
-      doc.text('Page '+(ci+1)+'/'+totalContent,MR-60,823,{width:60,align:'right',lineBreak:false});
+      doc.text(footerTitle,ML,576,{width:PW-60,lineBreak:false});
+      doc.text('Page '+(ci+1)+'/'+totalContent,MR-60,576,{width:60,align:'right',lineBreak:false});
     }
     // Add top purple bar to all pages
     for(let pi=0;pi<tp;pi++){
       doc.switchToPage(pi);
-      doc.save().rect(0,0,595,6).fill(CP).restore();
+      doc.save().rect(0,0,841,6).fill(CP).restore();
     }
     doc.switchToPage(tp-1);
 

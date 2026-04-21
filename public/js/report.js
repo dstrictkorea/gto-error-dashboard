@@ -50,6 +50,7 @@ function highlightTech(text) {
 async function requestAI(idx){
   var r=G.logs[idx];if(!r)return;
   var box=el('ai-result');
+  if(!box) return; // overlay not open
   // Skeleton shimmer loading state
   box.innerHTML='<div style="animation:fadeIn 0.4s ease-out">'
     +'<div style="background:linear-gradient(90deg,var(--border) 25%,var(--card) 50%,var(--border) 75%);background-size:200% 100%;animation:shimmer 2s infinite;height:20px;border-radius:6px;margin-bottom:12px;width:40%"></div>'
@@ -67,7 +68,9 @@ async function requestAI(idx){
         lang:_lang
       })
     });
+    if(!box.isConnected) return; // overlay was closed while fetching
     var d=await resp.json();
+    if(!box.isConnected) return; // overlay was closed while parsing
     if(!d.enabled){
       var guide=d.guide||{};
       box.innerHTML='<div style="padding:16px;background:#fef3c7;border-radius:8px;border:1px solid #fde68a;animation:slideIn 0.4s ease-out">'
@@ -123,6 +126,7 @@ async function requestAI(idx){
     box.innerHTML=html;
     toast(t('aiAnalysisComplete'),'success');
   }catch(e){
+    if(!box.isConnected) return; // overlay was closed during fetch
     box.innerHTML='<div style="padding:16px;background:#fee2e2;border-radius:8px;border:1px solid #fecaca;animation:slideIn 0.4s ease-out">'
       +'<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px"><span style="font-size:16px">❌</span><span style="color:#dc2626;font-weight:700">'+t('aiFailed')+'</span></div>'
       +'<div style="color:#991b1b;font-size:12px;margin-bottom:10px">'+esc(e.message)+'</div>'
