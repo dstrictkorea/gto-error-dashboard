@@ -3799,3 +3799,234 @@ button:not(:disabled):active,
 .branch-seg-btn:active {
   transform: scale(0.97);
 }
+
+/* ═══════════════════════════════════════════════════════════════
+   ISSUE DETAIL — MODAL (desktop) + BOTTOM SHEET (mobile)
+   Replaces legacy right-slide side panel. Single scroll. Sticky
+   header. ESC / click-outside / close button all close. Mobile
+   variant slides up, supports drag-to-close.
+   ═══════════════════════════════════════════════════════════════ */
+.issue-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 900;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(12, 12, 14, 0.55);
+  backdrop-filter: blur(6px) saturate(140%);
+  -webkit-backdrop-filter: blur(6px) saturate(140%);
+  opacity: 0;
+  transition: opacity 180ms ease-out;
+  overscroll-behavior: contain;
+}
+.issue-overlay.show { opacity: 1; }
+
+.issue-overlay-dialog {
+  position: relative;
+  width: min(760px, calc(100vw - 48px));
+  max-height: min(86vh, 880px);
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  box-shadow:
+    0 12px 32px rgba(0,0,0,0.18),
+    0 40px 80px rgba(0,0,0,0.22);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  transform: translateY(12px) scale(0.98);
+  transition: transform 220ms cubic-bezier(.2,.8,.2,1);
+}
+.issue-overlay.show .issue-overlay-dialog { transform: translateY(0) scale(1); }
+
+html.dark-mode .issue-overlay-dialog {
+  background: var(--card);
+  border-color: rgba(255,255,255,0.06);
+}
+
+/* Sticky header with always-visible close */
+.issue-overlay-header {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 20px;
+  background: var(--card);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.issue-overlay-title {
+  flex: 1;
+  min-width: 0;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--t0);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  text-align: left; /* long title → left */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.issue-overlay-close {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--t1);
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  transition: background 120ms ease, color 120ms ease;
+}
+.issue-overlay-close:hover {
+  background: var(--hover);
+  color: var(--t0);
+}
+
+/* Single scroll container */
+.issue-overlay-body {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 20px;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Neutralize the legacy .detail-panel fixed positioning when
+   the panel renders INSIDE the new overlay. Old styles preserved
+   for any untouched call sites. */
+.issue-overlay-body .detail-panel {
+  position: static !important;
+  width: auto !important;
+  max-width: none !important;
+  inset: auto !important;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  padding: 0 !important;
+  overflow: visible !important;
+  animation: none !important;
+  z-index: auto !important;
+}
+/* Legacy in-panel close button is redundant now (header has one) */
+.issue-overlay-body .detail-close-btn,
+.issue-overlay-body .detail-panel > .flex-row-between:first-child {
+  display: none !important;
+}
+
+/* Collapsible sections — Similar Cases + AI default collapsed */
+.issue-collapsible { border-top: 1px solid var(--border); padding-top: 14px; margin-top: 14px; }
+.issue-collapsible .issue-collapsible-hdr {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--sub);
+  cursor: pointer;
+  user-select: none;
+  transition: background 120ms ease;
+}
+.issue-collapsible .issue-collapsible-hdr:hover { background: var(--hover); }
+.issue-collapsible .issue-collapsible-title {
+  flex: 1;
+  min-width: 0;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--t0);
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.issue-collapsible .issue-collapsible-chev {
+  flex-shrink: 0;
+  font-size: 12px;
+  color: var(--t2);
+  transition: transform 180ms ease;
+}
+.issue-collapsible.open .issue-collapsible-chev { transform: rotate(180deg); }
+.issue-collapsible .issue-collapsible-body { display: none; padding-top: 14px; }
+.issue-collapsible.open .issue-collapsible-body { display: block; }
+
+/* ─────────── Mobile: BOTTOM SHEET ─────────── */
+@media (max-width: 768px) {
+  .issue-overlay {
+    align-items: flex-end;
+  }
+  .issue-overlay-dialog {
+    width: 100vw;
+    max-width: 100vw;
+    height: 82vh;
+    min-height: 70vh;
+    max-height: 85vh;
+    border-radius: 20px 20px 0 0;
+    transform: translateY(100%);
+  }
+  .issue-overlay.show .issue-overlay-dialog { transform: translateY(0); }
+  .issue-overlay-dialog.is-dragging { transition: none; }
+  .issue-overlay-drag {
+    display: flex;
+    justify-content: center;
+    padding: 8px 0 4px;
+    flex-shrink: 0;
+    cursor: grab;
+    touch-action: none;
+  }
+  .issue-overlay-drag:active { cursor: grabbing; }
+  .issue-overlay-drag-bar {
+    width: 44px;
+    height: 5px;
+    border-radius: 999px;
+    background: var(--border);
+  }
+  .issue-overlay-header { padding: 10px 16px; }
+  .issue-overlay-body { padding: 16px; }
+}
+@media (min-width: 769px) {
+  .issue-overlay-drag { display: none; }
+}
+
+/* Prevent body scroll while overlay is open (single scroll rule) */
+body.issue-overlay-open { overflow: hidden; }
+
+/* ═══════════════════════════════════════════════════════════════
+   ALIGNMENT SYSTEM (global)
+   Headers center · numbers right · text left · KPI/cards center ·
+   long descriptions left. Applied here so every page inherits.
+   ═══════════════════════════════════════════════════════════════ */
+th { text-align: center; }
+td.num, td.count, td.td-num, td.td-count, .td-num, .td-count, .num-cell {
+  text-align: right !important;
+  white-space: nowrap;
+  word-break: keep-all;
+}
+td.text, td.td-text, td.td-left, .td-text {
+  text-align: left;
+}
+.kpi, .card, .summary, .summary-card, .kpi-card {
+  /* card containers may override children; only affect own directly-inline content */
+}
+.kpi-value, .card-value, .summary-value,
+.kpi-title, .card-title, .summary-title,
+.kpi-label, .card-label, .summary-label {
+  text-align: center;
+}
+.chart-title, .chart-legend, .chart-caption { text-align: center; }
+.desc, .comment, .detail, .issue-detail, .long-text { text-align: left; }
+/* never center long paragraphs */
+p.long, .prose, .text-block { text-align: left; }

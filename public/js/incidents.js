@@ -134,12 +134,29 @@ function filterZone(z){goPage(2,document.querySelectorAll('.ntab')[2]);setTimeou
 
 var _openDetailIdx=-1;
 var _detailKeyHandler=null;
+var _detailOverlayEl=null;
+
 function closeDetail(){
-  var old=document.querySelector('.detail-row');
-  if(old)old.parentNode.removeChild(old);
+  // Legacy inline row (defensive — in case any caller still inserts it)
+  var legacy=document.querySelector('.detail-row');
+  if(legacy&&legacy.parentNode)legacy.parentNode.removeChild(legacy);
+  // New overlay
+  if(_detailOverlayEl&&_detailOverlayEl.parentNode){
+    _detailOverlayEl.classList.remove('show');
+    var el=_detailOverlayEl;
+    // allow transition to play then remove
+    setTimeout(function(){ if(el&&el.parentNode) el.parentNode.removeChild(el); },220);
+    _detailOverlayEl=null;
+  }
+  document.body.classList.remove('issue-overlay-open');
   _openDetailIdx=-1;
   if(_detailKeyHandler){document.removeEventListener('keydown',_detailKeyHandler);_detailKeyHandler=null;}
 }
+
+function toggleCollapsible(el){
+  try{ el.classList.toggle('open'); }catch(e){}
+}
+
 function showDetail(idx){
   // Toggle: same row clicked again → close
   if(_openDetailIdx===idx){closeDetail();return}
@@ -168,9 +185,15 @@ function showDetail(idx){
     +(r.HQ?'<div class="hq-banner"><span class="hq-banner-label">🏢 '+t('hqLabel')+':</span> <span style="color:var(--t1)">'+esc(typeof autoTr==='function'?autoTr(r.HQ):r.HQ)+'</span></div>':'')
     +'</div>';
 
-  // Section 3: Similar Cases — 100-Point Scoring System
-  var simHtml='<div class="detail-section"><div class="detail-section-hdr" style="margin-bottom:4px"><span class="detail-section-icon">📊</span><div class="detail-section-title">'+t('similarCasesCount')+' ('+sim.length+')</div></div>'
-    +'<div style="font-size:10px;color:var(--t4);margin-bottom:12px;padding-left:24px">'+(_lang==='ko'?'장비 40 · 카테고리 25 · 증상 15 · Zone 10 · 장소 10 = 100점 만점 (75점 이상 표시)':'Equip 40 · Category 25 · Symptom 15 · Zone 10 · Place 10 = 100pt max (≥75pt shown)')+'</div>';
+  // Section 3: Similar Cases — 100-Point Scoring System (COLLAPSIBLE)
+  var simHtml='<div class="issue-collapsible" data-collapsible="sim">'
+    +'<div class="issue-collapsible-hdr" onclick="toggleCollapsible(this.parentNode)">'
+    +'<span class="detail-section-icon">📊</span>'
+    +'<div class="issue-collapsible-title">'+t('similarCasesCount')+' ('+sim.length+')</div>'
+    +'<span class="issue-collapsible-chev">▾</span>'
+    +'</div>'
+    +'<div class="issue-collapsible-body">'
+    +'<div style="font-size:10px;color:var(--t4);margin-bottom:12px">'+(_lang==='ko'?'장비 40 · 카테고리 25 · 증상 15 · Zone 10 · 장소 10 = 100점 만점 (75점 이상 표시)':'Equip 40 · Category 25 · Symptom 15 · Zone 10 · Place 10 = 100pt max (≥75pt shown)')+'</div>';
   if(sim.length){
     simHtml+='<div style="position:relative;padding:0 0 0 24px">';
     sim.forEach(function(h,hi){
@@ -203,12 +226,18 @@ function showDetail(idx){
   } else {
     simHtml+='<div class="no-similar-box">'+(_lang==='ko'?'80점 이상 일치하는 유사사례가 없습니다':t('noSimilarCases'))+'</div>';
   }
-  simHtml+='</div>';
+  simHtml+='</div></div>'; // close issue-collapsible-body + issue-collapsible
 
-  // Section 4: AI Analysis
-  var aiHtml='<div><div class="detail-section-hdr"><span class="detail-section-icon">🤖</span><div class="detail-section-title">'+t('aiAnalysis')+'</div>'
-    +(r.Difficulty>=4?'<span style="background:rgba(255,193,7,0.15);color:#d97706;font-size:9px;font-weight:700;padding:3px 8px;border-radius:6px">⚠ DIFFICULTY '+r.Difficulty+'</span>':'')
+  // Section 4: AI Analysis (COLLAPSIBLE)
+  var aiHtml='<div class="issue-collapsible" data-collapsible="ai">'
+    +'<div class="issue-collapsible-hdr" onclick="toggleCollapsible(this.parentNode)">'
+    +'<span class="detail-section-icon">🤖</span>'
+    +'<div class="issue-collapsible-title">'+t('aiAnalysis')
+    +(r.Difficulty>=4?'  ⚠ DIFFICULTY '+r.Difficulty:'')
     +'</div>'
+    +'<span class="issue-collapsible-chev">▾</span>'
+    +'</div>'
+    +'<div class="issue-collapsible-body">'
     +'<div class="ai-panel">'
     +'<div id="ai-result" style="font-size:12px;color:var(--t1);margin-bottom:10px">'
     +(r.Difficulty>=4
@@ -216,30 +245,42 @@ function showDetail(idx){
       :'<strong style="color:var(--t0)">'+t('aiReadyLabel')+'</strong> '+t('aiReadySub'))
     +'</div>'
     +'<button class="btn btn-sm" style="background:var(--purple);color:#fff;font-size:11px;border-radius:8px;padding:8px 16px;font-weight:600;width:100%" onclick="requestAI('+idx+')">'+t('requestAI')+'</button>'
+    +'</div>'
     +'</div></div>';
 
-  var html='<div class="detail-panel"><div class="flex-row-between mb-6"><div></div><button class="btn btn-ghost detail-close-btn" onclick="closeDetail()">×</button></div>'
+  var headerTitle=(typeof autoTr==='function'?autoTr(r.IssueDetail):r.IssueDetail)||t('issueContext');
+  var bodyHtml='<div class="detail-panel">'
     +ctxHtml+resHtml+simHtml+aiHtml
     +'</div>';
 
-  // Find the clicked row in the table and insert detail row right after it
-  var rows=el('p1-tbl').querySelectorAll('tr');
-  var clickedRow=null;
-  rows.forEach(function(tr){if(tr.getAttribute('data-idx')===String(idx))clickedRow=tr});
-  if(!clickedRow)return;
+  // Build overlay (works as modal on desktop, bottom sheet on mobile via CSS)
+  var overlay=document.createElement('div');
+  overlay.className='issue-overlay';
+  overlay.setAttribute('role','dialog');
+  overlay.setAttribute('aria-modal','true');
+  overlay.innerHTML=
+    '<div class="issue-overlay-dialog" role="document">'
+      +'<div class="issue-overlay-drag" aria-hidden="true"><div class="issue-overlay-drag-bar"></div></div>'
+      +'<div class="issue-overlay-header">'
+        +'<div class="issue-overlay-title">'+esc(headerTitle)+'</div>'
+        +'<button type="button" class="issue-overlay-close" aria-label="Close" onclick="closeDetail()">×</button>'
+      +'</div>'
+      +'<div class="issue-overlay-body">'+bodyHtml+'</div>'
+    +'</div>';
 
-  var detailTr=document.createElement('tr');
-  detailTr.className='detail-row';
-  var td=document.createElement('td');
-  td.colSpan=10;
-  td.style.padding='0';
-  td.style.textAlign='left';
-  td.innerHTML=html;
-  detailTr.appendChild(td);
-  clickedRow.parentNode.insertBefore(detailTr,clickedRow.nextSibling);
-  detailTr.scrollIntoView({behavior:'smooth',block:'nearest'});
+  // Click outside dialog closes
+  overlay.addEventListener('click',function(e){ if(e.target===overlay) closeDetail(); });
 
-  // Add keyboard navigation for pagination (removeEventListener-safe)
+  document.body.appendChild(overlay);
+  document.body.classList.add('issue-overlay-open');
+  _detailOverlayEl=overlay;
+  // Trigger enter transition
+  requestAnimationFrame(function(){ overlay.classList.add('show'); });
+
+  // Mobile drag-to-close
+  attachSheetDrag(overlay);
+
+  // Keyboard: ESC close + arrow pagination (no row to scroll to now)
   if(_detailKeyHandler){document.removeEventListener('keydown',_detailKeyHandler);}
   _detailKeyHandler=function(e){
     if(e.key==='Escape'){closeDetail();return;}
@@ -247,5 +288,52 @@ function showDetail(idx){
     else if(e.key==='ArrowRight'&&_p1Page<Math.ceil(_p1Data.length/getP1PageSize())-1){p1Go(_p1Page+1)}
   };
   document.addEventListener('keydown',_detailKeyHandler);
+}
+
+// Mobile bottom-sheet drag-to-close. Only binds on touch devices under the
+// mobile breakpoint; no-op on desktop (CSS hides the drag handle).
+function attachSheetDrag(overlay){
+  var dialog=overlay.querySelector('.issue-overlay-dialog');
+  var handle=overlay.querySelector('.issue-overlay-drag');
+  var header=overlay.querySelector('.issue-overlay-header');
+  if(!dialog) return;
+  var isMobile=function(){ return window.matchMedia&&window.matchMedia('(max-width: 768px)').matches; };
+  var startY=0, curY=0, dragging=false;
+
+  function onStart(e){
+    if(!isMobile()) return;
+    var touch=e.touches?e.touches[0]:e;
+    startY=touch.clientY; curY=0; dragging=true;
+    dialog.classList.add('is-dragging');
+  }
+  function onMove(e){
+    if(!dragging) return;
+    var touch=e.touches?e.touches[0]:e;
+    var dy=touch.clientY-startY;
+    if(dy<0) dy=0;
+    curY=dy;
+    dialog.style.transform='translateY('+dy+'px)';
+    if(e.cancelable) e.preventDefault();
+  }
+  function onEnd(){
+    if(!dragging) return;
+    dragging=false;
+    dialog.classList.remove('is-dragging');
+    if(curY>120){
+      // dismiss
+      dialog.style.transform='translateY(100%)';
+      closeDetail();
+    } else {
+      dialog.style.transform='';
+    }
+  }
+
+  [handle, header].forEach(function(el){
+    if(!el) return;
+    el.addEventListener('touchstart', onStart, {passive:true});
+    el.addEventListener('touchmove',  onMove,  {passive:false});
+    el.addEventListener('touchend',   onEnd);
+    el.addEventListener('touchcancel',onEnd);
+  });
 }
 
