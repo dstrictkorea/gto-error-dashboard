@@ -631,7 +631,7 @@ function admDailyRegion(r, btn){
 function admRenderDailyBrStrip(){
   var strip=admEl('daily-br-strip'); if(!strip) return;
   var brs=admGetBranchesForRegion(_admDailyRegion);
-  var html='<button class="adm-br-btn'+((_admDailyBranch==='ALL')?' active':'')+'" onclick="admSelectDailyBranch(\'ALL\')" style="'+((_admDailyBranch==='ALL')?'background:#534AB7;color:#fff':'')+';border-radius:8px;">📍 전체</button>';
+  var html='<button class="adm-br-btn'+((_admDailyBranch==='ALL')?' active':'')+'" onclick="admSelectDailyBranch(\'ALL\')" style="'+((_admDailyBranch==='ALL')?'background:var(--adm-purple);color:#fff':'')+';border-radius:8px;">📍 전체</button>';
   brs.forEach(function(b){
     var isA=_admDailyBranch===b;
     var col=BR_COLORS[b]||'#534AB7';
@@ -723,7 +723,7 @@ function admMonthlyRegion(r, btn){
 function admRenderMonthlyBrStrip(){
   var strip=admEl('monthly-br-strip'); if(!strip) return;
   var brs=admGetBranchesForRegion(_admMonthlyRegion);
-  var html='<button class="adm-br-btn'+((_admMonthlyBranch==='ALL')?' active':'')+'" onclick="admSelectMonthlyBranch(\'ALL\')" style="'+((_admMonthlyBranch==='ALL')?'background:#534AB7;color:#fff':'')+'">📍 전체</button>';
+  var html='<button class="adm-br-btn'+((_admMonthlyBranch==='ALL')?' active':'')+'" onclick="admSelectMonthlyBranch(\'ALL\')" style="'+((_admMonthlyBranch==='ALL')?'background:var(--adm-purple);color:#fff':'')+'">📍 전체</button>';
   brs.forEach(function(b){
     var isA=_admMonthlyBranch===b;
     var col=BR_COLORS[b]||'#534AB7';

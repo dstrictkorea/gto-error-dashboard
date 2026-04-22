@@ -841,7 +841,7 @@ function admDailyRegion(r, btn){
 function admRenderDailyBrStrip(){
   var strip=admEl('daily-br-strip'); if(!strip) return;
   var brs=admGetBranchesForRegion(_admDailyRegion);
-  var html='<button class="adm-br-btn'+((_admDailyBranch==='ALL')?' active':'')+'" onclick="admSelectDailyBranch(\'ALL\')" style="'+((_admDailyBranch==='ALL')?'background:#534AB7;color:#fff':'')+';border-radius:8px;">📍 전체</button>';
+  var html='<button class="adm-br-btn'+((_admDailyBranch==='ALL')?' active':'')+'" onclick="admSelectDailyBranch(\'ALL\')" style="'+((_admDailyBranch==='ALL')?'background:var(--adm-purple);color:#fff':'')+';border-radius:8px;">📍 전체</button>';
   brs.forEach(function(b){
     var isA=_admDailyBranch===b;
     var col=BR_COLORS[b]||'#534AB7';
@@ -883,7 +883,7 @@ function admRenderDaily(){
   // KPI
   var critToday=allToday.filter(function(r){return(r.Difficulty||0)>=4;}).length;
   var html='<div class="adm-kpi-grid">';
-  html+='<div class="adm-kpi" style="border-top:3px solid #534AB7"><div class="adm-kpi-label">오늘 총 에러</div><div class="adm-kpi-value" style="color:#534AB7">'+allToday.length+'</div><div class="adm-kpi-sub">금일 발생</div></div>';
+  html+='<div class="adm-kpi" style="border-top:3px solid var(--adm-purple)"><div class="adm-kpi-label">오늘 총 에러</div><div class="adm-kpi-value" style="color:var(--adm-purple)">'+allToday.length+'</div><div class="adm-kpi-sub">금일 발생</div></div>';
   html+='<div class="adm-kpi" style="border-top:3px solid #2563eb"><div class="adm-kpi-label">주간 에러</div><div class="adm-kpi-value" style="color:#2563eb">'+allWeek.length+'</div><div class="adm-kpi-sub">최근 7일</div></div>';
   html+='<div class="adm-kpi" style="border-top:3px solid #dc2626"><div class="adm-kpi-label">위험 장애</div><div class="adm-kpi-value" style="color:#dc2626">'+critToday+'</div><div class="adm-kpi-sub">오늘 Lv.4+</div></div>';
   // 지점별
@@ -933,7 +933,7 @@ function admMonthlyRegion(r, btn){
 function admRenderMonthlyBrStrip(){
   var strip=admEl('monthly-br-strip'); if(!strip) return;
   var brs=admGetBranchesForRegion(_admMonthlyRegion);
-  var html='<button class="adm-br-btn'+((_admMonthlyBranch==='ALL')?' active':'')+'" onclick="admSelectMonthlyBranch(\'ALL\')" style="'+((_admMonthlyBranch==='ALL')?'background:#534AB7;color:#fff':'')+'">📍 전체</button>';
+  var html='<button class="adm-br-btn'+((_admMonthlyBranch==='ALL')?' active':'')+'" onclick="admSelectMonthlyBranch(\'ALL\')" style="'+((_admMonthlyBranch==='ALL')?'background:var(--adm-purple);color:#fff':'')+'">📍 전체</button>';
   brs.forEach(function(b){
     var isA=_admMonthlyBranch===b;
     var col=BR_COLORS[b]||'#534AB7';

@@ -75,10 +75,12 @@ function renderP1MobileViz(){
   // ── 1. Summary KPI Strip ──
   var critTotal = (diffCount[4]||0) + (diffCount[5]||0);
   html += '<div class="mviz-kpi-strip">';
-  html += '<div class="mviz-kpi" style="--kpi-c:#534AB7"><div class="mviz-kpi-val">'+total+'</div><div class="mviz-kpi-lbl">Total</div></div>';
-  html += '<div class="mviz-kpi" style="--kpi-c:#2563eb"><div class="mviz-kpi-val">'+brCount.AMNY+'</div><div class="mviz-kpi-lbl">AMNY</div></div>';
-  html += '<div class="mviz-kpi" style="--kpi-c:#ea580c"><div class="mviz-kpi-val">'+brCount.AMLV+'</div><div class="mviz-kpi-lbl">AMLV</div></div>';
-  html += '<div class="mviz-kpi" style="--kpi-c:#7c3aed"><div class="mviz-kpi-val">'+brCount.AMDB+'</div><div class="mviz-kpi-lbl">AMDB</div></div>';
+  var _BC = typeof BR_COLORS_MAP !== 'undefined' ? BR_COLORS_MAP : {};
+  var _rBrs = typeof getRegionBranches === 'function' ? getRegionBranches() : ['AMNY','AMLV','AMDB'];
+  html += '<div class="mviz-kpi" style="--kpi-c:var(--purple)"><div class="mviz-kpi-val">'+total+'</div><div class="mviz-kpi-lbl">Total</div></div>';
+  _rBrs.forEach(function(b){
+    html += '<div class="mviz-kpi" style="--kpi-c:'+(_BC[b]||'var(--purple)')+'"><div class="mviz-kpi-val">'+(brCount[b]||0)+'</div><div class="mviz-kpi-lbl">'+b+'</div></div>';
+  });
   html += '<div class="mviz-kpi" style="--kpi-c:'+(critTotal>0?'#dc2626':'#16a34a')+'"><div class="mviz-kpi-val">'+critTotal+'</div><div class="mviz-kpi-lbl">Critical</div></div>';
   html += '</div>';
 
