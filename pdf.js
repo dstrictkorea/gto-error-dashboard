@@ -660,142 +660,228 @@ function generatePDF(logs, month, year, lang, history, assets, reportType, regio
       if(pct>0){ const w=Math.max(Math.round(maxW*pct/100),4); doc.save().roundedRect(x,y,w,h,3).fill(color).restore(); }
     }
 
-    // ── Visual Chart Helpers (for monthly dashboard-style PDF) ──
+    // ── GRID ──
+    const GAP=7;
+    // W2: two halves (395+7+395=797) W23: 2/3+1/3 (530+7+260=797) W4: quarter (194*4+7*3=797)
+    const W2=395, W23=530, W23R=260, W4=194;
+    const CHIGHLIGHT='#FDE68A';
 
-    // Donut chart: draws a donut/ring chart with segments
-    // cx,cy = center; outerR = outer radius; innerR = inner radius
-    // segments = [{value, color, label}]
-    function drawDonut(cx, cy, outerR, innerR, segments, centerText, centerSub) {
-      const total = segments.reduce((s,seg) => s + seg.value, 0);
-      if(total === 0) {
-        doc.save().circle(cx, cy, outerR).fill(CBG).restore();
-        doc.save().circle(cx, cy, innerR).fill(CCARD).restore();
-        doc.fillColor(CS).fontSize(9).font(F.med).text('N/A', cx-20, cy-6, {width:40, align:'center', lineBreak:false});
-        return;
-      }
-      let startAngle = -Math.PI / 2; // start from top
-      segments.forEach(seg => {
-        if(seg.value <= 0) return;
-        const sliceAngle = (seg.value / total) * Math.PI * 2;
-        const endAngle = startAngle + sliceAngle;
-        // Draw arc segment using path
-        const steps = Math.max(Math.ceil(sliceAngle / 0.05), 8);
-        const angleStep = sliceAngle / steps;
-        // Build path: outer arc forward, inner arc backward
-        doc.save();
-        doc.path(''); // reset
-        let px = cx + outerR * Math.cos(startAngle);
-        let py = cy + outerR * Math.sin(startAngle);
-        let pathStr = 'M ' + px.toFixed(2) + ' ' + py.toFixed(2) + ' ';
-        for(let i = 1; i <= steps; i++) {
-          const a = startAngle + angleStep * i;
-          pathStr += 'L ' + (cx + outerR * Math.cos(a)).toFixed(2) + ' ' + (cy + outerR * Math.sin(a)).toFixed(2) + ' ';
-        }
-        // Line to inner arc end
-        pathStr += 'L ' + (cx + innerR * Math.cos(endAngle)).toFixed(2) + ' ' + (cy + innerR * Math.sin(endAngle)).toFixed(2) + ' ';
-        // Inner arc backward
-        for(let i = steps; i >= 0; i--) {
-          const a = startAngle + angleStep * i;
-          pathStr += 'L ' + (cx + innerR * Math.cos(a)).toFixed(2) + ' ' + (cy + innerR * Math.sin(a)).toFixed(2) + ' ';
-        }
-        pathStr += 'Z';
-        doc.path(pathStr).fill(seg.color);
-        doc.restore();
-        startAngle = endAngle;
+    // ── SECTION BAND (compact 14pt, numbered) ──
+    // KEEP the existing sect() function at line 634 — do not duplicate it
+
+    // ── DRAW HELPERS (NEW) ──
+
+    // Title block (always shown; custom title or generated ID)
+    function drawTitleBlock(title, sub) {
+      const H=36; const y=doc.y;
+      doc.save().rect(ML,y,PW,H).fill('#f6f5f0').restore();
+      doc.save().rect(ML,y,PW,3).fill(CP).restore();
+      doc.fillColor(CP).fontSize(isKo?12:13).font(F.bold)
+         .text(title,ML,y+8,{width:PW,align:'center',lineBreak:false});
+      if(sub) doc.fillColor(CS).fontSize(isKo?8:8.5).font(F.med)
+         .text(sub,ML,y+24,{width:PW,align:'center',lineBreak:false});
+      doc.y=y+H+6; doc.x=ML;
+    }
+
+    // 4-up KPI strip
+    function drawKPIStrip(items) {
+      const n=items.length;
+      const colW=Math.floor((PW-GAP*(n-1))/n);
+      const kH=isKo?62:58; const y=doc.y;
+      items.forEach((item,i)=>{
+        const cx=ML+i*(colW+GAP);
+        doc.save().roundedRect(cx,y,colW,kH,5).fill(CBG).restore();
+        if(item.accent) doc.save().rect(cx,y,3,kH).fill(item.accent).restore();
+        doc.fillColor(CS).fontSize(isKo?7.5:8).font(F.med)
+           .text(item.label||'',cx+10,y+10,{width:colW-14,align:'center',lineBreak:false});
+        const vStr=String(item.value!==undefined?item.value:'–');
+        const vFS=vStr.length>5?(isKo?15:16):vStr.length>3?(isKo?18:20):(isKo?22:24);
+        doc.fillColor(item.color||CT).fontSize(vFS).font(F.bold)
+           .text(vStr,cx+8,y+22,{width:colW-14,align:'center',lineBreak:false});
+        if(item.sub!==undefined) doc.fillColor(item.subColor||CS).fontSize(isKo?7:7.5).font(F.med)
+           .text(String(item.sub),cx+8,y+kH-13,{width:colW-14,align:'center',lineBreak:false});
       });
-      // Center circle (white/card)
-      doc.save().circle(cx, cy, innerR - 1).fill(CCARD).restore();
-      // Center text
-      if(centerText) {
-        const ctLen = String(centerText).length;
-        const ctFS = ctLen > 3 ? 12 : ctLen > 2 ? 14 : 15;
-        doc.fillColor(CT).fontSize(ctFS).font(F.black).text(String(centerText), cx - 30, cy - 13, {width: 60, align: 'center', lineBreak: false});
-      }
-      if(centerSub) {
-        const csLen = (centerSub||'').length;
-        const csFS = csLen > 5 ? 5.5 : 6;
-        doc.fillColor(CS).fontSize(csFS).font(F.med).text(centerSub, cx - 30, cy + 5, {width: 60, align: 'center', lineBreak: false});
-      }
+      doc.y=y+kH+6; doc.x=ML;
     }
 
-    // Donut legend: horizontal row of colored dots + labels
-    function drawDonutLegend(x, y, segments, total) {
-      let lx = x;
-      segments.forEach(seg => {
-        if(seg.value <= 0) return;
-        const pct = total > 0 ? Math.round(seg.value / total * 100) : 0;
-        doc.save().circle(lx + 4, y + 5, 4).fill(seg.color).restore();
-        const label = (seg.label || '?') + ' ' + seg.value + ' (' + pct + '%)';
-        doc.fillColor(CT).fontSize(7.5).font(F.med).text(label, lx + 11, y + 1, {width: 130, lineBreak: false});
-        lx += doc.widthOfString(label, {fontSize: 7.5}) + 22;
+    // Horizontal bar row — returns new Y
+    function drawHBar(x,y,colW,label,value,maxValue,color,opts) {
+      opts=opts||{};
+      const labelW=opts.labelW||55, countW=opts.countW||28, bGap=5;
+      const pctW=opts.showPct?24:0;
+      const barAreaW=colW-labelW-bGap-countW-(pctW?bGap+pctW:0);
+      const rowH=13, barH=9;
+      const barY=y+(rowH-barH)/2;
+      const fillW=maxValue>0?Math.max(0,Math.round(barAreaW*Math.min(value,maxValue)/maxValue)):0;
+      const lbl=(label||'').length>(isKo?13:16)?(label||'').slice(0,isKo?12:15)+'…':(label||'');
+      doc.fillColor(CT).fontSize(isKo?7.5:8).font(F.reg)
+         .text(lbl,x,y+2,{width:labelW-2,lineBreak:false});
+      doc.save().roundedRect(x+labelW+bGap,barY,barAreaW,barH,2).fill(CL).restore();
+      if(fillW>0) doc.save().roundedRect(x+labelW+bGap,barY,Math.max(fillW,3),barH,2).fill(color||CP).restore();
+      doc.fillColor(CT).fontSize(isKo?7.5:8).font(F.bold)
+         .text(String(value),x+labelW+bGap+barAreaW+bGap,y+2,{width:countW,align:'right',lineBreak:false});
+      if(opts.showPct&&opts.total>0){
+        const pct=Math.round(value/opts.total*100);
+        doc.fillColor(CS).fontSize(7).font(F.reg)
+           .text(pct+'%',x+labelW+bGap+barAreaW+bGap+countW+3,y+3,{width:pctW-3,lineBreak:false});
+      }
+      if(opts.delta!==undefined){
+        const ds=String(opts.delta);const dc=ds.startsWith('+')?CE:ds.startsWith('-')?COK:CS;
+        const dX=x+labelW+bGap+barAreaW+bGap+countW+(pctW?bGap+pctW+4:4);
+        doc.fillColor(dc).fontSize(6.5).font(F.med).text(ds,dX,y+3,{lineBreak:false});
+      }
+      return y+rowH;
+    }
+
+    // Horizontal bar group — returns height consumed
+    function drawHBarGroup(x,y,colW,items,opts){
+      opts=opts||{};
+      const maxVal=Math.max(...items.map(i=>i.value),1);
+      let cy=y;
+      if(opts.title){
+        doc.fillColor(CP).fontSize(isKo?8:8.5).font(F.bold).text(opts.title,x,cy,{width:colW,lineBreak:false});
+        cy+=13;
+      }
+      items.forEach(item=>{
+        cy=drawHBar(x,cy,colW,item.label,item.value,maxVal,item.color,
+                    {labelW:opts.labelW,countW:opts.countW,showPct:opts.showPct,total:opts.total,delta:item.delta});
+        cy+=1;
       });
+      return cy-y;
     }
 
-    // Horizontal bar chart with labels
-    // items = [{label, value, color}], maxW = max bar width, barH = bar height
-    function drawHBarChart(x, y, items, maxW, barH, showPct, totalVal) {
-      barH = barH || 16;
-      const gap = barH + 8;
-      const maxVal = Math.max(...items.map(it => it.value), 1);
-      items.forEach((it, i) => {
-        const iy = y + i * gap;
-        // Label
-        doc.fillColor(CT).fontSize(7.5).font(F.med).text(it.label, x, iy + 2, {width: 80, lineBreak: false});
-        // Background bar
-        doc.save().roundedRect(x + 82, iy, maxW, barH, 4).fill(CBG).restore();
-        // Value bar
-        const barW = maxVal > 0 ? Math.max(Math.round((it.value / maxVal) * maxW), 4) : 0;
-        if(barW > 0) doc.save().roundedRect(x + 82, iy, barW, barH, 4).fill(it.color).restore();
-        // Value text
-        const valText = showPct && totalVal ? it.value + ' (' + Math.round(it.value / totalVal * 100) + '%)' : String(it.value);
-        doc.fillColor(CT).fontSize(7.5).font(F.bold).text(valText, x + 82 + maxW + 4, iy + 2, {width: 90, lineBreak: false});
-      });
-      return y + items.length * gap;
-    }
-
-    // Mini KPI card with colored left border
-    function drawMiniKPI(x, y, w, h, label, value, sub, color) {
-      doc.save().roundedRect(x, y, w, h, 6).fillAndStroke(CCARD, CL).restore();
-      doc.save().rect(x, y + 3, 4, h - 6).fill(color).restore();
-      doc.fillColor(CS).fontSize(7.5).font(F.med).text(label, x + 12, y + 6, {width: w - 18, lineBreak: false});
-      doc.fillColor(color).fontSize(18).font(F.black).text(String(value), x + 12, y + 18, {width: w - 18, lineBreak: false});
-      if(sub) doc.fillColor(CS).fontSize(7).font(F.light).text(sub, x + 12, y + 38, {width: w - 18, lineBreak: false});
-    }
-
-    // Gauge arc (semi-circle) for resolution time
-    function drawGauge(cx, cy, r, value, max, color, label) {
-      // Background arc (180 degrees, bottom half)
-      const steps = 40;
-      for(let pass = 0; pass < 2; pass++) {
-        const endPct = pass === 0 ? 1 : Math.min(value / max, 1);
-        const arcColor = pass === 0 ? CBG : color;
-        const startA = Math.PI;
-        const endA = startA + Math.PI * endPct;
-        const outerR = r, innerR = r * 0.7;
-        let pathStr = '';
-        const px = cx + outerR * Math.cos(startA);
-        const py = cy + outerR * Math.sin(startA);
-        pathStr = 'M ' + px.toFixed(2) + ' ' + py.toFixed(2) + ' ';
-        for(let i = 1; i <= steps; i++) {
-          const a = startA + (endA - startA) * (i / steps);
-          pathStr += 'L ' + (cx + outerR * Math.cos(a)).toFixed(2) + ' ' + (cy + outerR * Math.sin(a)).toFixed(2) + ' ';
-        }
-        pathStr += 'L ' + (cx + innerR * Math.cos(endA)).toFixed(2) + ' ' + (cy + innerR * Math.sin(endA)).toFixed(2) + ' ';
-        for(let i = steps; i >= 0; i--) {
-          const a = startA + (endA - startA) * (i / steps);
-          pathStr += 'L ' + (cx + innerR * Math.cos(a)).toFixed(2) + ' ' + (cy + innerR * Math.sin(a)).toFixed(2) + ' ';
-        }
-        pathStr += 'Z';
-        doc.save().path(pathStr).fill(arcColor).restore();
+    // Vertical trend bar chart — returns height consumed
+    function drawVTrend(x,y,w,h,data,opts){
+      opts=opts||{};
+      let cy=y;
+      if(opts.title){
+        doc.fillColor(CP).fontSize(isKo?8:8.5).font(F.bold).text(opts.title,x,cy,{width:w,lineBreak:false});
+        cy+=13;
       }
-      // Center value
-      const gvLen = String(value).length;
-      const gvFS = gvLen > 3 ? 10 : gvLen > 2 ? 12 : 13;
-      doc.fillColor(color).fontSize(gvFS).font(F.black).text(String(value), cx - 25, cy - 15, {width: 50, align: 'center', lineBreak: false});
-      doc.fillColor(CS).fontSize(6).font(F.med).text(label, cx - 28, cy + 1, {width: 56, align: 'center', lineBreak: false});
+      const n=data.length; if(!n){doc.y=y+h;return h;}
+      const chartH=h-(opts.title?13:0)-14;
+      const maxVal=Math.max(...data,1);
+      const slotW=w/n;
+      const barW=Math.max(Math.floor(slotW*0.72),3);
+      const chartY=cy;
+      doc.save().moveTo(x,chartY+chartH+0.5).lineTo(x+w,chartY+chartH+0.5)
+         .strokeColor(CL).lineWidth(0.5).stroke().restore();
+      data.forEach((val,i)=>{
+        const barFillH=Math.max(0,Math.round(chartH*val/maxVal));
+        const bx=x+Math.round(i*slotW+(slotW-barW)/2);
+        const by=chartY+chartH-barFillH;
+        const isHL=opts.highlightIdx!==undefined&&i===opts.highlightIdx;
+        if(barFillH>0) doc.save().roundedRect(bx,by,barW,barFillH,2).fill(isHL?CE:(val>0?CP:CL)).restore();
+        if(val>0){
+          if(barFillH>=14) doc.fillColor('#fff').fontSize(6.5).font(F.bold).text(String(val),bx,by+barFillH/2-4,{width:barW,align:'center',lineBreak:false});
+          else if(barFillH>=2) doc.fillColor(CT).fontSize(6.5).font(F.bold).text(String(val),bx-2,by-11,{width:barW+4,align:'center',lineBreak:false});
+        }
+        if(opts.labels&&opts.labels[i]&&(n<=12||(i%5===0)||i===n-1)){
+          doc.fillColor(CS).fontSize(6).font(F.reg).text(String(opts.labels[i]),bx-2,chartY+chartH+3,{width:barW+4,align:'center',lineBreak:false});
+        }
+      });
+      cy=chartY+chartH+14;
+      doc.y=cy; return cy-y;
     }
 
-    const CHIGHLIGHT = '#FDE68A'; // visible amber/gold for TOTAL/summary rows
+    // Comment block — adaptive height
+    function drawCommentBlock(x,y,w,comment){
+      const maxChars=420;
+      const body=comment.length>maxChars?comment.slice(0,maxChars)+'…':comment;
+      const lineEst=Math.ceil(body.length/(isKo?55:70));
+      const bodyLineH=isKo?14:13;
+      const noticeH=16,padT=10,padB=10;
+      const bodyH=Math.max(1,lineEst)*bodyLineH;
+      const totalH=Math.min(noticeH+padT+bodyH+padB,108);
+      doc.save().roundedRect(x,y,w,totalH,5).fillAndStroke('#FFFBEB','#FDE68A').restore();
+      doc.save().rect(x,y,w,noticeH).fill('#FEF3C7').restore();
+      doc.save().rect(x,y,4,noticeH).fill('#D97706').restore();
+      const ntx=isKo?'※ 담당자가 직접 작성한 코멘트입니다.':'※ This comment was written by the branch manager.';
+      doc.fillColor('#92400E').fontSize(7.5).font(F.med).text(ntx,x+10,y+4,{width:w-20,lineBreak:false});
+      doc.fillColor('#78350F').fontSize(isKo?9.5:9).font(F.med)
+         .text(body,x+12,y+noticeH+padT,{width:w-24,lineBreak:true,height:totalH-noticeH-padT-padB});
+      doc.y=y+totalH+6; doc.x=ML; return totalH+6;
+    }
+
+    // Critical incident card — returns height consumed
+    function drawIncidentCard(x,y,w,incident,idx,totalCards){
+      const cardH=74;
+      const badgeCol=incident.Difficulty>=5?'#7B0000':CE;
+      const brCol=BR_COLORS[incident.Branch]||CP;
+      doc.save().roundedRect(x,y,w,cardH,5).fill(CCARD).restore();
+      doc.save().rect(x,y,4,cardH).fill(badgeCol).restore();
+      doc.save().roundedRect(x,y,w,cardH,5).stroke(CE).restore();
+      // Header row
+      const badge=incident.Difficulty>=5?(isKo?'심각':'SEVERE'):(isKo?'위험':'CRITICAL');
+      let hx=x+10;
+      doc.save().roundedRect(hx,y+8,52,14,3).fill(badgeCol).restore();
+      doc.fillColor('#fff').fontSize(7).font(F.bold).text(badge,hx,y+11,{width:52,align:'center',lineBreak:false});
+      hx+=58;
+      doc.save().roundedRect(hx,y+8,50,14,3).fill(brCol).restore();
+      doc.fillColor('#fff').fontSize(7).font(F.bold).text(incident.Branch||'',hx,y+11,{width:50,align:'center',lineBreak:false});
+      hx+=56;
+      doc.fillColor(CS).fontSize(7).font(F.med).text('Zone: ',hx,y+11,{lineBreak:false});
+      doc.fillColor(CT).fontSize(7).font(F.bold).text((incident.Zone||'–').slice(0,20),hx+28,y+11,{width:120,lineBreak:false});
+      doc.fillColor(CS).fontSize(7).font(F.med).text(incident.Date||'',x+w-80,y+11,{width:72,align:'right',lineBreak:false});
+      // Row 2: category + diff + duration
+      const catStr=(incident.Category||'Other')+'  ·  Lv.'+(incident.Difficulty||'?');
+      doc.fillColor(CS).fontSize(7).font(F.med).text(catStr,x+10,y+28,{lineBreak:false});
+      if(incident.TimeTaken) doc.fillColor(CS).fontSize(7).font(F.med)
+         .text((isKo?'처리시간:':'Duration: ')+incident.TimeTaken,x+w-100,y+28,{width:92,align:'right',lineBreak:false});
+      // Row 3: issue detail
+      const detail=pdfSafeText(trText(incident.IssueDetail||'')).slice(0,90);
+      doc.fillColor(CT).fontSize(isKo?8:8.5).font(F.med)
+         .text(detail,x+10,y+44,{width:w-18-(incident.SolvedBy?90:0),lineBreak:false});
+      if(incident.SolvedBy) doc.fillColor(CS).fontSize(7).font(F.med)
+         .text((isKo?'처리자:':'By: ')+incident.SolvedBy,x+w-95,y+44,{width:87,align:'right',lineBreak:false});
+      if(totalCards>1) doc.fillColor(CS).fontSize(6.5).font(F.reg).text((idx+1)+'/'+totalCards,x+w-22,y+5,{lineBreak:false});
+      doc.y=y+cardH; return cardH;
+    }
+
+    // Status banner (ok/warn/crit)
+    function drawStatusBanner(x,y,w,type,message){
+      const h=20;
+      const cfg={ok:{bg:'#F0FDF4',border:'#86EFAC',txt:COK,icon:'✓'},
+                 warn:{bg:'#FEF9C3',border:'#FDE047',txt:CW,icon:'⚠'},
+                 crit:{bg:'#FEF2F2',border:'#FECACA',txt:CE,icon:'!'}};
+      const c=cfg[type]||cfg.ok;
+      doc.save().roundedRect(x,y,w,h,4).fillAndStroke(c.bg,c.border).restore();
+      doc.fillColor(c.txt).fontSize(8.5).font(F.med)
+         .text(c.icon+'  '+message,x+10,y+5,{width:w-20,lineBreak:false});
+      doc.y=y+h+4; doc.x=ML; return h+4;
+    }
+
+    // No-data placeholder
+    function drawNoData(x,y,w,message){
+      const h=26;
+      doc.save().roundedRect(x,y,w,h,4).fill(CBG).restore();
+      doc.fillColor(CS).fontSize(isKo?8:8.5).font(F.med)
+         .text(message||(isKo?'데이터 없음.':'No data available.'),x+10,y+8,{width:w-20,lineBreak:false});
+      doc.y=y+h+4; doc.x=ML; return h+4;
+    }
+
+    // Inline subsection label
+    function subLabel(title){
+      doc.fillColor(CP).fontSize(isKo?8:8.5).font(F.bold).text(title,ML,doc.y,{width:PW,lineBreak:false});
+      doc.y+=13; doc.x=ML;
+    }
+
+    // ── STAFF DATA ──
+    const staffMap={};
+    md.forEach(r=>{
+      const nm=r.SolvedBy||'Unknown';
+      if(!staffMap[nm]) staffMap[nm]={count:0,diffs:[],totalMins:0,minCount:0};
+      staffMap[nm].count++;
+      staffMap[nm].diffs.push(r.Difficulty||1);
+      const mn=parseMins(r.TimeTaken);
+      if(mn>0){staffMap[nm].totalMins+=mn;staffMap[nm].minCount++;}
+    });
+    const staffSorted=Object.entries(staffMap).sort((a,b)=>b[1].count-a[1].count);
+    const staffTopList=staffSorted.slice(0,8).map(([nm,d])=>({name:nm,count:d.count,avgDiff:(d.diffs.reduce((s,v)=>s+v,0)/d.diffs.length).toFixed(1),avgMin:d.minCount?Math.round(d.totalMins/d.minCount):0}));
+
+    // ── COLOR MAP: branch, category ──
+    const catColors={'Software':CP,'Hardware':'#ef4444','Network':'#f59e0b','Other':'#a3a29c','Unknown':'#a3a29c'};
+
     function _drawTblHeader(headers, widths, hH, pad) {
       let cx=ML; const hy=doc.y;
       doc.save().rect(ML,hy,PW,hH).fill(CT).restore();
@@ -850,7 +936,9 @@ function generatePDF(logs, month, year, lang, history, assets, reportType, regio
       _markPage();
     }
 
-    // ══════════ FIRST CONTENT PAGE (cover removed) ══════════
+    // ══════════════════════════════════════════════
+    //  PAGE 1: DASHBOARD
+    // ══════════════════════════════════════════════
     _drawPageBranding();
 
     // ══════════ REPORT TITLE HEADER (admin / all-branch) ══════════
