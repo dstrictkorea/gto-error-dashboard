@@ -143,11 +143,51 @@ function _updateDaily(){
   var br=_dailyBranch||'ALL';
   var ds=_tzToday(br); // "today" in the branch's timezone
   _renderDailyKPI(ds,br);
+  _renderDailyBranchToday(ds,br);
   _renderDailyTrend(ds,br);
   _renderDailyTopZone(ds,br);
   _renderDailyCat(ds,br);
   _renderDailyTopCat(ds,br);
   _renderDailyList(ds,br);
+}
+
+/* ═══════════════════════
+   TODAY BY BRANCH STRIP (ALL view only)
+   ═══════════════════════ */
+function _renderDailyBranchToday(ds,br){
+  var c=el('daily-branch-today'); if(!c) return;
+  /* Only shown in ALL view; hide for single-branch */
+  if(br && br!=='ALL'){ c.innerHTML=''; c.style.display='none'; return; }
+  c.style.display='';
+
+  var regionBrs=typeof getRegionBranches==='function'?getRegionBranches():['AMNY','AMLV','AMDB'];
+  var BC=typeof BR_COLORS_MAP!=='undefined'?BR_COLORS_MAP:{};
+  var icons={AMNY:'🗽',AMLV:'🎰',AMDB:'🏜️',AMGN:'🏔',AMYS:'🌊',AMBS:'⚓',AMJJ:'🍊'};
+
+  /* Each branch uses its OWN timezone for "today" */
+  var items=regionBrs.map(function(b){
+    var bds=_tzToday(b);
+    var cnt=_logsForDay(bds,b).length;
+    return {br:b, cnt:cnt, col:BC[b]||'#534AB7', icon:icons[b]||'📍'};
+  });
+  items.sort(function(a,b){ return b.cnt-a.cnt; });
+
+  var total=items.reduce(function(s,i){return s+i.cnt;},0);
+  var h='<div class="bbt-wrap">'
+    +'<div class="bbt-title">'+(t('todayByBranch')||'Today by Branch')+'</div>'
+    +'<div class="bbt-list">';
+  items.forEach(function(item){
+    var pct=total?Math.round(item.cnt/total*100):0;
+    var muted=item.cnt===0;
+    h+='<div class="bbt-item'+(muted?' bbt-zero':'')+'" style="--bbt-c:'+item.col+'">'
+      +'<span class="bbt-icon">'+item.icon+'</span>'
+      +'<span class="bbt-br">'+esc(item.br)+'</span>'
+      +'<span class="bbt-cnt">'+item.cnt+'</span>'
+      +(total&&item.cnt?'<span class="bbt-pct">'+pct+'%</span>':'')
+      +'</div>';
+  });
+  h+='</div></div>';
+  c.innerHTML=h;
 }
 
 /* ═══════════════════════

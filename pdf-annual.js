@@ -154,12 +154,38 @@ function generateAnnualPDF(logs, year, lang, history, assets, region, comment, c
     const brCount = {}; yd.forEach(r => { brCount[r.Branch]=(brCount[r.Branch]||0)+1; });
     const prevBrCount = {}; prevYd.forEach(r => { prevBrCount[r.Branch]=(prevBrCount[r.Branch]||0)+1; });
 
+    // ── Data normalization (deduplicate e.g. GARDEN / Garden) ──
+    function normLbl(s) {
+      if(!s) return '';
+      s = s.trim().replace(/\s+/g,' ');
+      if(/^[A-Z0-9][A-Z0-9\s()\-\/\.]+$/.test(s)) {
+        s = s.charAt(0).toUpperCase() + s.slice(1).toLowerCase()
+              .replace(/\b([a-z])/g, (_,c) => c.toUpperCase());
+      }
+      return s;
+    }
+    function buildFolded(arr, keyFn, def) {
+      const upper={}, disp={};
+      arr.forEach(r=>{
+        const raw=(keyFn(r)||def||'').trim().replace(/\s+/g,' ');
+        if(!raw) return;
+        const k=raw.toUpperCase();
+        upper[k]=(upper[k]||0)+1;
+        if(!disp[k]) disp[k]=normLbl(raw);
+      });
+      const out={};
+      Object.keys(upper).forEach(k=>{ out[disp[k]||k]=upper[k]; });
+      return out;
+    }
+    yd.forEach(r=>{ if(r.Zone) r.Zone=normLbl(r.Zone); if(r.Category) r.Category=normLbl(r.Category); });
+    prevYd.forEach(r=>{ if(r.Zone) r.Zone=normLbl(r.Zone); if(r.Category) r.Category=normLbl(r.Category); });
+
     // Category
-    const catCount = {}; yd.forEach(r => { catCount[r.Category||'Other']=(catCount[r.Category||'Other']||0)+1; });
-    const prevCatCount = {}; prevYd.forEach(r => { prevCatCount[r.Category||'Other']=(prevCatCount[r.Category||'Other']||0)+1; });
+    const catCount     = buildFolded(yd,     r=>r.Category, 'Other');
+    const prevCatCount = buildFolded(prevYd,  r=>r.Category, 'Other');
 
     // Zone
-    const zoneCount = {}; yd.forEach(r => { zoneCount[r.Zone]=(zoneCount[r.Zone]||0)+1; });
+    const zoneCount = buildFolded(yd, r=>r.Zone, 'Unknown');
 
     // Difficulty
     const diffCount = {}; yd.forEach(r => { diffCount[r.Difficulty]=(diffCount[r.Difficulty]||0)+1; });
@@ -223,15 +249,15 @@ function generateAnnualPDF(logs, year, lang, history, assets, region, comment, c
 
     function sect(n, title) {
       _markPage();
-      if(doc.y > BOT - 200) { doc.addPage(); _drawPageBranding(); }
-      else if(doc.y > 80) { doc.y = doc.y + 12; } else { doc.y = 32; }
+      if(doc.y > BOT - 160) { doc.addPage(); _drawPageBranding(); }
+      else if(doc.y > 80) { doc.y = doc.y + 8; } else { doc.y = 32; }
       const y = doc.y;
-      doc.save().rect(ML,y,PW,22).fill('#f0eff8').restore();
-      doc.save().rect(ML,y,4,22).fill(CP).restore();
-      doc.fillColor(CT).fontSize(isKo?12:13).font(F.bold).text(n+'. '+title.toUpperCase(), ML+10, y+5, {lineBreak:false});
-      doc.y = y + 26;
-      doc.moveTo(ML,doc.y-2).lineTo(MR,doc.y-2).strokeColor(CP).lineWidth(0.8).stroke();
-      doc.moveDown(0.4);
+      doc.save().rect(ML,y,PW,14).fill('#f0eff8').restore();
+      doc.save().rect(ML,y,4,14).fill(CP).restore();
+      doc.fillColor(CT).fontSize(isKo?10:11).font(F.bold).text(n+'. '+title.toUpperCase(), ML+8, y+2, {lineBreak:false});
+      doc.y = y + 17;
+      doc.moveTo(ML,doc.y-1).lineTo(MR,doc.y-1).strokeColor(CP).lineWidth(0.6).stroke();
+      doc.moveDown(0.3);
       doc.x = ML;
       doc.font(F.reg).fillColor(CT);
     }
@@ -251,7 +277,7 @@ function generateAnnualPDF(logs, year, lang, history, assets, region, comment, c
     }
 
     function tbl(headers, rows, widths, opts) {
-      opts=opts||{}; const hH=isKo?26:24; const minRH=isKo?24:20; const pad=6; const cellPadY=isKo?7:6;
+      opts=opts||{}; const hH=isKo?20:18; const minRH=isKo?18:16; const pad=5; const cellPadY=isKo?5:4;
       pc(hH + minRH*Math.min(rows.length,2) + 10);
       _drawTblHeader(headers, widths, hH, pad);
       let visibleRowCount = 0;
@@ -350,8 +376,6 @@ function generateAnnualPDF(logs, year, lang, history, assets, region, comment, c
     // ══════════════════════════════════════════════
     //  SECTION 1: EXECUTIVE SUMMARY
     // ══════════════════════════════════════════════
-    doc.addPage();
-    _drawPageBranding();
     sect(1, L.execSummary);
 
     // Key metrics summary text
@@ -426,8 +450,6 @@ function generateAnnualPDF(logs, year, lang, history, assets, region, comment, c
     doc.font(F.med).fontSize(8).fillColor(CS).text(isKo?'월별 에러 발생 추이 (현재 연도 vs 전년도)':'Monthly error count trend (current year vs previous year)', {width:PW});
     doc.moveDown(0.5);
 
-    // Simple text-based bar chart for monthly trend
-    const maxMonthly = Math.max(...monthly.map(m=>m.length), ...prevMonthly.map(m=>m.length), 1);
     const trendHeaders = isKo ?
       ['월', year+'년', (year-1)+'년', '증감', '추이'] :
       ['Month', String(year), String(year-1), 'Change', 'Trend'];
@@ -440,30 +462,6 @@ function generateAnnualPDF(logs, year, lang, history, assets, region, comment, c
     trendRows.push([isKo?'합계':'TOTAL', total, prevTotal, trend(total,prevTotal), '--']);
     tbl(trendHeaders, trendRows, [85,108,108,178,318], {
       colColors: {4: v => { const n=parseInt(String(v)); return n>0?CE:n<0?COK:CS; }}
-    });
-
-    // Visual bar representation
-    doc.moveDown(0.5);
-    // 12 months × 20px each + title = ~260px. Ensure title stays with chart.
-    pc(Math.min(260, BOT - 60));
-    const barY = doc.y;
-    const barMaxW = 200;
-    doc.font(F.bold).fontSize(8).fillColor(CT).text(isKo?'월별 시각화':'Monthly Visualization', ML, barY);
-    doc.moveDown(0.3);
-    MONTHS_EN.forEach((mn,mi) => {
-      if(doc.y > BOT - 22) { _markPage(); doc.addPage(); }
-      const cy = doc.y;
-      const c=monthly[mi].length, p=prevMonthly[mi].length;
-      doc.font(F.med).fontSize(7.5).fillColor(CS).text(mn.slice(0,3), ML, cy, {width:30, lineBreak:false});
-      // Current year bar
-      const cPct = maxMonthly ? (c/maxMonthly*100) : 0;
-      const pPct = maxMonthly ? (p/maxMonthly*100) : 0;
-      drawBar(ML+35, cy, barMaxW, cPct, CP, 8);
-      doc.font(F.med).fontSize(7).fillColor(CP).text(String(c), ML+35+barMaxW+4, cy, {lineBreak:false});
-      // Previous year bar (lighter)
-      drawBar(ML+35, cy+10, barMaxW, pPct, '#d1d0ca', 6);
-      doc.font(F.med).fontSize(6).fillColor('#a3a29c').text(String(p), ML+35+barMaxW+4, cy+10, {lineBreak:false});
-      doc.y = cy + 20;
     });
 
     // ══════════════════════════════════════════════
@@ -485,9 +483,8 @@ function generateAnnualPDF(logs, year, lang, history, assets, region, comment, c
       colColors: {3: v => { const s=String(v); return s.startsWith('+')?CE:s.startsWith('-')?COK:CT; }}
     });
 
-    doc.moveDown(0.8);
-    // Ensure subtitle + at least first few rows + bar chart start together
-    pc(220);
+    doc.moveDown(0.6);
+    pc(100);
 
     // Difficulty distribution
     doc.font(F.bold).fontSize(9).fillColor(CP).text(isKo?'난이도 분포':'DIFFICULTY DISTRIBUTION', ML);
@@ -503,20 +500,6 @@ function generateAnnualPDF(logs, year, lang, history, assets, region, comment, c
     diffRows.push([isKo?'합계':'TOTAL', total, '100%']);
     tbl(diffHeaders, diffRows, [263,263,271], {
       colColors: {0: v => diffCols[parseInt(String(v).replace('Lv.',''),10)]||CT}
-    });
-
-    // Visual bar chart for difficulty (drawn shapes, not unicode)
-    doc.moveDown(0.5);
-    pc(5 * 15 + 10); // ensure all 5 bars fit on same page
-    const diffBarMaxW = 280;
-    [1,2,3,4,5].forEach((d,di) => {
-      const cy = doc.y;
-      const pct = diffPcts[di]||0;
-      const col = diffCols[d]||CS;
-      doc.font(F.med).fontSize(7.5).fillColor(col).text('Lv.'+d, ML, cy, {width:32, lineBreak:false});
-      drawBar(ML+36, cy, diffBarMaxW, pct, col, 10);
-      doc.font(F.med).fontSize(7).fillColor(CT).text(pct+'%', ML+36+diffBarMaxW+6, cy+1, {lineBreak:false});
-      doc.y = cy + 15;
     });
 
     // ══════════════════════════════════════════════
@@ -535,22 +518,6 @@ function generateAnnualPDF(logs, year, lang, history, assets, region, comment, c
       return [i+1, z[0], z[1], pct+'%', topZoneCat?topZoneCat[0]:'--'];
     });
     tbl(zoneHeaders, zoneRows, [54,271,93,85,294]);
-
-    // Visual bar chart for top zones (drawn shapes)
-    doc.moveDown(0.5);
-    pc(topZones.length * 15 + 10);
-    const zBarMaxW = 260;
-    const maxZoneCount = topZones.length ? topZones[0][1] : 1;
-    topZones.forEach((z,i) => {
-      if(doc.y > BOT - 16) { _markPage(); doc.addPage(); }
-      const cy = doc.y;
-      const pct = maxZoneCount ? (z[1]/maxZoneCount*100) : 0;
-      const col = catCols[i % catCols.length];
-      doc.font(F.med).fontSize(7).fillColor(CS).text(z[0], ML, cy, {width:90, lineBreak:false});
-      drawBar(ML+95, cy, zBarMaxW, pct, col, 10);
-      doc.font(F.med).fontSize(7).fillColor(CT).text(String(z[1]), ML+95+zBarMaxW+6, cy+1, {lineBreak:false});
-      doc.y = cy + 15;
-    });
 
     // ══════════════════════════════════════════════
     //  SECTION 6: CRITICAL INCIDENTS

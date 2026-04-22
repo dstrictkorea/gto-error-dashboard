@@ -498,10 +498,41 @@ function generatePDF(logs, month, year, lang, history, assets, reportType, regio
 
     // ── DATA ──
     const md = logs.filter(r => { const p=(r.Date||'').split('-'); return parseInt(p[0])===year && parseInt(p[1])===month+1; });
+
+    // ── Data normalization: unify Zone/Category labels (Garden vs GARDEN, etc.) ──
+    function normLbl(s) {
+      if(!s) return '';
+      s = s.trim().replace(/\s+/g,' ');
+      // All-caps words → Title Case (GARDEN→Garden, FLOWER→Flower, TEABAR→Teabar)
+      if(/^[A-Z0-9][A-Z0-9\s()\-\/\.]+$/.test(s)) {
+        s = s.charAt(0).toUpperCase() + s.slice(1).toLowerCase()
+              .replace(/\b([a-z])/g, (_,c) => c.toUpperCase());
+      }
+      return s;
+    }
+    function buildFolded(arr, keyFn, def) {
+      const upper={}, disp={};
+      arr.forEach(r=>{
+        const raw=(keyFn(r)||def||'').trim().replace(/\s+/g,' ');
+        if(!raw) return;
+        const k=raw.toUpperCase();
+        upper[k]=(upper[k]||0)+1;
+        if(!disp[k]) disp[k]=normLbl(raw);
+      });
+      const out={};
+      Object.keys(upper).forEach(k=>{ out[disp[k]||k]=upper[k]; });
+      return out;
+    }
+    // Normalize raw data in place
+    md.forEach(r=>{
+      if(r.Zone)     r.Zone     = normLbl(r.Zone);
+      if(r.Category) r.Category = normLbl(r.Category);
+    });
+
     const total = md.length;
     const brCount = {}; md.forEach(r => { brCount[r.Branch]=(brCount[r.Branch]||0)+1; });
-    const catCount = {}; md.forEach(r => { catCount[r.Category||'Other']=(catCount[r.Category||'Other']||0)+1; });
-    const zoneCount = {}; md.forEach(r => { zoneCount[r.Zone]=(zoneCount[r.Zone]||0)+1; });
+    const catCount  = buildFolded(md, r=>r.Category, 'Other');
+    const zoneCount = buildFolded(md, r=>r.Zone,     'Unknown');
     const critical = md.filter(r => r.Difficulty >= 4);
     const diffCount = {}; md.forEach(r => { diffCount[r.Difficulty]=(diffCount[r.Difficulty]||0)+1; });
     const avgDiff = total ? (md.reduce((s,r)=>s+(r.Difficulty||1),0)/total).toFixed(1) : '0.0';
@@ -513,7 +544,7 @@ function generatePDF(logs, month, year, lang, history, assets, reportType, regio
     const prevMd = logs.filter(r => { const p=(r.Date||'').split('-'); return parseInt(p[0])===prevYr && parseInt(p[1])===prevMo+1; });
     const prevTotal = prevMd.length, prevCrit = prevMd.filter(r=>r.Difficulty>=4).length;
     // Previous month category/zone for comparison
-    const prevCatCount = {}; prevMd.forEach(r=>{prevCatCount[r.Category||'Other']=(prevCatCount[r.Category||'Other']||0)+1;});
+    const prevCatCount = {}; prevMd.forEach(r=>{prevCatCount[normLbl(r.Category)||'Other']=(prevCatCount[normLbl(r.Category)||'Other']||0)+1;});
     const prevBrCount = {}; prevMd.forEach(r=>{prevBrCount[r.Branch]=(prevBrCount[r.Branch]||0)+1;});
 
     // ── Similar history finder (equipment GROUP + keyword matching) ──
@@ -601,25 +632,24 @@ function generatePDF(logs, month, year, lang, history, assets, reportType, regio
     function trendDir(c,p) { if(!p)return 'new'; const d=c-p; return d>0?'up':d<0?'down':'flat'; }
 
     function sect(n, title) {
-      _markPage(); // mark current page before potentially adding new one
-      // Only add new page if not enough room for section header + content (~200pt)
-      if(doc.y > BOT - 200) {
+      _markPage();
+      // New page only when truly out of space (less than 160pt left)
+      if(doc.y > BOT - 160) {
         doc.addPage();
         _drawPageBranding();
       } else if(doc.y > 80) {
-        // Tight spacing between sections
-        doc.y = doc.y + 12;
+        doc.y = doc.y + 8;
       } else {
         doc.y = 32;
       }
       const y = doc.y;
-      // Section header — compact band
-      doc.save().rect(ML,y,PW,22).fill('#f0eff8').restore();
-      doc.save().rect(ML,y,4,22).fill(CP).restore();
-      doc.fillColor(CT).fontSize(isKo?12:13).font(F.bold).text(n+'. '+title.toUpperCase(), ML+10, y+5, {lineBreak:false});
-      doc.y = y + 26;
-      doc.moveTo(ML,doc.y-2).lineTo(MR,doc.y-2).strokeColor(CP).lineWidth(0.8).stroke();
-      doc.moveDown(0.4);
+      // Compact section header — 14pt band
+      doc.save().rect(ML,y,PW,14).fill('#f0eff8').restore();
+      doc.save().rect(ML,y,4,14).fill(CP).restore();
+      doc.fillColor(CT).fontSize(isKo?10:11).font(F.bold).text(n+'. '+title.toUpperCase(), ML+8, y+2, {lineBreak:false});
+      doc.y = y + 17;
+      doc.moveTo(ML,doc.y-1).lineTo(MR,doc.y-1).strokeColor(CP).lineWidth(0.6).stroke();
+      doc.moveDown(0.3);
       doc.x = ML;
       doc.font(F.reg).fillColor(CT);
     }
@@ -775,7 +805,7 @@ function generatePDF(logs, month, year, lang, history, assets, reportType, regio
     }
 
     function tbl(headers, rows, widths, opts) {
-      opts=opts||{}; const hH=isKo?26:24; const minRH=isKo?24:20; const pad=6; const cellPadY=isKo?7:6;
+      opts=opts||{}; const hH=isKo?20:18; const minRH=isKo?18:16; const pad=5; const cellPadY=isKo?5:4;
       pc(hH + minRH*Math.min(rows.length,2) + 10);
       _drawTblHeader(headers, widths, hH, pad);
       let visibleRowCount = 0;
@@ -957,7 +987,7 @@ function generatePDF(logs, month, year, lang, history, assets, reportType, regio
     doc.y = critY+critH+12; doc.x=ML;
     _markPage();
 
-    // ── Executive Summary: Visual Dashboard (4-Quadrant Grid) ──
+    // ── Executive Summary: 2-Column Dashboard (dense, no donuts) ──
 
     if(total===0){
       const noIncText = branchFilter
@@ -966,144 +996,108 @@ function generatePDF(logs, month, year, lang, history, assets, reportType, regio
       doc.fillColor(CS).fontSize(11).font(F.reg).text(noIncText, ML);
     } else {
       const momDiff = total-prevTotal;
-      const momPct = prevTotal ? Math.round(Math.abs(momDiff)/prevTotal*100) : 0;
-      const catColors2 = {'Software':'#3B82F6','Hardware':'#EF4444','Network':'#F59E0B','Other':'#8B5CF6','Environment':'#10B981'};
-      const catEntries = Object.entries(catCount).sort((a,b)=>b[1]-a[1]);
-      const catSegments = catEntries.map(([cat,n]) => ({value: n, color: catColors2[cat] || '#6B7280', label: trCat(cat)}));
+      // ── 2-Column Dashboard: Branch+Category (left) | Zones+Difficulty (right) ──
+      // Column geometry: PW=797, lw=372, gap=10, rw=415
+      const _lw=372, _gap=10, _rw=PW-372-10; // rw=415
+      const _lx=ML, _rx=ML+_lw+_gap; // rx=ML+382=404
+      pc(180);
+      const dashY=doc.y;
+      let _ly=dashY, _ry=dashY;
 
-      // ═══ 4-QUADRANT GRID (Shared Y anchors for perfect L/R alignment) ═══
-      const halfW = Math.floor(PW/2)-8;
-      const midX = ML + halfW + 16;
+      // ─── LEFT: Branch bars with count + pct + MoM delta ───
+      doc.fillColor(CT).fontSize(8.5).font(F.bold).text(isKo?'지점별 현황':'BRANCH DISTRIBUTION', _lx, _ly, {lineBreak:false});
+      doc.moveTo(_lx, _ly+12).lineTo(_lx+70, _ly+12).strokeColor(CP).lineWidth(0.8).stroke();
+      _ly += 17;
+      const _brBarMax=234; // lx+44+234+4+26+4+30+4+26 = 372 fits
+      const _mxBr=Math.max(...PDF_BRANCHES.map(b=>brCount[b]||0), 1);
+      PDF_BRANCHES.forEach(b=>{
+        const c=brCount[b]||0, p=prevBrCount[b]||0, d=c-p;
+        const bw=c>0?Math.max(4,Math.round((c/_mxBr)*_brBarMax)):0;
+        const dStr=d>0?'+'+d:d<0?String(d):'=';
+        const dCol=d>0?CE:d<0?COK:CS;
+        doc.fillColor(CT).fontSize(7.5).font(F.med).text(b, _lx, _ly+1, {width:40,lineBreak:false});
+        doc.save().roundedRect(_lx+44, _ly, _brBarMax, 12, 3).fill(CBG).restore();
+        if(bw>0) doc.save().roundedRect(_lx+44, _ly, bw, 12, 3).fill(BR_COLORS[b]||CP).restore();
+        const pct=total?Math.round(c/total*100):0;
+        doc.fillColor(CT).fontSize(7.5).font(F.bold).text(String(c), _lx+44+_brBarMax+4, _ly+1, {width:26,align:'right',lineBreak:false});
+        doc.fillColor(CS).fontSize(7).font(F.light).text('('+pct+'%)', _lx+44+_brBarMax+34, _ly+1, {width:30,lineBreak:false});
+        doc.fillColor(dCol).fontSize(7).font(F.bold).text(dStr, _lx+44+_brBarMax+68, _ly+1, {width:26,align:'right',lineBreak:false});
+        _ly += 15;
+      });
+      doc.moveTo(_lx, _ly).lineTo(_lx+_lw, _ly).strokeColor(CL).lineWidth(0.3).stroke();
+      _ly += 5;
+      const _momCol=momDiff>0?CE:momDiff<0?COK:CS;
+      doc.fillColor(CT).fontSize(7.5).font(F.bold).text(isKo?'합계':'TOTAL', _lx, _ly+1, {width:40,lineBreak:false});
+      doc.fillColor(CP).fontSize(7.5).font(F.black).text(String(total), _lx+44+_brBarMax+4, _ly+1, {width:26,align:'right',lineBreak:false});
+      doc.fillColor(_momCol).fontSize(7).font(F.bold).text(momDiff>0?'+'+momDiff:momDiff<0?String(momDiff):'=', _lx+44+_brBarMax+68, _ly+1, {width:26,align:'right',lineBreak:false});
+      _ly += 18;
 
-      // ── Shared Y anchors (top row) ──
-      const rowH = 152;           // each row height (compact, no dead space)
-      pc(rowH*2+16);
-      const gridY = doc.y;
-      const tY   = gridY;         // title baseline (both columns)
-      const ulY  = gridY+13;      // underline Y
-      const dCY  = gridY+68;      // donut center / bar chart center zone
-      const legY = gridY+124;     // legend row / MoM summary (ALIGNED)
-
-      // ── Shared Y anchors (bottom row) ──
-      const r2Y  = gridY+rowH+10; // row 2 title
-      const r2ulY= r2Y+13;        // row 2 underline
-      const r2cY = r2Y+58;        // row 2 donut center / gauge center
-      const r2legY= r2Y+118;      // row 2 legend / stat cards (ALIGNED)
-
-      // Cross divider lines
-      doc.moveTo(ML+halfW+7, gridY).lineTo(ML+halfW+7, gridY+rowH*2+8).strokeColor('#e0dfda').lineWidth(0.5).stroke();
-      doc.moveTo(ML, gridY+rowH+4).lineTo(MR, gridY+rowH+4).strokeColor('#e0dfda').lineWidth(0.5).stroke();
-
-      // ── Q1 (top-left): Branch Distribution ──
-      doc.fillColor(CT).fontSize(9).font(F.bold).text(isKo?'지점별 분포':'BRANCH DISTRIBUTION',ML,tY,{lineBreak:false});
-      doc.moveTo(ML,ulY).lineTo(ML+60,ulY).strokeColor(CP).lineWidth(1).stroke();
-      const brSegments = PDF_BRANCHES.map(b => ({value: brCount[b]||0, color: BR_COLORS[b], label: b}));
-      drawDonut(ML+halfW/2, dCY, 44, 26, brSegments, String(total), isKo?'건':'total');
-      brSegments.forEach((seg,i)=>{
-        const lx=ML+i*Math.floor(halfW/3);
-        doc.save().circle(lx+4,legY+4,3.5).fill(seg.color).restore();
-        const pct=total>0?Math.round(seg.value/total*100):0;
-        const uLabel = isKo ? seg.label+' '+seg.value+'건('+pct+'%)' : seg.label+' '+seg.value+'('+pct+'%)';
-        doc.fillColor(CT).fontSize(7).font(F.med).text(uLabel,lx+11,legY,{width:90,lineBreak:false});
+      // ─── LEFT: Category bars ───
+      _ly += 5;
+      doc.fillColor(CT).fontSize(8.5).font(F.bold).text(isKo?'유형별':'CATEGORY', _lx, _ly, {lineBreak:false});
+      doc.moveTo(_lx, _ly+12).lineTo(_lx+55, _ly+12).strokeColor(CP).lineWidth(0.8).stroke();
+      _ly += 17;
+      const _catEnt=Object.entries(catCount).sort((a,b)=>b[1]-a[1]).slice(0,5);
+      const _mxCat=_catEnt.length?_catEnt[0][1]:1;
+      const _catBarMax=237; // 72+4+237+5+24+4+26=372 fits
+      _catEnt.forEach((ce,i)=>{
+        const cbw=ce[1]>0?Math.max(4,Math.round((ce[1]/_mxCat)*_catBarMax)):0;
+        const ccol=catCols[i%catCols.length];
+        doc.fillColor(CS).fontSize(7).font(F.med).text(trCat(ce[0]).slice(0,16), _lx, _ly+1, {width:72,lineBreak:false});
+        doc.save().roundedRect(_lx+76, _ly, _catBarMax, 10, 3).fill(CBG).restore();
+        if(cbw>0) doc.save().roundedRect(_lx+76, _ly, cbw, 10, 3).fill(ccol).restore();
+        const cpct=total?Math.round(ce[1]/total*100):0;
+        doc.fillColor(CT).fontSize(7).font(F.bold).text(String(ce[1]), _lx+76+_catBarMax+5, _ly+1, {width:24,align:'right',lineBreak:false});
+        doc.fillColor(CS).fontSize(7).font(F.light).text('('+cpct+'%)', _lx+76+_catBarMax+31, _ly+1, {width:26,lineBreak:false});
+        _ly += 13;
       });
 
-      // ── Q2 (top-right): Branch MoM Comparison ──
-      doc.fillColor(CT).fontSize(9).font(F.bold).text(isKo?'지점별 전월 대비':'BRANCH vs LAST MONTH',midX,tY,{lineBreak:false});
-      doc.moveTo(midX,ulY).lineTo(midX+80,ulY).strokeColor(CP).lineWidth(1).stroke();
-      const q2barH=14, q2gap=q2barH+16, q2labelW=50, q2barMax=halfW-q2labelW-80;
-      const q2startY=gridY+28;
-      const q2maxVal=Math.max(...PDF_BRANCHES.map(b=>brCount[b]||0),1);
-      PDF_BRANCHES.forEach((b,i) => {
-        const cur=brCount[b]||0, prev=prevBrCount[b]||0, diff=cur-prev;
-        const iy=q2startY+i*q2gap;
-        doc.fillColor(CT).fontSize(7.5).font(F.med).text(b,midX,iy+2,{width:q2labelW,lineBreak:false});
-        doc.save().roundedRect(midX+q2labelW,iy,q2barMax,q2barH,4).fill(CBG).restore();
-        const barW=q2maxVal>0?Math.max(Math.round((cur/q2maxVal)*q2barMax),4):0;
-        if(barW>0) doc.save().roundedRect(midX+q2labelW,iy,barW,q2barH,4).fill(BR_COLORS[b]).restore();
-        const pct=total>0?Math.round(cur/total*100):0;
-        doc.fillColor(CT).fontSize(7.5).font(F.bold).text(cur+' ('+pct+'%)',midX+q2labelW+q2barMax+4,iy+2,{width:55,lineBreak:false});
-        const dColor=diff>0?CE:diff<0?COK:CS;
-        const dText=diff>0?'+'+diff:diff<0?String(diff):'0';
-        doc.fillColor(dColor).fontSize(7).font(F.bold).text(dText,midX+q2labelW+q2barMax+58,iy+2,{width:20,lineBreak:false});
-      });
-      // MoM summary — SAME Y as Q1 legend (legY)
-      const momColor=momDiff>0?CE:momDiff<0?COK:CS;
-      const momText=momDiff>0?(isKo?'전월 대비 +'+momDiff+'건 증가(+'+momPct+'%)':'+'+momDiff+' vs prev (+'+momPct+'%)')
-        :momDiff<0?(isKo?'전월 대비 '+momDiff+'건 감소(-'+momPct+'%)':momDiff+' vs prev (-'+momPct+'%)')
-        :(isKo?'전월 대비 동일':'Same as prev month');
-      doc.fillColor(momColor).fontSize(7.5).font(F.bold).text(momText,midX,legY,{width:halfW,lineBreak:false});
-
-      // ── Q3 (bottom-left): Category Distribution ──
-      doc.fillColor(CT).fontSize(9).font(F.bold).text(isKo?'유형별 분류':'ERROR CATEGORIES',ML,r2Y,{lineBreak:false});
-      doc.moveTo(ML,r2ulY).lineTo(ML+55,r2ulY).strokeColor(CP).lineWidth(1).stroke();
-      drawDonut(ML+halfW/2, r2cY, 44, 26, catSegments, catEntries.length>0?String(catEntries[0][1]):'0', catEntries.length>0?trCat(catEntries[0][0]):'');
-      catSegments.forEach((seg,i)=>{
-        const lx=ML+(i%3)*Math.floor(halfW/3);
-        const ly=r2legY+Math.floor(i/3)*12;
-        doc.save().circle(lx+4,ly+4,3).fill(seg.color).restore();
-        const pct=total>0?Math.round(seg.value/total*100):0;
-        const cLabel = isKo ? seg.label+' '+seg.value+'건('+pct+'%)' : seg.label+' '+seg.value+'('+pct+'%)';
-        doc.fillColor(CT).fontSize(6.5).font(F.med).text(cLabel,lx+10,ly,{width:90,lineBreak:false});
+      // ─── RIGHT: Top Zones ───
+      const _topZonesArr=Object.entries(zoneCount).sort((a,b)=>b[1]-a[1]).slice(0,7);
+      doc.fillColor(CT).fontSize(8.5).font(F.bold).text(isKo?'주요 Zone (Top 7)':'TOP ZONES', _rx, _ry, {lineBreak:false});
+      doc.moveTo(_rx, _ry+12).lineTo(_rx+70, _ry+12).strokeColor(CP).lineWidth(0.8).stroke();
+      _ry += 17;
+      const _mxZone=_topZonesArr.length?_topZonesArr[0][1]:1;
+      const _zBarMax=272; // 80+4+272+5+24+4+30=419 ≤ rw=415... adjust: 267
+      // rw=415: label80+gap4+bar+gap5+cnt24+gap4+pct26 → bar=415-143=272 ✓ (rx+rw=MR=819)
+      _topZonesArr.forEach((ze,i)=>{
+        const zbw=ze[1]>0?Math.max(4,Math.round((ze[1]/_mxZone)*_zBarMax)):0;
+        const zcol=catCols[i%catCols.length];
+        const zLbl=ze[0].length>17?ze[0].slice(0,16)+'\u2026':ze[0];
+        doc.fillColor(CS).fontSize(7.5).font(F.med).text(zLbl, _rx, _ry+1, {width:80,lineBreak:false});
+        doc.save().roundedRect(_rx+84, _ry, _zBarMax, 11, 3).fill(CBG).restore();
+        if(zbw>0) doc.save().roundedRect(_rx+84, _ry, zbw, 11, 3).fill(zcol).restore();
+        const zpct=total?Math.round(ze[1]/total*100):0;
+        doc.fillColor(CT).fontSize(7.5).font(F.bold).text(String(ze[1]), _rx+84+_zBarMax+5, _ry+1, {width:24,align:'right',lineBreak:false});
+        doc.fillColor(CS).fontSize(7).font(F.light).text('('+zpct+'%)', _rx+84+_zBarMax+31, _ry+1, {width:26,lineBreak:false});
+        _ry += 14;
       });
 
-      // ── Q4 (bottom-right): Resolution Performance ──
-      doc.fillColor(CT).fontSize(9).font(F.bold).text(isKo?'처리 성과':'RESOLUTION PERFORMANCE',midX,r2Y,{lineBreak:false});
-      doc.moveTo(midX,r2ulY).lineTo(midX+70,r2ulY).strokeColor(CP).lineWidth(1).stroke();
-      const gCx1=midX+Math.floor(halfW/4), gCx2=midX+Math.floor(halfW*3/4);
-      const gCy=r2cY;
-      const resColor=avgRes>60?CE:avgRes>40?CW:COK;
-      drawGauge(gCx1,gCy,28,avgRes,120,resColor,isKo?'평균(분)':'avg min');
-      const diffColor=parseFloat(avgDiff)>=3.5?CE:parseFloat(avgDiff)>=2.5?CW:COK;
-      drawGauge(gCx2,gCy,28,avgDiff,5,diffColor,isKo?'난이도':'difficulty');
-      // Stat cards — SAME Y as Q3 legend (r2legY)
-      const scW=Math.floor(halfW/2)-6, scH=34;
-      const scY=r2legY-2;
-      doc.save().roundedRect(midX,scY,scW,scH,5).fillAndStroke(CCARD,CL).restore();
-      doc.save().rect(midX,scY,3,scH).fill(maxRes>120?CE:CW).restore();
-      doc.fillColor(CT).fontSize(6.5).font(F.bold).text(isKo?'최대 처리시간':'MAX RESOLUTION',midX+9,scY+4,{width:scW-14,lineBreak:false});
-      doc.fillColor(maxRes>120?CE:CT).fontSize(11).font(F.black).text(maxRes+'min',midX+9,scY+15,{width:scW-14,align:'center',lineBreak:false});
-      const sc2X=midX+scW+12;
-      doc.save().roundedRect(sc2X,scY,scW,scH,5).fillAndStroke(CCARD,CL).restore();
-      doc.save().rect(sc2X,scY,3,scH).fill(critical.length>0?CE:COK).restore();
-      doc.fillColor(CT).fontSize(6.5).font(F.bold).text(isKo?'위험 장애(Lv.4+)':'CRITICAL(Lv.4+)',sc2X+9,scY+4,{width:scW-14,lineBreak:false});
-      doc.fillColor(critical.length>0?CE:COK).fontSize(11).font(F.black).text(critical.length+'/'+total,sc2X+9,scY+15,{width:scW-14,align:'center',lineBreak:false});
+      // ─── RIGHT: Difficulty distribution ───
+      _ry += 5;
+      doc.fillColor(CT).fontSize(8.5).font(F.bold).text(isKo?'난이도 분포':'DIFFICULTY', _rx, _ry, {lineBreak:false});
+      doc.moveTo(_rx, _ry+12).lineTo(_rx+55, _ry+12).strokeColor(CP).lineWidth(0.8).stroke();
+      _ry += 17;
+      const _dColors=['#22c55e','#84cc16','#eab308','#ef4444','#be123c'];
+      const _dNames=isKo?['Lv.1 경미','Lv.2 보통','Lv.3 주의','Lv.4 위험','Lv.5 심각']:['Lv.1 Minor','Lv.2 Low','Lv.3 Moderate','Lv.4 High','Lv.5 Critical'];
+      const _mxDiff=Math.max(...[1,2,3,4,5].map(d=>diffCount[d]||0), 1);
+      const _dBarMax=264; // 88+4+264+5+24+4+26=415 ✓
+      [1,2,3,4,5].forEach((d,i)=>{
+        const dc=diffCount[d]||0;
+        const dbw=dc>0?Math.max(4,Math.round((dc/_mxDiff)*_dBarMax)):0;
+        doc.fillColor(_dColors[i]).fontSize(7.5).font(F.med).text(_dNames[i], _rx, _ry+1, {width:88,lineBreak:false});
+        doc.save().roundedRect(_rx+92, _ry, _dBarMax, 11, 3).fill(CBG).restore();
+        if(dbw>0) doc.save().roundedRect(_rx+92, _ry, dbw, 11, 3).fill(_dColors[i]).restore();
+        const dpct=total?Math.round(dc/total*100):0;
+        doc.fillColor(CT).fontSize(7.5).font(F.bold).text(String(dc), _rx+92+_dBarMax+5, _ry+1, {width:24,align:'right',lineBreak:false});
+        doc.fillColor(CS).fontSize(7).font(F.light).text('('+dpct+'%)', _rx+92+_dBarMax+31, _ry+1, {width:26,lineBreak:false});
+        _ry += 14;
+      });
 
-      doc.y = r2Y+rowH+6;
-
-      // ═══ SECTION: Top Zones + Top Categories + Difficulty (horizontal bars) ═══
-      pc(200);
-      const secY=doc.y;
-      doc.moveTo(ML,secY).lineTo(MR,secY).strokeColor('#e0dfda').lineWidth(0.5).stroke();
-
-      // ── Top Zones ──
-      const topZones = Object.entries(zoneCount).sort((a,b)=>b[1]-a[1]).slice(0,5);
-      if(topZones.length>0){
-        doc.fillColor(CT).fontSize(9).font(F.bold).text(isKo?'주요 장애 Zone (Top 5)':'TOP AFFECTED ZONES',ML,secY+6,{lineBreak:false});
-        doc.moveTo(ML,secY+19).lineTo(ML+80,secY+19).strokeColor(CP).lineWidth(1).stroke();
-        const zoneItems=topZones.map(([z,cnt])=>{
-          const zl=md.filter(r=>r.Zone===z);
-          const zBr={}; zl.forEach(r=>{zBr[r.Branch]=(zBr[r.Branch]||0)+1;});
-          const mb=Object.entries(zBr).sort((a,b)=>b[1]-a[1])[0];
-          return {label:z.length>14?z.substring(0,14)+'..':z, value:cnt, color:mb?(BR_COLORS[mb[0]]||CP):CP};
-        });
-        drawHBarChart(ML, secY+26, zoneItems, 340, 13, true, total);
-        doc.y = secY+26+zoneItems.length*23+10;
-      }
-
-      // ── Difficulty Distribution (horizontal) ──
-      pc(100);
-      const diffY=doc.y;
-      doc.fillColor(CT).fontSize(9).font(F.bold).text(isKo?'난이도 분포':'DIFFICULTY DISTRIBUTION',ML,diffY,{lineBreak:false});
-      doc.moveTo(ML,diffY+13).lineTo(ML+65,diffY+13).strokeColor(CP).lineWidth(1).stroke();
-      const diffLevels=[1,2,3,4,5];
-      const diffColors2=['#22c55e','#84cc16','#eab308','#ef4444','#be123c'];
-      const diffNames=isKo?['Lv.1 경미','Lv.2 보통','Lv.3 주의','Lv.4 위험','Lv.5 심각']:['Lv.1 Minor','Lv.2 Low','Lv.3 Moderate','Lv.4 High','Lv.5 Critical'];
-      const diffItems=diffLevels.map((lv,i)=>{
-        const cnt=md.filter(r=>(lv<5?(r.Difficulty===lv):(r.Difficulty>=5))).length;
-        return {label:diffNames[i], value:cnt, color:diffColors2[i]};
-      }).filter(it=>it.value>0);
-      if(diffItems.length>0) drawHBarChart(ML, diffY+20, diffItems, 340, 12, true, total);
-      doc.y = diffY+20+(diffItems.length||1)*22+8;
+      // Advance past both columns
+      doc.y = Math.max(_ly, _ry) + 6;
+      doc.x = ML;
+      _markPage();
 
       // ── Key Issues (high difficulty errors, brief summary) ──
       const highDiff=md.filter(r=>r.Difficulty>=3).sort((a,b)=>(b.Difficulty||0)-(a.Difficulty||0)).slice(0,5);
