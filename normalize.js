@@ -5,6 +5,46 @@ const { ALL_BRANCHES } = require('./config');
 // ══════════════════════════════════════════════
 //  데이터 정규화
 // ══════════════════════════════════════════════
+
+// Preserved technical acronyms (case-preserving set)
+const ACRONYMS = new Set([
+  'PC','PCS','LED','HDMI','USB','TV','UPS','PDU','IP','DNS','DHCP','LAN','WAN','VLAN',
+  'NAS','NDI','BMS','DMX','SFP','RGB','DVI','SDI','VGA','AV','AC','DC','OS','API',
+  'URL','ID','UI','UX','PDF','CSV','JSON','HQ','VM','VPN','SSH','FTP','AI','ML',
+  'IR','RF','PIR','LCD','OLED','4K','8K','2D','3D','HD','SD','UHD','QR','GPS'
+]);
+
+// Canonical label: fixes "TEabar" → "Teabar", "SOftware" → "Software",
+// "GARDEN" → "Garden", preserves acronyms (PC, LED, HDMI).
+// Never mangles well-formed labels ("Garden" stays "Garden").
+function canonLabel(s) {
+  if (s === null || s === undefined) return '';
+  let v = String(s).trim().replace(/\s+/g, ' ');
+  if (!v) return '';
+  // Split on space, hyphen, slash, dot — preserve separators
+  return v.split(/([\s\-\/\.])/).map(tok => {
+    if (/^[\s\-\/\.]$/.test(tok)) return tok;
+    if (!tok) return tok;
+    // Pure digits or digit+letter codes like "4K", "001", "T-001" → keep
+    if (/^\d+$/.test(tok)) return tok;
+    if (/^\d+[A-Za-z]$/.test(tok)) return tok.toUpperCase();
+    // Acronym preservation (ASCII-only check)
+    const up = tok.toUpperCase();
+    if (/^[A-Z]+$/.test(up) && ACRONYMS.has(up)) return up;
+    // All-caps or malformed-case (GARDEN, TEabar, SOftware, GArden) → Title-case
+    // Trigger: contains upper AND not already clean Title/lower
+    const isAllUpper = /^[A-Z][A-Z0-9]*$/.test(tok);
+    const hasMidUpper = /[a-z][A-Z]/.test(tok); // "teABar" pattern
+    const isWeirdCase = /^[A-Z]{2,}[a-z]/.test(tok); // "TEabar", "SOftware"
+    if (isAllUpper || hasMidUpper || isWeirdCase) {
+      // Preserve unicode (Korean etc.) — only lowercase ASCII letters
+      const lowered = tok.replace(/[A-Z]/g, c => c.toLowerCase());
+      return lowered.charAt(0).toUpperCase() + lowered.slice(1);
+    }
+    return tok;
+  }).join('');
+}
+
 function excelDate(v) {
   if (v === null || v === undefined || v === '') return '';
   const s = String(v).trim();
@@ -75,4 +115,4 @@ function normHist(r) {
   };
 }
 
-module.exports = { excelDate, fg, normLog, normAsset, normHist };
+module.exports = { excelDate, fg, normLog, normAsset, normHist, canonLabel };

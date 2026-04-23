@@ -3,7 +3,7 @@
 const PDFDocument = require('pdfkit');
 const path = require('path');
 const { MONTHS_EN, BR_NAMES, BR_COLORS, KOREA_BRANCHES, GLOBAL_BRANCHES, ALL_BRANCHES } = require('./config');
-const { normHist } = require('./normalize');
+const { normHist, canonLabel } = require('./normalize');
 
 // Strip control characters from text destined for PDF rendering
 function sanitizePdfText(str) {
@@ -499,17 +499,10 @@ function generatePDF(logs, month, year, lang, history, assets, reportType, regio
     // ── DATA ──
     const md = logs.filter(r => { const p=(r.Date||'').split('-'); return parseInt(p[0])===year && parseInt(p[1])===month+1; });
 
-    // ── Data normalization: unify Zone/Category labels (Garden vs GARDEN, etc.) ──
-    function normLbl(s) {
-      if(!s) return '';
-      s = s.trim().replace(/\s+/g,' ');
-      // All-caps words → Title Case (GARDEN→Garden, FLOWER→Flower, TEABAR→Teabar)
-      if(/^[A-Z0-9][A-Z0-9\s()\-\/\.]+$/.test(s)) {
-        s = s.charAt(0).toUpperCase() + s.slice(1).toLowerCase()
-              .replace(/\b([a-z])/g, (_,c) => c.toUpperCase());
-      }
-      return s;
-    }
+    // ── Data normalization: unify Zone/Category labels (delegates to shared canonLabel)
+    // Handles GARDEN→Garden, TEabar→Teabar, SOftware→Software, GArden→Garden while
+    // preserving tech acronyms (PC, LED, HDMI). See normalize.js canonLabel.
+    const normLbl = canonLabel;
     function buildFolded(arr, keyFn, def) {
       const upper={}, disp={};
       arr.forEach(r=>{
@@ -828,8 +821,9 @@ function generatePDF(logs, month, year, lang, history, assets, reportType, regio
       doc.fillColor(CS).fontSize(7).font(F.med).text(catStr,x+10,y+28,{lineBreak:false});
       if(incident.TimeTaken) doc.fillColor(CS).fontSize(7).font(F.med)
          .text((isKo?'처리시간:':'Duration: ')+incident.TimeTaken,x+w-100,y+28,{width:92,align:'right',lineBreak:false});
-      // Row 3: issue detail
-      const detail=pdfSafeText(trText(incident.IssueDetail||'')).slice(0,90);
+      // Row 3: issue detail — Mode 2 controlled safe truncation (word-safe 140 chars)
+      const _rawDetail = pdfSafeText(trText(incident.IssueDetail||'')).trim();
+      const detail = _rawDetail.length > 140 ? _rawDetail.slice(0,137).replace(/\s+\S*$/,'') + '…' : _rawDetail;
       doc.fillColor(CT).fontSize(isKo?8:8.5).font(F.med)
          .text(detail,x+10,y+44,{width:w-18-(incident.SolvedBy?90:0),lineBreak:false});
       if(incident.SolvedBy) doc.fillColor(CS).fontSize(7).font(F.med)
@@ -1014,28 +1008,33 @@ function generatePDF(logs, month, year, lang, history, assets, reportType, regio
       doc.x = ML;
       doc.font(F.reg).fillColor(CT);
 
+      // Clean comment body: strip bullet markers, markdown list prefixes
+      let cleanComment = safeComment
+        .replace(/[•◦★✓▪︎▫︎◼︎☐☑︎☒✗✘]/g, '')
+        .replace(/^\s*[-*+]\s+/gm, '');
+      // Adaptive height: measure actual wrapped height; never reserve fixed amber box
+      const cmtFS = isKo ? 10 : 9.5;
+      doc.font(F.med).fontSize(cmtFS);
+      const cmtBodyH = Math.max(
+        isKo ? 22 : 20,
+        doc.heightOfString(cleanComment, { width: PW - 24, lineBreak: true }) + 14
+      );
+      // Notice strip — slim, token-aligned (no amber)
       const cmtY = doc.y;
-      // Highlight box
-      doc.save().roundedRect(ML, cmtY, PW, 16).fill('#FEF3C7').restore();
-      doc.save().rect(ML, cmtY, 4, 16).fill('#D97706').restore();
-      doc.fillColor('#92400E').fontSize(isKo ? 9 : 8.5).font(F.bold)
-        .text(isKo ? '※ 이 코멘트는 담당자가 직접 작성한 내용입니다.' : '※ This comment was written directly by the branch manager.',
+      doc.save().roundedRect(ML, cmtY, PW, 16, 3).fill('#f0eff8').restore();
+      doc.save().rect(ML, cmtY, 4, 16).fill(CP).restore();
+      doc.fillColor(CS).fontSize(isKo ? 8.5 : 8).font(F.med)
+        .text(isKo ? '이 코멘트는 담당자가 직접 작성한 내용입니다.' : 'This comment was written directly by the branch manager.',
           ML + 10, cmtY + 4, { width: PW - 20, lineBreak: false });
       doc.y = cmtY + 20;
-      // Comment body box — remove bullet points from content
-      let cleanComment = safeComment;
-      // Remove bullet points (• or ◦ or ★ or ✓ and similar characters)
-      cleanComment = cleanComment.replace(/[•◦★✓▪︎▫︎◼︎☐☑︎☒✗✘]/g, '');
-      // Remove markdown list markers (-, *, +) at line start
-      cleanComment = cleanComment.replace(/^\s*[-*+]\s+/gm, '');
-      const cmtLines = cleanComment.split('\n');
-      const cmtHeight = Math.max(50, cmtLines.length * (isKo ? 14 : 13) + 14);
-      pc(cmtHeight + 20);
+      pc(cmtBodyH + 8);
+      // Body — neutral cream card with purple side accent (no amber)
       const cmtBodyY = doc.y;
-      doc.save().roundedRect(ML, cmtBodyY, PW, cmtHeight + 12, 6).fill('#FFFBEB').stroke('#FDE68A').restore();
-      doc.fillColor('#78350F').fontSize(isKo ? 10 : 9.5).font(F.med)
-        .text(cleanComment, ML + 12, cmtBodyY + 10, { width: PW - 24, align: 'left', lineBreak: true });
-      doc.y = cmtBodyY + cmtHeight + 20;
+      doc.save().roundedRect(ML, cmtBodyY, PW, cmtBodyH, 4).fill(CBG).stroke(CL).restore();
+      doc.save().rect(ML, cmtBodyY, 3, cmtBodyH).fill(CP).restore();
+      doc.fillColor(CT).fontSize(cmtFS).font(F.med)
+        .text(cleanComment, ML + 12, cmtBodyY + 7, { width: PW - 24, align: 'left', lineBreak: true });
+      doc.y = cmtBodyY + cmtBodyH + 12;
     }
 
     // ══════════ 1. EXECUTIVE SUMMARY ══════════

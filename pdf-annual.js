@@ -3,6 +3,7 @@
 const PDFDocument = require('pdfkit');
 const path = require('path');
 const { MONTHS_EN, BR_NAMES, BR_COLORS, KOREA_BRANCHES, GLOBAL_BRANCHES, ALL_BRANCHES } = require('./config');
+const { canonLabel } = require('./normalize');
 
 // Strip control characters from text destined for PDF rendering
 function sanitizePdfText(str) {
@@ -154,16 +155,9 @@ function generateAnnualPDF(logs, year, lang, history, assets, region, comment, c
     const brCount = {}; yd.forEach(r => { brCount[r.Branch]=(brCount[r.Branch]||0)+1; });
     const prevBrCount = {}; prevYd.forEach(r => { prevBrCount[r.Branch]=(prevBrCount[r.Branch]||0)+1; });
 
-    // ── Data normalization (deduplicate e.g. GARDEN / Garden) ──
-    function normLbl(s) {
-      if(!s) return '';
-      s = s.trim().replace(/\s+/g,' ');
-      if(/^[A-Z0-9][A-Z0-9\s()\-\/\.]+$/.test(s)) {
-        s = s.charAt(0).toUpperCase() + s.slice(1).toLowerCase()
-              .replace(/\b([a-z])/g, (_,c) => c.toUpperCase());
-      }
-      return s;
-    }
+    // ── Data normalization: delegate to shared canonLabel (handles TEabar→Teabar,
+    // SOftware→Software, GARDEN→Garden while preserving tech acronyms PC/LED/HDMI)
+    const normLbl = canonLabel;
     function buildFolded(arr, keyFn, def) {
       const upper={}, disp={};
       arr.forEach(r=>{
@@ -268,6 +262,127 @@ function generateAnnualPDF(logs, year, lang, history, assets, region, comment, c
       if(pct>0){ const w=Math.max(Math.round(maxW*pct/100),4); doc.save().roundedRect(x,y,w,h,3).fill(color).restore(); }
     }
 
+    // ── Data-condition classifier: drives layout decisions ──
+    // zero: no incidents | low: ≤25 | normal: 26–200 | high: 201+
+    function dataCondition(tot, crit) {
+      if (tot <= 0) return 'zero';
+      if (tot <= 25) return 'low';
+      if (tot <= 200) return 'normal';
+      return 'high';
+    }
+
+    // ── KPI strip (hero row) ──
+    // items: [{label, value, sub?, accent?, color?}]
+    function drawKPIStrip(items) {
+      const n = items.length;
+      const GAP = 7;
+      const colW = Math.floor((PW - GAP * (n - 1)) / n);
+      const kH = isKo ? 58 : 54;
+      const y = doc.y;
+      items.forEach((item, i) => {
+        const cx = ML + i * (colW + GAP);
+        doc.save().roundedRect(cx, y, colW, kH, 5).fill(CBG).restore();
+        if (item.accent) doc.save().rect(cx, y, 3, kH).fill(item.accent).restore();
+        doc.fillColor(CS).fontSize(isKo ? 7.5 : 8).font(F.med)
+          .text(item.label || '', cx + 10, y + 8, { width: colW - 14, align: 'center', lineBreak: false });
+        const vStr = String(item.value !== undefined ? item.value : '–');
+        const vFS = vStr.length > 7 ? (isKo ? 14 : 15) : vStr.length > 4 ? (isKo ? 17 : 19) : (isKo ? 21 : 23);
+        doc.fillColor(item.color || CT).fontSize(vFS).font(F.bold)
+          .text(vStr, cx + 8, y + 20, { width: colW - 14, align: 'center', lineBreak: false });
+        if (item.sub !== undefined) doc.fillColor(item.subColor || CS).fontSize(isKo ? 7 : 7.5).font(F.med)
+          .text(String(item.sub), cx + 8, y + kH - 13, { width: colW - 14, align: 'center', lineBreak: false });
+      });
+      doc.y = y + kH + 8;
+      doc.x = ML;
+    }
+
+    // ── Vertical bar chart: 12-month trend with optional prev-year comparison ──
+    function drawVTrend(values, labels, compareValues, opts) {
+      opts = opts || {};
+      const chartH = opts.h || 100;
+      const topPad = 10, botPad = 18;
+      const barAreaH = chartH - topPad - botPad;
+      const y0 = doc.y, x0 = ML;
+      const n = values.length;
+      const slotW = Math.floor(PW / n);
+      const hasCmp = Array.isArray(compareValues) && compareValues.length === n;
+      const maxV = Math.max(1, ...values, ...(hasCmp ? compareValues : []));
+      // Axis baseline
+      doc.moveTo(x0, y0 + topPad + barAreaH).lineTo(x0 + PW, y0 + topPad + barAreaH).strokeColor(CL).lineWidth(0.5).stroke();
+      // Bars
+      values.forEach((v, i) => {
+        const cx = x0 + i * slotW + slotW / 2;
+        const barW = hasCmp ? 9 : 14;
+        const fillH = Math.round(barAreaH * v / maxV);
+        const cmpFillH = hasCmp ? Math.round(barAreaH * (compareValues[i] || 0) / maxV) : 0;
+        const by = y0 + topPad + barAreaH - fillH;
+        const cby = y0 + topPad + barAreaH - cmpFillH;
+        if (hasCmp) {
+          // prev year (light gray, behind)
+          doc.save().rect(cx - barW - 1, cby, barW, cmpFillH).fill(CL).restore();
+          // current year (purple)
+          doc.save().rect(cx + 1, by, barW, fillH).fill(CP).restore();
+          // value label
+          if (v > 0) doc.fillColor(CT).fontSize(7).font(F.bold)
+            .text(String(v), cx + 1 - 2, by - 9, { width: barW + 4, align: 'center', lineBreak: false });
+        } else {
+          doc.save().rect(cx - barW / 2, by, barW, fillH).fill(CP).restore();
+          if (v > 0) doc.fillColor(CT).fontSize(7).font(F.bold)
+            .text(String(v), cx - barW, by - 9, { width: barW * 2, align: 'center', lineBreak: false });
+        }
+        // x label
+        doc.fillColor(CS).fontSize(isKo ? 7 : 7.5).font(F.med)
+          .text(labels[i] || '', cx - slotW / 2, y0 + topPad + barAreaH + 4, { width: slotW, align: 'center', lineBreak: false });
+      });
+      // Legend
+      if (hasCmp) {
+        const legY = y0 + 1;
+        doc.save().rect(x0 + PW - 135, legY, 6, 6).fill(CP).restore();
+        doc.fillColor(CS).fontSize(7).font(F.med).text(opts.curLabel || 'Current', x0 + PW - 125, legY, { width: 55, lineBreak: false });
+        doc.save().rect(x0 + PW - 65, legY, 6, 6).fill(CL).restore();
+        doc.fillColor(CS).fontSize(7).font(F.med).text(opts.cmpLabel || 'Previous', x0 + PW - 55, legY, { width: 55, lineBreak: false });
+      }
+      doc.y = y0 + chartH + 6;
+      doc.x = x0;
+    }
+
+    // ── Compact horizontal bar ranking list ──
+    // items: [{label, value, color?, pct?}]; total for % calculation
+    function drawHBarList(items, totalN, opts) {
+      opts = opts || {};
+      const rowH = opts.rowH || 16;
+      const n = items.length;
+      const labelW = opts.labelW || 140;
+      const countW = 40, pctW = 36;
+      const barW = PW - labelW - countW - pctW - 12;
+      const maxV = Math.max(1, ...items.map(it => it.value || 0));
+      const y0 = doc.y;
+      items.forEach((it, i) => {
+        const ry = y0 + i * rowH;
+        if (i % 2 === 0) doc.save().rect(ML, ry, PW, rowH).fill(CBG).restore();
+        const lbl = (it.label || '').length > 26 ? (it.label || '').slice(0, 25) + '…' : (it.label || '');
+        doc.fillColor(CT).fontSize(isKo ? 8 : 8.5).font(F.med)
+          .text((opts.showRank ? (i + 1) + '.  ' : '') + lbl, ML + 6, ry + 4, { width: labelW - 10, lineBreak: false });
+        const fillW = Math.max(2, Math.round(barW * (it.value || 0) / maxV));
+        const bx = ML + labelW;
+        doc.save().roundedRect(bx, ry + 4, barW, 8, 2).fill(CL).restore();
+        doc.save().roundedRect(bx, ry + 4, fillW, 8, 2).fill(it.color || CP).restore();
+        doc.fillColor(CT).fontSize(isKo ? 8 : 8.5).font(F.bold)
+          .text(String(it.value || 0), bx + barW + 6, ry + 4, { width: countW - 8, align: 'right', lineBreak: false });
+        const pctStr = totalN ? Math.round((it.value || 0) / totalN * 100) + '%' : '0%';
+        doc.fillColor(CS).fontSize(isKo ? 7.5 : 8).font(F.med)
+          .text(pctStr, bx + barW + countW, ry + 4, { width: pctW - 2, align: 'right', lineBreak: false });
+      });
+      doc.y = y0 + n * rowH + 6;
+      doc.x = ML;
+    }
+
+    // ── Defensive page-break guard: if remaining space would leave weak final page, force new page ──
+    function fitsOrAdvance(need) {
+      const remaining = BOT - doc.y;
+      if (remaining < need) { _markPage(); doc.addPage(); _drawPageBranding(); }
+    }
+
     function _drawTblHeader(headers, widths, hH, pad) {
       let cx=ML; const hy=doc.y;
       doc.save().rect(ML,hy,PW,hH).fill(CT).restore();
@@ -344,7 +459,11 @@ function generateAnnualPDF(logs, year, lang, history, assets, region, comment, c
     //  COMMENT (if provided)
     // ══════════════════════════════════════════════
     if (safeComment) {
-      // Section header
+      // Strip bullet markers/markdown list prefixes
+      const cleanComment = safeComment
+        .replace(/[•◦★✓▪︎▫︎◼︎☐☑︎☒✗✘]/g, '')
+        .replace(/^\s*[-*+]\s+/gm, '');
+      // Section header band
       const cmtSecY = doc.y;
       doc.save().rect(ML, cmtSecY, PW, 22).fill('#f0eff8').restore();
       doc.save().rect(ML, cmtSecY, 4, 22).fill(CP).restore();
@@ -352,172 +471,232 @@ function generateAnnualPDF(logs, year, lang, history, assets, region, comment, c
         .text(isKo ? '본사 코멘트 (GSKR-GTO Comment)' : 'GSKR-GTO Comment',
           ML + 10, cmtSecY + 5, { lineBreak: false });
       doc.y = cmtSecY + 28;
-      // Notice bar
+      // Notice strip — token-aligned, no amber
       const ntcY = doc.y;
-      doc.save().roundedRect(ML, ntcY, PW, 16, 3).fill('#FEF3C7').restore();
-      doc.save().rect(ML, ntcY, 4, 16, 0).fill('#D97706').restore();
-      doc.fillColor('#92400E').fontSize(isKo ? 8.5 : 8).font(F.med)
+      doc.save().roundedRect(ML, ntcY, PW, 16, 3).fill('#f0eff8').restore();
+      doc.save().rect(ML, ntcY, 4, 16).fill(CP).restore();
+      doc.fillColor(CS).fontSize(isKo ? 8.5 : 8).font(F.med)
         .text(isKo
-          ? '※ 이 코멘트는 담당자가 직접 작성한 내용입니다.'
-          : '※ This comment was written directly by the branch manager.',
+          ? '이 코멘트는 담당자가 직접 작성한 내용입니다.'
+          : 'This comment was written directly by the branch manager.',
           ML + 10, ntcY + 4, { width: PW - 20, lineBreak: false });
-      doc.y = ntcY + 22;
-      // Comment body
-      const cmtLines = safeComment.split('\n');
-      const cmtH = Math.max(50, cmtLines.length * (isKo ? 14 : 13) + 14);
+      doc.y = ntcY + 20;
+      // Adaptive height body — measure actual wrapped text
+      const cmtFS = isKo ? 10 : 9.5;
+      doc.font(F.med).fontSize(cmtFS);
+      const cmtBodyH = Math.max(
+        isKo ? 22 : 20,
+        doc.heightOfString(cleanComment, { width: PW - 24, lineBreak: true }) + 14
+      );
       const cmtBodyY = doc.y;
-      doc.save().roundedRect(ML, cmtBodyY, PW, cmtH + 12, 6)
-        .fill('#FFFBEB').stroke('#FDE68A').restore();
-      doc.fillColor('#78350F').fontSize(isKo ? 10 : 9.5).font(F.med)
-        .text(safeComment, ML + 12, cmtBodyY + 10, { width: PW - 24, lineBreak: true });
-      doc.y = cmtBodyY + cmtH + 24;
+      doc.save().roundedRect(ML, cmtBodyY, PW, cmtBodyH, 4).fill(CBG).stroke(CL).restore();
+      doc.save().rect(ML, cmtBodyY, 3, cmtBodyH).fill(CP).restore();
+      doc.fillColor(CT).fontSize(cmtFS).font(F.med)
+        .text(cleanComment, ML + 12, cmtBodyY + 7, { width: PW - 24, lineBreak: true });
+      doc.y = cmtBodyY + cmtBodyH + 14;
     }
 
     // ══════════════════════════════════════════════
-    //  SECTION 1: EXECUTIVE SUMMARY
+    //  SECTION 1: EXECUTIVE SUMMARY (KPI hero + narrative)
     // ══════════════════════════════════════════════
     sect(1, L.execSummary);
 
-    // Key metrics summary text
+    // Classify data condition — drives downstream layout
+    const cond = dataCondition(total, critical.length);
+
+    // Key metrics summary text (derive first so KPI strip can use them)
     const maxBr = branches.reduce((mx,b) => (brCount[b]||0)>(brCount[mx]||0)?b:mx, branches[0]);
     const topZone = Object.entries(zoneCount).sort((a,b)=>b[1]-a[1])[0];
     const topCat = Object.entries(catCount).sort((a,b)=>b[1]-a[1])[0];
 
-    if(isKo) {
-      doc.font(F.med).fontSize(9.5).fillColor(CT);
-      doc.text(year+'년 글로벌 기술운영팀은 총 '+total+'건의 장애를 처리하였으며, 이 중 '+critical.length+'건이 위험 등급(Difficulty 4+)입니다.', ML, doc.y, {width:PW});
-      doc.moveDown(0.3);
-      doc.text('평균 난이도 '+avgDiff+', 평균 처리시간 '+avgRes+'분으로 집계되었습니다.', {width:PW});
-      if(prevTotal) {
-        const yoyD = total-prevTotal, yoyPct = Math.round(Math.abs(yoyD)/prevTotal*100);
-        doc.moveDown(0.3);
-        doc.text('전년도('+(year-1)+') 대비 '+(yoyD>0?yoyD+'건 증가(+'+yoyPct+'%)':yoyD<0?Math.abs(yoyD)+'건 감소(-'+yoyPct+'%)':'변동 없음')+'입니다.', {width:PW});
-      }
+    // Hero KPI strip (premium executive dashboard on page 1)
+    const yoyD = prevTotal ? (total - prevTotal) : 0;
+    const yoyPct = prevTotal ? Math.round(Math.abs(yoyD) / prevTotal * 100) : 0;
+    const yoyColor = !prevTotal ? CS : (yoyD > 0 ? CE : yoyD < 0 ? COK : CS);
+    const yoySub = !prevTotal ? (isKo ? '전년 데이터 없음' : 'No prior data')
+                              : (yoyD > 0 ? '+' + yoyD + ' (+' + yoyPct + '%)'
+                              : yoyD < 0 ? yoyD + ' (-' + yoyPct + '%)'
+                              : (isKo ? '변동 없음' : 'Unchanged'));
+    drawKPIStrip([
+      { label: isKo ? '총 장애' : 'TOTAL ERRORS', value: total, accent: CP,
+        sub: (isKo ? '전년 ' + prevTotal + '건' : 'Prev ' + prevTotal), color: CT },
+      { label: isKo ? '위험 장애 (Lv.4+)' : 'CRITICAL (Lv.4+)', value: critical.length,
+        accent: critical.length > 0 ? CE : COK,
+        sub: total ? Math.round(critical.length / total * 100) + '%' : '–',
+        color: critical.length > 0 ? CE : COK },
+      { label: isKo ? '평균 난이도' : 'AVG DIFFICULTY', value: avgDiff + '/5', accent: '#185FA5',
+        sub: (isKo ? '위험 기준 4.0' : 'Critical ≥ 4.0'), color: CT },
+      { label: isKo ? '평균 처리시간' : 'AVG RESOLUTION', value: avgRes ? avgRes + 'm' : '–',
+        accent: avgRes > 60 ? CW : COK,
+        sub: avgRes > 60 ? (isKo ? '목표 60분 초과' : '> 60-min target')
+                         : (isKo ? '목표 내' : 'On target'),
+        color: avgRes > 60 ? CW : CT },
+      { label: isKo ? '전년 대비' : 'YEAR-OVER-YEAR', value: yoySub, accent: yoyColor,
+        sub: prevTotal ? ((year - 1) + ' → ' + year) : '', color: yoyColor }
+    ]);
+
+    // Narrative line (compact — KPIs carry the weight)
+    doc.font(F.med).fontSize(isKo ? 9 : 9.5).fillColor(CT);
+    if (cond === 'zero') {
+      doc.text(isKo ? year + '년 장애 발생 없음. 전 지점 시스템 정상 운영 중.'
+                   : 'No errors recorded in ' + year + '. All branches operating normally.',
+        ML, doc.y, { width: PW });
+    } else if (isKo) {
+      doc.text(year + '년 글로벌 기술운영팀은 총 ' + total + '건의 장애를 처리하였으며, 이 중 ' + critical.length + '건이 위험 등급(Difficulty 4+)입니다. ' +
+        '평균 난이도 ' + avgDiff + ', 평균 처리시간 ' + avgRes + '분.',
+        ML, doc.y, { width: PW });
     } else {
-      doc.font(F.med).fontSize(9.5).fillColor(CT);
-      doc.text('In '+year+', Global Technical Operations processed a total of '+total+' errors across all branches, with '+critical.length+' classified as critical (Difficulty 4+).', ML, doc.y, {width:PW});
-      doc.moveDown(0.3);
-      doc.text('Average difficulty: '+avgDiff+'/5 | Average resolution time: '+avgRes+' minutes.', {width:PW});
-      if(prevTotal) {
-        const yoyD = total-prevTotal, yoyPct = Math.round(Math.abs(yoyD)/prevTotal*100);
-        doc.moveDown(0.3);
-        doc.text('Year-over-year: '+(yoyD>0?'+'+yoyD+' (+'+yoyPct+'%) increase':yoyD<0?Math.abs(yoyD)+' (-'+yoyPct+'%) decrease':'No change')+' vs '+(year-1)+'.', {width:PW});
-      }
+      doc.text('In ' + year + ', Global Technical Operations processed ' + total + ' errors across all branches — ' +
+        critical.length + ' critical (Difficulty 4+). Avg difficulty ' + avgDiff + '/5, avg resolution ' + avgRes + ' min.',
+        ML, doc.y, { width: PW });
     }
     doc.moveDown(0.5);
 
-    // Key findings bullets
-    doc.font(F.bold).fontSize(9).fillColor(CP).text(isKo?'핵심 발견사항':'KEY FINDINGS', {width:PW});
-    doc.moveDown(0.3);
-    doc.font(F.reg).fontSize(8.5).fillColor(CT);
-    const findings = [];
-    if(topZone) findings.push(isKo?
-      '최다 발생 Zone: '+topZone[0]+' ('+topZone[1]+'건, '+(total?Math.round(topZone[1]/total*100):0)+'%)' :
-      'Most affected zone: '+topZone[0]+' ('+topZone[1]+' errors, '+(total?Math.round(topZone[1]/total*100):0)+'%)');
-    if(topCat) findings.push(isKo?
-      '주요 유형: '+topCat[0]+' ('+topCat[1]+'건, '+(total?Math.round(topCat[1]/total*100):0)+'%)' :
-      'Primary category: '+topCat[0]+' ('+topCat[1]+' errors, '+(total?Math.round(topCat[1]/total*100):0)+'%)');
-    findings.push(isKo?
-      '최다 발생 지점: '+(BR_NAMES[maxBr]||maxBr)+' ('+(brCount[maxBr]||0)+'건)' :
-      'Highest volume branch: '+(BR_NAMES[maxBr]||maxBr)+' ('+(brCount[maxBr]||0)+' errors)');
-    if(critical.length>0) findings.push(isKo?
-      '위험 장애 '+critical.length+'건 — 즉각적인 경영진 확인 필요' :
-      critical.length+' critical error(s) — management attention required');
-    findings.forEach(f => { doc.text('  •  '+f, {width:PW, indent:4}); doc.moveDown(0.15); });
+    // Key findings — only when data warrants
+    if (cond !== 'zero') {
+      doc.font(F.bold).fontSize(9).fillColor(CP).text(isKo ? '핵심 발견사항' : 'KEY FINDINGS', ML, doc.y, { width: PW });
+      doc.moveDown(0.3);
+      doc.font(F.reg).fontSize(8.5).fillColor(CT);
+      const findings = [];
+      if(topZone) findings.push(isKo?
+        '최다 발생 Zone: '+topZone[0]+' ('+topZone[1]+'건, '+(total?Math.round(topZone[1]/total*100):0)+'%)' :
+        'Most affected zone: '+topZone[0]+' ('+topZone[1]+' errors, '+(total?Math.round(topZone[1]/total*100):0)+'%)');
+      if(topCat) findings.push(isKo?
+        '주요 유형: '+topCat[0]+' ('+topCat[1]+'건, '+(total?Math.round(topCat[1]/total*100):0)+'%)' :
+        'Primary category: '+topCat[0]+' ('+topCat[1]+' errors, '+(total?Math.round(topCat[1]/total*100):0)+'%)');
+      findings.push(isKo?
+        '최다 발생 지점: '+(BR_NAMES[maxBr]||maxBr)+' ('+(brCount[maxBr]||0)+'건)' :
+        'Highest volume branch: '+(BR_NAMES[maxBr]||maxBr)+' ('+(brCount[maxBr]||0)+' errors)');
+      if(critical.length>0) findings.push(isKo?
+        '위험 장애 '+critical.length+'건 — 즉각적인 경영진 확인 필요' :
+        critical.length+' critical error(s) — management attention required');
+      findings.forEach(f => { doc.text('  •  '+f, ML, doc.y, { width: PW, indent: 4 }); doc.moveDown(0.15); });
+    }
 
     // ══════════════════════════════════════════════
     //  SECTION 2: BRANCH ANNUAL PERFORMANCE
+    //  (skip entirely for zero-data — no meaningful comparison)
     // ══════════════════════════════════════════════
-    sect(2, L.branchPerf);
-    const brHeaders = isKo ?
-      ['지점','당년','전년','YoY 증감','비율','위험(4+)','평균 난이도'] :
-      ['Branch','This Year','Last Year','YoY Change','% Total','Crit(4+)','Avg Diff'];
-    const brRows = branches.map(b => {
-      const c=brCount[b]||0, p=prevBrCount[b]||0;
-      const bCrit = yd.filter(r=>r.Branch===b&&r.Difficulty>=4).length;
-      const bDiff = c ? (yd.filter(r=>r.Branch===b).reduce((s,r)=>s+(r.Difficulty||1),0)/c).toFixed(1) : '0.0';
-      return [(BR_NAMES[b]||b)+' ('+b+')', c, p, trend(c,p), total?Math.round(c/total*100)+'%':'0%', bCrit, bDiff];
-    });
-    brRows.push([isKo?'합계':'TOTAL', total, prevTotal, trend(total,prevTotal), '100%', critical.length, avgDiff]);
-    tbl(brHeaders, brRows, [170,101,101,132,93,101,99], {
-      colColors: {3: v => { const s=String(v); return s.startsWith('+')?CE:s.startsWith('-')?COK:CT; }}
-    });
+    if (cond !== 'zero' || prevTotal > 0) {
+      sect(2, L.branchPerf);
+      const brHeaders = isKo ?
+        ['지점','당년','전년','YoY 증감','비율','위험(4+)','평균 난이도'] :
+        ['Branch','This Year','Last Year','YoY Change','% Total','Crit(4+)','Avg Diff'];
+      const brRows = branches.map(b => {
+        const c=brCount[b]||0, p=prevBrCount[b]||0;
+        const bCrit = yd.filter(r=>r.Branch===b&&r.Difficulty>=4).length;
+        const bDiff = c ? (yd.filter(r=>r.Branch===b).reduce((s,r)=>s+(r.Difficulty||1),0)/c).toFixed(1) : '0.0';
+        return [(BR_NAMES[b]||b)+' ('+b+')', c, p, trend(c,p), total?Math.round(c/total*100)+'%':'0%', bCrit, bDiff];
+      });
+      brRows.push([isKo?'합계':'TOTAL', total, prevTotal, trend(total,prevTotal), '100%', critical.length, avgDiff]);
+      tbl(brHeaders, brRows, [170,101,101,132,93,101,99], {
+        colColors: {3: v => { const s=String(v); return s.startsWith('+')?CE:s.startsWith('-')?COK:CT; }}
+      });
+    }
 
     // ══════════════════════════════════════════════
-    //  SECTION 3: MONTHLY TREND
+    //  SECTION 3: MONTHLY TREND (visual V-bar chart)
     // ══════════════════════════════════════════════
-    sect(3, L.monthlyTrend);
-    doc.font(F.med).fontSize(8).fillColor(CS).text(isKo?'월별 에러 발생 추이 (현재 연도 vs 전년도)':'Monthly error count trend (current year vs previous year)', {width:PW});
-    doc.moveDown(0.5);
+    if (cond !== 'zero') {
+      sect(3, L.monthlyTrend);
+      doc.font(F.med).fontSize(8).fillColor(CS).text(isKo?'월별 에러 발생 추이 (당년 vs 전년)':'Monthly error count trend (current year vs previous year)', ML, doc.y, {width:PW});
+      doc.moveDown(0.4);
 
-    const trendHeaders = isKo ?
-      ['월', year+'년', (year-1)+'년', '증감', '추이'] :
-      ['Month', String(year), String(year-1), 'Change', 'Trend'];
-    const trendRows = MONTHS_EN.map((mn,mi) => {
-      const c=monthly[mi].length, p=prevMonthly[mi].length;
-      const d=c-p;
-      const arrow = d>0?'+'+d : d<0?''+d : '--';
-      return [mn.slice(0,3), c, p, trend(c,p), arrow];
-    });
-    trendRows.push([isKo?'합계':'TOTAL', total, prevTotal, trend(total,prevTotal), '--']);
-    tbl(trendHeaders, trendRows, [85,108,108,178,318], {
-      colColors: {4: v => { const n=parseInt(String(v)); return n>0?CE:n<0?COK:CS; }}
-    });
+      const monthCounts = monthly.map(m => m.length);
+      const prevMonthCounts = prevMonthly.map(m => m.length);
+      const monthLabels = MONTHS_EN.map(mn => mn.slice(0,3));
+      fitsOrAdvance(130);
+      drawVTrend(monthCounts, monthLabels, prevTotal ? prevMonthCounts : null, {
+        h: 110,
+        curLabel: String(year),
+        cmpLabel: String(year - 1)
+      });
+
+      // Compact under-chart micro-stats: peak month, quiet month, MoM volatility
+      const peakMi = monthCounts.indexOf(Math.max(...monthCounts));
+      const quietMi = monthCounts.reduce((mi, v, i) => v < monthCounts[mi] ? i : mi, 0);
+      const monthAvg = total ? Math.round(total / 12) : 0;
+      const deltaTxt = prevTotal ? trend(total, prevTotal) : (isKo ? '전년 데이터 없음' : 'No prior data');
+      doc.font(F.med).fontSize(isKo ? 8 : 8.5).fillColor(CS);
+      doc.text(
+        (isKo
+          ? '최다 월: ' + monthLabels[peakMi] + ' (' + monthCounts[peakMi] + '건)   |   최소 월: ' + monthLabels[quietMi] + ' (' + monthCounts[quietMi] + '건)   |   월평균: ' + monthAvg + '건   |   전년비: ' + deltaTxt
+          : 'Peak: ' + monthLabels[peakMi] + ' (' + monthCounts[peakMi] + ')  |  Quiet: ' + monthLabels[quietMi] + ' (' + monthCounts[quietMi] + ')  |  Monthly avg: ' + monthAvg + '  |  YoY: ' + deltaTxt),
+        ML, doc.y, { width: PW }
+      );
+    }
 
     // ══════════════════════════════════════════════
-    //  SECTION 4: CATEGORY & DIFFICULTY
+    //  SECTION 4: CATEGORY & DIFFICULTY (H-bar visual)
+    //  Hoisted cats array — also used by Sec 7 (YoY) and Sec 10 (recs)
     // ══════════════════════════════════════════════
-    sect(4, L.catDiff);
-
-    // Category table
-    doc.font(F.bold).fontSize(9).fillColor(CP).text(isKo?'유형별 분류':'CATEGORY BREAKDOWN', ML);
-    doc.moveDown(0.3);
     const cats = ['Software','Hardware','Network','Other'];
-    const catHeaders = isKo ? ['유형','당년','전년','증감','비율'] : ['Category','This Year','Last Year','Change','% Share'];
-    const catRows = cats.filter(c=>catCount[c]||prevCatCount[c]).map(c => {
-      const cur=catCount[c]||0, prev=prevCatCount[c]||0;
-      return [c, cur, prev, trend(cur,prev), total?Math.round(cur/total*100)+'%':'0%'];
-    });
-    catRows.push([isKo?'합계':'TOTAL', total, prevTotal, trend(total,prevTotal), '100%']);
-    tbl(catHeaders, catRows, [170,124,124,186,193], {
-      colColors: {3: v => { const s=String(v); return s.startsWith('+')?CE:s.startsWith('-')?COK:CT; }}
-    });
+    if (cond !== 'zero') {
+      sect(4, L.catDiff);
+      const catColorMap = ['#534AB7','#185FA5','#993C1D','#3B6D11'];
+      doc.font(F.bold).fontSize(9).fillColor(CP).text(isKo?'유형별 분류':'CATEGORY BREAKDOWN', ML, doc.y, { width: PW });
+      doc.moveDown(0.3);
+      const activeCats = cats.filter(c => (catCount[c]||0) > 0 || (prevCatCount[c]||0) > 0);
+      if (activeCats.length === 0) {
+        doc.font(F.med).fontSize(9).fillColor(CS)
+          .text(isKo ? '유형 데이터 없음.' : 'No category data available.', ML, doc.y, { width: PW });
+      } else {
+        fitsOrAdvance(activeCats.length * 16 + 16);
+        drawHBarList(activeCats.map((c, i) => {
+          const cur = catCount[c] || 0;
+          const prev = prevCatCount[c] || 0;
+          const delta = prev ? (cur > prev ? ' ↑' : cur < prev ? ' ↓' : ' =') : '';
+          return {
+            label: c + (prev ? '  (prev ' + prev + delta + ')' : ''),
+            value: cur,
+            color: catColorMap[i] || CP
+          };
+        }), total, { labelW: 230 });
+      }
 
-    doc.moveDown(0.6);
-    pc(100);
+      doc.moveDown(0.4);
+      fitsOrAdvance(110);
 
-    // Difficulty distribution
-    doc.font(F.bold).fontSize(9).fillColor(CP).text(isKo?'난이도 분포':'DIFFICULTY DISTRIBUTION', ML);
-    doc.moveDown(0.3);
-    const diffHeaders = isKo ? ['등급','건수','비율'] : ['Level','Count','% Share'];
-    const diffPcts = [];
-    const diffRows = [1,2,3,4,5].map(d => {
-      const c=diffCount[d]||0;
-      const pct = total?Math.round(c/total*100):0;
-      diffPcts.push(pct);
-      return ['Lv.'+d, c, pct+'%'];
-    });
-    diffRows.push([isKo?'합계':'TOTAL', total, '100%']);
-    tbl(diffHeaders, diffRows, [263,263,271], {
-      colColors: {0: v => diffCols[parseInt(String(v).replace('Lv.',''),10)]||CT}
-    });
+      // Difficulty distribution — compact H-bar list (replaces table)
+      doc.font(F.bold).fontSize(9).fillColor(CP).text(isKo?'난이도 분포':'DIFFICULTY DISTRIBUTION', ML, doc.y, { width: PW });
+      doc.moveDown(0.3);
+      const diffLabels = {1: isKo?'Lv.1 경미':'Lv.1 Minor', 2: isKo?'Lv.2 보통':'Lv.2 Normal',
+                         3: isKo?'Lv.3 주의':'Lv.3 Elevated', 4: isKo?'Lv.4 위험':'Lv.4 Critical', 5: isKo?'Lv.5 심각':'Lv.5 Severe'};
+      const diffItems = [1,2,3,4,5].map(d => ({
+        label: diffLabels[d],
+        value: diffCount[d] || 0,
+        color: diffCols[d] || CS
+      }));
+      drawHBarList(diffItems, total, { labelW: 160 });
+    }
 
     // ══════════════════════════════════════════════
-    //  SECTION 5: TOP ZONES
+    //  SECTION 5: TOP ZONES (H-bar ranking list)
     // ══════════════════════════════════════════════
-    sect(5, L.topZones);
-    const topZones = Object.entries(zoneCount).sort((a,b)=>b[1]-a[1]).slice(0,10);
-    const zoneHeaders = isKo ? ['순위','Zone','건수','비율','주요 유형'] : ['#','Zone','Count','%','Primary Category'];
-    const zonePcts = [];
-    const zoneRows = topZones.map((z,i) => {
-      const zoneCat = {};
-      yd.filter(r=>r.Zone===z[0]).forEach(r=>{ zoneCat[r.Category||'Other']=(zoneCat[r.Category||'Other']||0)+1; });
-      const topZoneCat = Object.entries(zoneCat).sort((a,b)=>b[1]-a[1])[0];
-      const pct = total?Math.round(z[1]/total*100):0;
-      zonePcts.push(pct);
-      return [i+1, z[0], z[1], pct+'%', topZoneCat?topZoneCat[0]:'--'];
-    });
-    tbl(zoneHeaders, zoneRows, [54,271,93,85,294]);
+    if (cond !== 'zero') {
+      sect(5, L.topZones);
+      const topZonesArr = Object.entries(zoneCount).sort((a,b)=>b[1]-a[1]).slice(0,10);
+      if (topZonesArr.length === 0) {
+        doc.font(F.med).fontSize(9).fillColor(CS)
+          .text(isKo ? 'Zone 데이터 없음.' : 'No zone data available.', ML, doc.y, { width: PW });
+      } else {
+        // Build items with primary-category subtext; use purple for top, cascading colors
+        fitsOrAdvance(topZonesArr.length * 16 + 18);
+        const items = topZonesArr.map((z, i) => {
+          const zoneCat = {};
+          yd.filter(r=>r.Zone===z[0]).forEach(r=>{ zoneCat[r.Category||'Other']=(zoneCat[r.Category||'Other']||0)+1; });
+          const primary = Object.entries(zoneCat).sort((a,b)=>b[1]-a[1])[0];
+          const primaryTxt = primary ? ' · ' + primary[0] : '';
+          const labelWithCat = z[0] + primaryTxt;
+          return {
+            label: labelWithCat,
+            value: z[1],
+            color: i === 0 ? CP : (i < 3 ? '#185FA5' : CS)
+          };
+        });
+        drawHBarList(items, total, { showRank: true, labelW: 260 });
+      }
+    }
 
     // ══════════════════════════════════════════════
     //  SECTION 6: CRITICAL INCIDENTS
@@ -533,9 +712,12 @@ function generateAnnualPDF(logs, year, lang, history, assets, region, comment, c
       const critHeaders = isKo ?
         ['일자','지점','Zone','유형','장애 내역','난이도','처리시간'] :
         ['Date','Branch','Zone','Category','Issue Detail','Diff','Duration'];
-      const critRows = critical.slice(0,20).map(r => [
-        r.Date, r.Branch, r.Zone, r.Category||'', (r.IssueDetail||'').slice(0,60), r.Difficulty, r.TimeTaken||'--'
-      ]);
+      // Controlled wrap — let meaningful text through (up to ~140 chars with 2-line safe wrap)
+      const critRows = critical.slice(0,20).map(r => {
+        const iss = (r.IssueDetail||'').trim();
+        const safe = iss.length > 140 ? iss.slice(0, 137).replace(/\s+\S*$/, '') + '…' : iss;
+        return [r.Date, r.Branch, r.Zone, r.Category||'', safe, r.Difficulty, r.TimeTaken||'--'];
+      });
       tbl(critHeaders, critRows, [90,65,124,81,263,59,115], {leftCols:[4]});
     }
 
@@ -575,10 +757,11 @@ function generateAnnualPDF(logs, year, lang, history, assets, region, comment, c
     }
 
     // ══════════════════════════════════════════════
-    //  SECTION 8: EQUIPMENT LIFECYCLE
+    //  SECTION 8: EQUIPMENT LIFECYCLE (gated by data condition)
     // ══════════════════════════════════════════════
-    sect(8, L.equipmentLife);
-    if(equipWithAssets.length === 0) {
+    if (cond !== 'zero' && equipWithAssets.length > 0) {
+      sect(8, L.equipmentLife);
+    if(false) {
       doc.font(F.med).fontSize(9).fillColor(CS).text(isKo?'장비 관련 데이터가 부족합니다.':'Insufficient equipment data available.');
     } else {
       doc.font(F.med).fontSize(8.5).fillColor(CT).text(isKo?
@@ -630,13 +813,15 @@ function generateAnnualPDF(logs, year, lang, history, assets, region, comment, c
       doc.moveDown(0.2);
       doc.font(F.med).fontSize(7.5).fillColor(CS).text(isKo?'* 80+ 교체 권고 | 55-79 정밀 점검 | 30-54 모니터링 | <30 양호':'* 80+ Replace | 55-79 Inspect | 30-54 Monitor | <30 OK', ML);
     }
+    } // end Section 8 gate
 
     // ══════════════════════════════════════════════
-    //  SECTION 9: STAFF PERFORMANCE
+    //  SECTION 9: STAFF PERFORMANCE (gated — skip if no data)
     // ══════════════════════════════════════════════
-    sect(9, L.staffPerf);
     const staffSorted = Object.entries(staffMap).sort((a,b) => b[1].count - a[1].count);
-    if(staffSorted.length === 0) {
+    if (cond !== 'zero' && staffSorted.length > 0) {
+      sect(9, L.staffPerf);
+    if(false) {
       doc.font(F.med).fontSize(9).fillColor(CS).text(isKo?'직원 데이터 없음':'No staff data available.');
     } else {
       const stHeaders = isKo ?
@@ -651,11 +836,15 @@ function generateAnnualPDF(logs, year, lang, history, assets, region, comment, c
       });
       tbl(stHeaders, stRows, [46,170,85,77,124,101,194]);
     }
+    } // end Section 9 gate
 
     // ══════════════════════════════════════════════
-    //  SECTION 10: RECOMMENDATIONS
+    //  RECOMMENDATIONS (always render — consolidates insight)
     // ══════════════════════════════════════════════
-    sect(10, L.recommendations);
+    // Section number adapts to condition: for zero-data this is section 2
+    // (after Exec Summary); for normal data it remains section 10.
+    const recSecN = (cond === 'zero') ? 2 : 10;
+    sect(recSecN, L.recommendations);
 
     const recs = [];
     // Trend-based recommendations
