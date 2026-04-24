@@ -1,71 +1,8 @@
 /* ══════════════════════════════════════════════
- *  @font-face — Uniform (Latin) + Noto Sans KR (Hangul)
- *  Paths are resolved relative to the rendered HTML file location
- *  (renderer.js writes HTML into a temp dir and copies fonts alongside,
- *  so ./fonts/* is stable regardless of cwd).
+ *  Font — Pretendard Variable (d'strict system)
+ *  CDN-loaded: covers Latin + Hangul in a single variable font.
+ *  Puppeteer fetches at render time; document.fonts.ready
+ *  blocks PDF generation until fonts are fully available.
  * ══════════════════════════════════════════════ */
 
-@font-face {
-  font-family: "Uniform";
-  src: url("./fonts/Uniform.otf") format("opentype");
-  font-weight: 400;
-  font-style: normal;
-  font-display: block;
-}
-@font-face {
-  font-family: "Uniform";
-  src: url("./fonts/Uniform Light.otf") format("opentype");
-  font-weight: 300;
-  font-style: normal;
-  font-display: block;
-}
-@font-face {
-  font-family: "Uniform";
-  src: url("./fonts/Uniform Medium.otf") format("opentype");
-  font-weight: 500;
-  font-style: normal;
-  font-display: block;
-}
-@font-face {
-  font-family: "Uniform";
-  src: url("./fonts/Uniform Bold.otf") format("opentype");
-  font-weight: 700;
-  font-style: normal;
-  font-display: block;
-}
-@font-face {
-  font-family: "Uniform";
-  src: url("./fonts/Uniform Black.otf") format("opentype");
-  font-weight: 900;
-  font-style: normal;
-  font-display: block;
-}
-
-@font-face {
-  font-family: "Noto Sans KR";
-  src: url("./fonts/NotoSansKR-Light.otf") format("opentype");
-  font-weight: 300;
-  font-style: normal;
-  font-display: block;
-}
-@font-face {
-  font-family: "Noto Sans KR";
-  src: url("./fonts/NotoSansKR-Medium.otf") format("opentype");
-  font-weight: 500;
-  font-style: normal;
-  font-display: block;
-}
-@font-face {
-  font-family: "Noto Sans KR";
-  src: url("./fonts/NotoSansKR-Bold.otf") format("opentype");
-  font-weight: 700;
-  font-style: normal;
-  font-display: block;
-}
-@font-face {
-  font-family: "Noto Sans KR";
-  src: url("./fonts/NotoSansKR-Black.otf") format("opentype");
-  font-weight: 900;
-  font-style: normal;
-  font-display: block;
-}
+@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/variable/pretendardvariable-dynamic-subset.min.css');

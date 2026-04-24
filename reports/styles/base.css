@@ -1,5 +1,6 @@
 /* ══════════════════════════════════════════════
  *  Base — reset, typography, locale tuning
+ *  d'strict Design System: Pretendard / 14px / weight 300
  * ══════════════════════════════════════════════ */
 
 *, *::before, *::after { box-sizing: border-box; }
@@ -7,59 +8,62 @@
 html, body {
   margin: 0;
   padding: 0;
-  background: var(--cbg);
-  color: var(--ct);
-  font-family: var(--ff-sans);
-  font-size: var(--fs-body);
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font);
+  font-size: var(--fs-body);      /* 14px */
+  font-weight: 300;               /* Pretendard Light */
   line-height: var(--lh-body);
+  letter-spacing: -0.2px;         /* d'strict 14px anchor */
   -webkit-font-smoothing: antialiased;
   text-rendering: geometricPrecision;
   font-feature-settings: "kern", "liga", "calt", "tnum";
 }
 
-/* Korean locale: looser line-height, Noto stack first, subtle letter tracking */
+/* Korean locale: looser line-height */
 html[lang="ko"] body {
-  font-family: var(--ff-sans-kr);
   line-height: var(--lh-body-ko);
-  letter-spacing: -0.005em;
+  letter-spacing: -0.2px;
 }
 
 h1, h2, h3, h4, p, ul, ol, figure { margin: 0; padding: 0; }
 
 h1 {
-  font-size: var(--fs-h1);
+  font-size: var(--fs-h1);        /* 22px */
   font-weight: 700;
   line-height: var(--lh-tight);
-  color: var(--ct);
-  letter-spacing: -0.015em;
+  color: var(--text);
+  letter-spacing: -0.5px;         /* d'strict 22px anchor */
 }
 h2 {
-  font-size: var(--fs-h2);
+  font-size: var(--fs-h2);        /* 18px */
   font-weight: 700;
   line-height: var(--lh-snug);
-  color: var(--ct);
-  letter-spacing: -0.01em;
+  color: var(--text);
+  letter-spacing: -0.4px;         /* d'strict 18px anchor */
 }
 h3 {
-  font-size: var(--fs-h3);
+  font-size: var(--fs-h3);        /* 14px */
   font-weight: 500;
   line-height: var(--lh-snug);
-  color: var(--cs);
+  color: var(--muted);
+  letter-spacing: -0.2px;
 }
 
 p { orphans: 3; widows: 3; }
 
 small, .caption {
-  font-size: var(--fs-caption);
-  color: var(--cs);
+  font-size: var(--fs-caption);   /* 12px */
+  color: var(--muted);
   line-height: 1.4;
+  letter-spacing: -0.1px;         /* d'strict 12px anchor */
 }
 
-.tnum { font-variant-numeric: tabular-nums; }
+.tnum  { font-variant-numeric: tabular-nums; }
 .upper { text-transform: uppercase; letter-spacing: 0.08em; }
-.muted { color: var(--cs); }
-.ink   { color: var(--ct); }
-.brand { color: var(--cp); }
+.muted { color: var(--muted); }
+.ink   { color: var(--text); }
+.brand { color: var(--purple); }
 
 hr {
   border: 0;

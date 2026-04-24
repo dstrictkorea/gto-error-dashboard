@@ -1,49 +1,66 @@
 /* ══════════════════════════════════════════════
- *  Design tokens — single source of truth.
- *  Mirrors the PDFKit palette so v2 output matches existing identity
- *  while layout/typography move to a proper engine.
+ *  Design tokens — d'strict Design System
+ *  Canonical names declared first; internal aliases follow
+ *  so existing component rules resolve without rewrite.
  * ══════════════════════════════════════════════ */
 
 :root {
-  /* Brand / semantic */
-  --cp:         #534AB7;  /* primary purple */
-  --cp-ink:     #2F2A6D;  /* purple ink for headings on light */
-  --ct:         #1a1a18;  /* primary text */
-  --cs:         #73726c;  /* secondary / caption text */
-  --cok:        #3B6D11;  /* ok / positive */
-  --ce:         #A32D2D;  /* error / critical */
-  --cw:         #854F0B;  /* warn */
-  --cl:         #e8e6df;  /* divider / hairline */
-  --cbg:        #f6f5f0;  /* page cream background */
-  --ccard:      #ffffff;  /* card surface */
-  --chi:        #FDE68A;  /* highlight */
+  /* ── d'strict Font System ─────────────────────────────── */
+  --font: 'Pretendard Variable','Pretendard',-apple-system,
+          BlinkMacSystemFont,'Malgun Gothic','맑은 고딕',Arial,sans-serif;
 
-  /* Branch palette (from config.js) */
-  --br-amgn:    #0891b2;
-  --br-ays:     #059669;
-  --br-ambs:    #2563eb;
-  --br-amjj:    #7c3aed;
-  --br-amny:    #185FA5;
-  --br-amlv:    #993C1D;
-  --br-amdb:    #534AB7;
+  /* ── d'strict Color System ────────────────────────────── */
+  --bg:         #f6f5f0;       /* page background (warm cream) */
+  --card:       #fff;          /* card / panel surface */
+  --border:     #e8e6df;       /* border / hairline */
+  --text:       #1a1a18;       /* primary text */
+  --muted:      #73726c;       /* secondary / label text */
+  --hint:       #a3a29c;       /* hint / inactive text */
 
-  /* Type scale (print-optimised, in pt) */
-  --fs-display: 40pt;
-  --fs-h1:      22pt;
-  --fs-h2:      14pt;
-  --fs-h3:      11pt;
-  --fs-body:    9.5pt;
-  --fs-caption: 8pt;
-  --fs-kpi:     30pt;
-  --fs-kpi-lbl: 8pt;
+  --blue:       #185FA5;       --blue-bg:    #E6F1FB;
+  --red:        #A32D2D;       --red-bg:     #FCEBEB;
+  --green:      #3B6D11;       --green-bg:   #EAF3DE;
+  --purple:     #534AB7;       --purple-bg:  #EEEDFE;
+  --teal:       #0F6E56;       --teal-bg:    #E1F5EE;
+  --coral:      #993C1D;       --coral-bg:   #FAECE7;
+  --amber:      #854F0B;       --amber-bg:   #FAEEDA;
 
-  /* Line heights */
+  /* ── Layout ───────────────────────────────────────────── */
+  --radius:     10px;          /* card border-radius */
+
+  /* ── Internal aliases (backward-compat) ──────────────── */
+  --cp:         var(--purple);
+  --cp-ink:     #2F2A6D;
+  --ct:         var(--text);
+  --cs:         var(--muted);
+  --cbg:        var(--bg);
+  --ccard:      var(--card);
+  --cl:         var(--border);
+  --cok:        var(--green);
+  --ce:         var(--red);
+  --cw:         var(--amber);
+  --chi:        #FDE68A;
+  --ff-sans:    var(--font);
+  --ff-sans-kr: var(--font);   /* Pretendard covers both scripts */
+
+  /* ── Type scale (px) ──────────────────────────────────── */
+  --fs-display: 48px;          /* hero / cover headline */
+  --fs-h1:      22px;          /* page title */
+  --fs-h2:      18px;          /* section title */
+  --fs-h3:      14px;          /* card title / label */
+  --fs-body:    14px;          /* body text */
+  --fs-caption: 12px;          /* small / caption */
+  --fs-badge:   11px;          /* badge / tag */
+  --fs-kpi:     24px;          /* KPI value */
+  --fs-kpi-lbl: 12px;          /* KPI label */
+
+  /* ── Line heights ─────────────────────────────────────── */
   --lh-tight:   1.05;
   --lh-snug:    1.25;
   --lh-body:    1.5;
   --lh-body-ko: 1.7;
 
-  /* Spacing scale (mm — print natural) */
+  /* ── Spacing (mm — print-natural) ────────────────────── */
   --s-0:  0;
   --s-1:  1mm;
   --s-2:  2mm;
@@ -56,17 +73,12 @@
   --s-12: 12mm;
   --s-16: 16mm;
 
-  /* Radii */
-  --r-sm: 1.5mm;
-  --r-md: 2.5mm;
-  --r-lg: 4mm;
+  /* ── Radii ────────────────────────────────────────────── */
+  --r-sm: 4px;
+  --r-md: var(--radius);       /* 10px — d'strict card radius */
+  --r-lg: 12px;
 
-  /* Hairlines */
-  --hl:   0.2mm solid var(--cl);
-  --hl-d: 0.2mm solid #d9d7cf;
-
-  /* Font stacks (Uniform = Latin, Noto Sans KR = Hangul fallback) */
-  --ff-sans:    "Uniform", "Noto Sans KR", -apple-system, system-ui, sans-serif;
-  --ff-sans-kr: "Noto Sans KR", "Uniform", -apple-system, system-ui, sans-serif;
-  --ff-mono:    ui-monospace, "SF Mono", Consolas, monospace;
+  /* ── Hairlines ────────────────────────────────────────── */
+  --hl:   1px solid var(--border);
+  --hl-d: 1px solid #d9d7cf;
 }
