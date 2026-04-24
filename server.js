@@ -14,6 +14,7 @@ const { fg, normLog, normAsset, normHist } = require('./normalize');
 const { router: aiRouter } = require('./ai');
 const { generatePDF } = require('./pdf');
 const { generateAnnualPDF } = require('./pdf-annual');
+const v2Router = require('./reports/router');
 
 const app = express();
 app.use(cors({
@@ -356,6 +357,13 @@ app.get('/api/status', async (req,res) => {
 //  AI Routes (mounted from ai.js)
 // ══════════════════════════════════════════════
 app.use('/api', aiRouter);
+
+// ══════════════════════════════════════════════
+//  v2 Report Routes — HTML→PDF pipeline
+//  Mounted at /api/v2. Does NOT replace v1 /api/report.
+//  Use for: dry-run validation, phased rollout.
+// ══════════════════════════════════════════════
+app.use('/api/v2', v2Router);
 
 // ══════════════════════════════════════════════
 //  /api/report — PDF generation

@@ -27,7 +27,8 @@
 // ══════════════════════════════════════════════════════════════════
 
 const LOCKED_KPI_ORDER = ['K1', 'K2', 'K3', 'K4', 'K5', 'K6', 'K7'];
-const VARIANT_CAPS = { monthlyBranch: 3, monthlyGlobal: 5, annual: 7 };
+// Rendering contract §3: hard cap of 3 for all variants.
+const VARIANT_CAPS = { monthlyBranch: 3, monthlyGlobal: 3, annual: 3 };
 const MIN_CONFIDENCE = 0.95;
 
 function validateReport(ctx) {

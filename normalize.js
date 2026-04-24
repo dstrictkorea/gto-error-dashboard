@@ -85,6 +85,9 @@ function normLog(r, branch) {
     IssueDetail: String(fg(r,'IssueDetail','Issue Detail','Issue','Problem','Description','Error') || '').trim(),
     ActionTaken: String(fg(r,'ActionTaken','Action Taken','Solution','Fix') || '').trim(),
     Difficulty: difficulty,
+    // Severity — used by v2 content pipeline isCritical() classifier.
+    // Empty string when not present so hasSeverityField() returns false cleanly.
+    Severity: String(fg(r,'Severity','severity','SeverityLevel','Critical Level','Urgency') || '').trim(),
     HQ: String(fg(r,'HQ','HQ Comment','HQ Note','Tony Comment') || '').trim()
   };
 }

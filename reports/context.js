@@ -3,37 +3,140 @@
 // ══════════════════════════════════════════════════════════════════
 //  reports/context.js
 //  View-model builders. Each builder returns a plain-object context
-//  consumed by a Handlebars template. No rendering logic here; no
-//  knowledge of Puppeteer or Express.
+//  consumed by a Handlebars template. No rendering or I/O here.
 //
-//  Step 1 scope: smoke-test builder only. Monthly/annual builders
-//  will be added in subsequent steps.
+//  Exports:
+//    buildSmokeContext(opts)          → smoke-test view-model
+//    buildMonthlyBranchContext(rows, opts) → monthlyBranch ctx
+//    buildMonthlyGlobalContext(rows, opts) → monthlyGlobal ctx
+//    buildAnnualContext(rows, opts)   → annual ctx
 // ══════════════════════════════════════════════════════════════════
 
-// Locale dictionaries — kept inline and small. Central i18n layer can
-// be extracted once the second/third template lands.
-const LABELS = {
-  en: {
-    period:           'Period',
-    scope:            'Scope',
-    generated:        'Generated',
-    version:          'Version',
-    executiveSummary: 'Executive Summary',
-    snapshot:         'Operational snapshot',
-    page:             'Page',
-  },
-  ko: {
-    period:           '기간',
-    scope:            '범위',
-    generated:        '생성일',
-    version:          '버전',
-    executiveSummary: '경영 요약',
-    snapshot:         '운영 스냅샷',
-    page:             '페이지',
-  },
+const { buildReportContext } = require('./content/index');
+
+// ── Locale helpers ───────────────────────────────────────────────
+
+const MONTHS_EN = [
+  'January','February','March','April','May','June',
+  'July','August','September','October','November','December',
+];
+const MONTHS_KO = [
+  '1월','2월','3월','4월','5월','6월',
+  '7월','8월','9월','10월','11월','12월',
+];
+
+function fmtDate(d, lang) {
+  return new Intl.DateTimeFormat(lang === 'ko' ? 'ko-KR' : 'en-GB', {
+    year: 'numeric', month: 'short', day: '2-digit',
+  }).format(d);
+}
+
+function periodLabel(month, year, lang) {
+  // month is 0-based
+  return lang === 'ko'
+    ? `${year}년 ${MONTHS_KO[month]}`
+    : `${MONTHS_EN[month]} ${year}`;
+}
+
+// KPI accent derivation — based on semantic tag from content pipeline.
+function kpiAccent(kpi) {
+  if (kpi.semantic === 'severity_critical') {
+    const share = kpi.share;
+    if (share == null) return 'brand';
+    return share >= 0.15 ? 'crit' : (share >= 0.08 ? 'warn' : 'ok');
+  }
+  if (kpi.semantic === 'median_resolve') {
+    const v = kpi.value;
+    if (v == null) return 'brand';
+    return v > 120 ? 'crit' : (v > 60 ? 'warn' : 'ok');
+  }
+  if (kpi.semantic === 'reporting_completeness') {
+    const v = kpi.value;
+    if (v == null) return 'brand';
+    return v < 0.75 ? 'crit' : (v < 0.85 ? 'warn' : 'ok');
+  }
+  return 'brand';
+}
+
+// Enrich kpis from content pipeline with accent + (ko) label overrides.
+function enrichKpis(kpis) {
+  return kpis.map(k => Object.assign({}, k, { accent: kpiAccent(k) }));
+}
+
+// ── Core builder ─────────────────────────────────────────────────
+//
+// Takes raw rows (normLog format: Branch, Zone, Date, Time, TimeTaken,
+// Category, ActionTaken, Difficulty, Severity) and opts, runs the v2
+// content pipeline, then layers on template-layer fields.
+
+function buildV2Context(rows, opts = {}) {
+  const lang     = opts.lang === 'ko' ? 'ko' : 'en';
+  const variant  = opts.variant || 'monthlyBranch';
+  const period   = opts.period  || '';
+  const scope    = opts.scope   || null;
+  const now      = opts.now     || new Date();
+  const generated = opts.generated || fmtDate(now, lang);
+
+  // Run content pipeline
+  const ctx = buildReportContext(rows, {
+    lang,
+    variant,
+    period,
+    scope,
+    generated,
+    priorMedianResolveMin: opts.priorMedianResolveMin || null,
+  });
+
+  // Enrich KPIs with visual accent tokens
+  const kpis = enrichKpis(ctx.kpis || []);
+
+  // KPI column count: 5 for monthlyBranch (K1-K5), 6 for global/annual
+  const kpiColumns = kpis.length >= 6 ? '6' : (kpis.length >= 4 ? '5' : String(kpis.length));
+
+  // Doc title for <title> element
+  const titleParts = [
+    lang === 'ko' ? '인시던트 운영 리포트' : 'Incident Operations Report',
+    scope || (lang === 'ko' ? '전체' : 'All Branches'),
+    period,
+  ].filter(Boolean);
+  const docTitle = `${titleParts.join(' · ')} — d'strict GTO`;
+
+  return Object.assign({}, ctx, {
+    kpis,
+    kpiColumns,
+    docTitle,
+    generated,
+    period,
+    scope,
+    // labels already provided by buildReportContext but need page label added
+    labels: Object.assign({ page: lang === 'ko' ? '페이지' : 'Page' }, ctx.labels),
+  });
+}
+
+// ── Public builders ──────────────────────────────────────────────
+
+function buildMonthlyBranchContext(rows, opts = {}) {
+  return buildV2Context(rows, Object.assign({}, opts, { variant: 'monthlyBranch' }));
+}
+
+function buildMonthlyGlobalContext(rows, opts = {}) {
+  return buildV2Context(rows, Object.assign({}, opts, { variant: 'monthlyGlobal' }));
+}
+
+function buildAnnualContext(rows, opts = {}) {
+  return buildV2Context(rows, Object.assign({}, opts, { variant: 'annual' }));
+}
+
+// ── Smoke-test context (unchanged from original) ─────────────────
+
+const SMOKE_LABELS = {
+  en: { period: 'Period', scope: 'Scope', generated: 'Generated', version: 'Version',
+        executiveSummary: 'Executive Summary', snapshot: 'Operational snapshot', page: 'Page' },
+  ko: { period: '기간', scope: '범위', generated: '생성일', version: '버전',
+        executiveSummary: '경영 요약', snapshot: '운영 스냅샷', page: '페이지' },
 };
 
-const COPY = {
+const SMOKE_COPY = {
   en: {
     eyebrow:  'd\u2019strict · Global Tech Ops',
     headline: 'Smoke Test — HTML/CSS Reporting Engine',
@@ -59,16 +162,9 @@ const COPY = {
   },
 };
 
-// ── Public: build smoke-test context ─────────────────────────────
 function buildSmokeContext({ lang = 'en', now = new Date() } = {}) {
-  const L = LABELS[lang] || LABELS.en;
-  const T = COPY[lang]   || COPY.en;
-
-  const fmtDate = (d, lc) =>
-    new Intl.DateTimeFormat(lc === 'ko' ? 'ko-KR' : 'en-GB', {
-      year: 'numeric', month: 'short', day: '2-digit',
-    }).format(d);
-
+  const L = SMOKE_LABELS[lang] || SMOKE_LABELS.en;
+  const T = SMOKE_COPY[lang]   || SMOKE_COPY.en;
   return {
     lang,
     docTitle: `${T.headline} — d'strict GTO`,
@@ -84,16 +180,22 @@ function buildSmokeContext({ lang = 'en', now = new Date() } = {}) {
       generated: fmtDate(now, lang),
       version:   'v2.0-alpha',
     },
-    // KPI strip — representative sample values, each accent demonstrating
-    // the semantic variants (brand / ok / warn / crit / neutral).
     kpis: [
-      { accent: 'brand', label: lang === 'ko' ? '전체 인시던트' : 'Total Incidents', value: '1,248',                         hint: lang === 'ko' ? '전년 대비 +8%'    : '+8% YoY' },
-      { accent: 'crit',  label: lang === 'ko' ? '중대 (Lv 4+)'  : 'Critical (Lv 4+)', value: '37',                             hint: lang === 'ko' ? '전년 대비 −12%'   : '−12% YoY' },
-      { accent: 'ok',    label: lang === 'ko' ? '평균 해결 시간' : 'Avg Resolution',   value: '42', unit: lang === 'ko' ? '분' : 'min', hint: lang === 'ko' ? '목표 60분 이내' : 'SLA: <60 min' },
-      { accent: 'warn',  label: lang === 'ko' ? '평균 난이도'    : 'Avg Difficulty',   value: '2.3', unit: '/5',                hint: lang === 'ko' ? '중간 수준'       : 'Moderate' },
-      { accent: 'brand', label: lang === 'ko' ? '가동률'          : 'Availability',    value: '99.82', unit: '%',              hint: lang === 'ko' ? '목표 99.5%'      : 'Target 99.5%' },
+      { accent: 'brand', label: lang === 'ko' ? '전체 인시던트' : 'Total Incidents', value: '1,248', hint: lang === 'ko' ? '전년 대비 +8%' : '+8% YoY' },
+      { accent: 'crit',  label: lang === 'ko' ? '중대 (Lv 4+)'  : 'Critical (Lv 4+)', value: '37', hint: lang === 'ko' ? '전년 대비 −12%' : '−12% YoY' },
+      { accent: 'ok',    label: lang === 'ko' ? '평균 해결 시간' : 'Avg Resolution', value: '42', unit: lang === 'ko' ? '분' : 'min', hint: lang === 'ko' ? '목표 60분 이내' : 'SLA: <60 min' },
+      { accent: 'warn',  label: lang === 'ko' ? '평균 난이도'    : 'Avg Difficulty', value: '2.3', unit: '/5', hint: lang === 'ko' ? '중간 수준' : 'Moderate' },
+      { accent: 'brand', label: lang === 'ko' ? '가동률'         : 'Availability', value: '99.82', unit: '%', hint: lang === 'ko' ? '목표 99.5%' : 'Target 99.5%' },
     ],
   };
 }
 
-module.exports = { buildSmokeContext };
+module.exports = {
+  buildSmokeContext,
+  buildMonthlyBranchContext,
+  buildMonthlyGlobalContext,
+  buildAnnualContext,
+  buildV2Context,
+  // exposed for scripts
+  _helpers: { periodLabel, fmtDate, enrichKpis },
+};

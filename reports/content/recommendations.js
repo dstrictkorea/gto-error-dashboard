@@ -67,7 +67,8 @@ const MAX_RECOMMENDATIONS = 3;
 // visible bullet lines with "...and N more" overflow text.
 const COMBINED_BULLET_CAP = 3;
 
-const CAPS = { compact: 3, standard: 5, expanded: 7 };
+// All caps align with MAX_RECOMMENDATIONS (rendering contract §3).
+const CAPS = { compact: 3, standard: 3, expanded: 3 };
 
 // ══════════════════════════════════════════════════════════════════
 //  Copy (EN / KO)
