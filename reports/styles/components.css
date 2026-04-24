@@ -1,0 +1,410 @@
+/* ══════════════════════════════════════════════
+ *  Components — cover, KPI strip, hero layout
+ *  Each component is self-contained and uses tokens only.
+ * ══════════════════════════════════════════════ */
+
+/* ── Cover ────────────────────────────────────────── */
+.cover {
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  gap: var(--s-8);
+  flex: 1;
+}
+.cover__brand {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: var(--s-3);
+  border-bottom: 0.5mm solid var(--cp);
+}
+.cover__brand .mark {
+  font-weight: 900;
+  font-size: 13pt;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--cp);
+}
+.cover__brand .org {
+  font-size: var(--fs-caption);
+  color: var(--cs);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.cover__title {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+  align-self: end;
+}
+.cover__eyebrow {
+  font-size: 9pt;
+  font-weight: 500;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--cs);
+}
+.cover__headline {
+  font-size: var(--fs-display);
+  font-weight: 700;
+  line-height: var(--lh-tight);
+  color: var(--ct);
+  letter-spacing: -0.02em;
+  max-width: 62ch;
+  text-wrap: balance;
+}
+.cover__subhead {
+  font-size: 14pt;
+  font-weight: 400;
+  color: var(--cs);
+  line-height: 1.35;
+  max-width: 60ch;
+}
+
+.cover__meta {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--s-6);
+  padding-top: var(--s-4);
+  border-top: var(--hl);
+}
+.cover__meta dt {
+  font-size: var(--fs-caption);
+  color: var(--cs);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  margin-bottom: var(--s-1);
+}
+.cover__meta dd {
+  font-size: 12pt;
+  font-weight: 500;
+  color: var(--ct);
+  margin: 0;
+}
+
+/* ── KPI strip ─────────────────────────────────────── */
+.kpi-strip {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: var(--s-3);
+  margin-top: var(--s-6);
+}
+.kpi-strip--4 { grid-template-columns: repeat(4, 1fr); }
+.kpi-strip--3 { grid-template-columns: repeat(3, 1fr); }
+
+.kpi {
+  break-inside: avoid;
+  background: var(--ccard);
+  border: var(--hl);
+  border-radius: var(--r-md);
+  padding: var(--s-4) var(--s-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+  min-height: 26mm;
+}
+.kpi__label {
+  font-size: var(--fs-kpi-lbl);
+  color: var(--cs);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  font-weight: 500;
+}
+.kpi__value {
+  font-size: var(--fs-kpi);
+  font-weight: 700;
+  line-height: 1;
+  color: var(--ct);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+}
+.kpi__unit {
+  font-size: 11pt;
+  font-weight: 500;
+  color: var(--cs);
+  margin-left: 0.5mm;
+}
+.kpi__hint {
+  font-size: var(--fs-caption);
+  color: var(--cs);
+  margin-top: auto;
+}
+
+/* Semantic KPI accents */
+.kpi--brand { border-top: 0.8mm solid var(--cp); }
+.kpi--ok    { border-top: 0.8mm solid var(--cok); }
+.kpi--warn  { border-top: 0.8mm solid var(--cw); }
+.kpi--crit  { border-top: 0.8mm solid var(--ce); }
+.kpi--crit  .kpi__value { color: var(--ce); }
+.kpi--ok    .kpi__value { color: var(--cok); }
+
+/* ── Section header ────────────────────────────────── */
+.section {
+  margin-top: var(--s-8);
+  break-inside: auto;
+}
+.section > header {
+  display: flex;
+  align-items: baseline;
+  gap: var(--s-3);
+  margin-bottom: var(--s-4);
+  border-bottom: var(--hl);
+  padding-bottom: var(--s-2);
+}
+.section > header .num {
+  font-size: 10pt;
+  color: var(--cp);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+.section > header h2 { flex: 1; }
+.section > header .eyebrow {
+  font-size: var(--fs-caption);
+  color: var(--cs);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+/* ── Narrative block ───────────────────────────────── */
+.narrative {
+  max-width: 120ch;
+  font-size: 10pt;
+  line-height: var(--lh-body);
+  color: var(--ct);
+}
+html[lang="ko"] .narrative { line-height: var(--lh-body-ko); }
+.narrative strong { font-weight: 700; color: var(--ct); }
+
+/* ══════════════════════════════════════════════
+ *  Evidence cards — 3-tier visual system
+ *  Contract §8: strict ≠ soft ≠ observation, readable by chrome alone
+ * ══════════════════════════════════════════════ */
+
+/* Shared card anatomy */
+.card {
+  break-inside: avoid;
+  page-break-inside: avoid;
+  background: var(--ccard);
+  border-radius: var(--r-md);
+  padding: var(--s-4) var(--s-5);
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--s-2);
+}
+.card + .card { margin-top: var(--s-3); }
+
+.card__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-3);
+}
+.card__title {
+  font-weight: 700;
+  font-size: 11pt;
+  color: var(--ct);
+  line-height: var(--lh-snug);
+  margin: 0;
+  letter-spacing: -0.005em;
+}
+.card__badge {
+  display: inline-block;
+  padding: 0.6mm 2mm;
+  font-size: 7.5pt;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  border-radius: var(--r-sm);
+  white-space: nowrap;
+}
+.card__rank {
+  font-size: 8pt;
+  font-weight: 700;
+  color: var(--cs);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.04em;
+}
+.card__label {
+  font-size: 7.5pt;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--cs);
+  margin-bottom: 0.5mm;
+}
+.card__observed,
+.card__action {
+  font-size: 9.5pt;
+  line-height: 1.45;
+  color: var(--ct);
+  margin: 0;
+  text-wrap: pretty;
+}
+html[lang="ko"] .card__observed,
+html[lang="ko"] .card__action { line-height: 1.6; }
+
+.card__note {
+  margin: 0;
+  padding-top: var(--s-2);
+  border-top: 0.15mm dashed var(--cl);
+  font-size: 8.5pt;
+  line-height: 1.45;
+  color: var(--cs);
+}
+.card__note::before {
+  content: "ⓘ ";
+  color: var(--cp);
+  font-weight: 700;
+  margin-right: 1mm;
+}
+
+/* ── Tier 1: Strict recommendation ───────────────── */
+.card--rec {
+  border: 0.35mm solid var(--cp);
+}
+.card--strict {
+  background: var(--ccard);
+  box-shadow: inset 3mm 0 0 0 var(--cp);
+  padding-left: calc(var(--s-5) + 2mm);
+}
+.card--strict .card__title {
+  font-weight: 700;
+  color: var(--ct);
+}
+.card--strict .card__badge {
+  background: var(--cp);
+  color: #ffffff;
+}
+.card--strict .card__action {
+  font-weight: 500;
+  color: var(--ct);
+}
+.card--strict .card__action-label {
+  color: var(--cp);
+}
+
+/* ── Tier 2: Soft recommendation ─────────────────── */
+.card--soft {
+  border: 0.25mm dashed var(--cs);
+  background: #fbfaf5;
+  box-shadow: none;
+}
+.card--soft .card__title {
+  font-weight: 500;
+  color: var(--cs);
+}
+.card--soft .card__badge {
+  background: transparent;
+  color: var(--cs);
+  border: 0.15mm solid var(--cs);
+  font-weight: 500;
+  letter-spacing: 0.1em;
+}
+.card--soft .card__action {
+  font-style: italic;
+  font-weight: 400;
+  color: var(--cs);
+}
+.card--soft .card__action-label {
+  color: var(--cs);
+  font-weight: 500;
+  font-style: normal;
+}
+
+/* ── Tier 3: Observation / combined ──────────────── */
+.card--obs {
+  border: 0;
+  border-top: 0.15mm solid var(--cl);
+  border-radius: 0;
+  background: transparent;
+  padding: var(--s-3) 0;
+}
+.card--obs .card__title {
+  font-size: 10pt;
+  font-weight: 500;
+  color: var(--cs);
+  letter-spacing: 0;
+}
+.card--obs .card__observed {
+  color: var(--cs);
+  font-size: 9.5pt;
+}
+.card--obs .card__note {
+  border-top: 0;
+  padding-top: var(--s-1);
+  font-size: 8.5pt;
+}
+
+/* Combined observation — bullet list presentation */
+.card--combined .card__bullets {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1mm;
+}
+.card--combined .card__bullets li {
+  font-size: 9.5pt;
+  line-height: 1.45;
+  color: var(--cs);
+  padding-left: 0;
+}
+.card--combined .card__bullets li.overflow {
+  color: var(--cs);
+  font-style: italic;
+  opacity: 0.75;
+}
+
+/* ── Evidence sections (Recommendations / Observations) ─── */
+.ev-section {
+  margin-top: var(--s-6);
+  break-inside: auto;
+}
+.ev-section__header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--s-3);
+  margin-bottom: var(--s-3);
+  border-bottom: var(--hl);
+  padding-bottom: var(--s-2);
+}
+.ev-section__title {
+  font-size: 11pt;
+  font-weight: 700;
+  color: var(--ct);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  margin: 0;
+}
+.ev-section__count {
+  font-size: 9pt;
+  font-weight: 500;
+  color: var(--cs);
+  font-variant-numeric: tabular-nums;
+}
+.ev-section--obs .ev-section__title {
+  color: var(--cs);
+  font-weight: 500;
+}
+
+/* Empty-case message — muted plain text, no frame */
+.ev-empty {
+  padding: var(--s-5) 0;
+  font-size: 10pt;
+  font-style: italic;
+  color: var(--cs);
+  text-align: left;
+  border: 0;
+}
+
+/* Confidence legend footnote — renders only when low-confidence */
+.confidence-legend {
+  margin-top: var(--s-4);
+  padding-top: var(--s-2);
+  border-top: 0.15mm dashed var(--cl);
+  font-size: 7.5pt;
+  color: var(--cs);
+  line-height: 1.4;
+}

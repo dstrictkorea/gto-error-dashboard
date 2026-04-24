@@ -1,0 +1,67 @@
+{{!-- ═══════════════════════════════════════════════════════════════
+  monthly-global.hbs — All-branch (global) monthly report
+
+  Pages:
+    1. Executive snapshot: header + KPI strip + narrative
+    2. Evidence: Recommendations + Observations (rendering contract)
+
+  Reads ctx produced by reports/content/index.js::buildReportContext
+  with variant='monthlyGlobal'. The evidence partial is shared with
+  monthly-branch so the contract enforcement is identical across scopes.
+═══════════════════════════════════════════════════════════════ --}}
+
+{{!-- ── Page 1 — snapshot + narrative ──────────────── --}}
+<section class="page">
+  <header class="page-chrome">
+    <span class="brand-mark">d'strict · GTO</span>
+    <span class="meta">
+      <span>{{labels.title}}</span>
+      <span>·</span>
+      <span>{{period}}</span>
+      <span>·</span>
+      <span>{{#if scope}}{{scope}}{{else}}{{#if (eq lang "ko")}}전체 지사{{else}}All branches{{/if}}{{/if}}</span>
+    </span>
+  </header>
+
+  <article class="section" style="margin-top:0">
+    <header>
+      <span class="num">01</span>
+      <h2>{{labels.executiveSummary}}</h2>
+      <span class="eyebrow">{{labels.kpiStrip}}</span>
+    </header>
+
+    {{> narrative}}
+    {{> kpi-strip kpiColumns=(default kpiColumns "5")}}
+  </article>
+
+  <footer class="page-footer">
+    <span>{{generated}}</span>
+    <span>{{labels.page}} 1</span>
+  </footer>
+</section>
+
+{{!-- ── Page 2 — evidence (recs + observations) ─────── --}}
+<section class="page">
+  <header class="page-chrome">
+    <span class="brand-mark">d'strict · GTO</span>
+    <span class="meta">
+      <span>{{labels.title}}</span>
+      <span>·</span>
+      <span>{{period}}</span>
+    </span>
+  </header>
+
+  <article class="section" style="margin-top:0">
+    <header>
+      <span class="num">02</span>
+      <h2>{{#if recommendations.length}}{{labels.recommendations}}{{else}}{{labels.observations}}{{/if}}</h2>
+      <span class="eyebrow">{{labels.executiveSummary}}</span>
+    </header>
+    {{> evidence}}
+  </article>
+
+  <footer class="page-footer">
+    <span>{{generated}}</span>
+    <span>{{labels.page}} 2</span>
+  </footer>
+</section>

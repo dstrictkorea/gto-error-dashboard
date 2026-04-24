@@ -1,0 +1,16 @@
+{{!-- ═══════════════════════════════════════════════════════════════
+  card-obs.hbs — Single observation card
+
+  Contract §2:
+    - No badge, no action, no imperative language
+    - Title in lower visual weight (handled by .card--obs CSS)
+    - Info-icon prefix on the note line via ::before
+    - card.observed rendered as plain prose (no label prefix)
+═══════════════════════════════════════════════════════════════ --}}
+<article class="card card--obs" role="note">
+  <h3 class="card__title">{{title}}</h3>
+  <p class="card__observed">{{observed}}</p>
+  {{#if note}}
+  <p class="card__note">{{note}}</p>
+  {{/if}}
+</article>

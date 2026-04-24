@@ -1,0 +1,70 @@
+/* ══════════════════════════════════════════════
+ *  Print — @page rules, page chrome, break control
+ *  All executive reports: A4 landscape, generous but not bloated margins.
+ * ══════════════════════════════════════════════ */
+
+@page {
+  size: A4 landscape;
+  /* top  right  bottom  left */
+  margin: 14mm 16mm 16mm 16mm;
+}
+
+/* Cover page gets a tighter top margin so the title sits high. */
+@page :first {
+  margin-top: 12mm;
+}
+
+/* Paginated container — each .page flushes to a new printed page. */
+.page {
+  page-break-after: always;
+  break-after: page;
+  min-height: calc(210mm - 30mm); /* landscape H minus vertical margins */
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+.page:last-of-type {
+  page-break-after: auto;
+  break-after: auto;
+}
+
+/* Block-level break controls — declarative, no manual y math */
+.keep-together { break-inside: avoid; page-break-inside: avoid; }
+.break-before  { break-before: page;  page-break-before: always; }
+.break-after   { break-after: page;   page-break-after: always; }
+
+/* Orphans/widows everywhere by default — avoids single-line last pages */
+* { orphans: 3; widows: 3; }
+
+/* Running header/footer — minimal, only shows on non-cover pages */
+.page-chrome {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: var(--fs-caption);
+  color: var(--cs);
+  padding-bottom: var(--s-2);
+  border-bottom: var(--hl);
+  margin-bottom: var(--s-5);
+}
+.page-chrome .brand-mark {
+  font-weight: 700;
+  color: var(--ct);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.page-chrome .meta {
+  display: flex;
+  gap: var(--s-4);
+  align-items: center;
+}
+
+.page-footer {
+  margin-top: auto;                   /* pins to bottom of .page flex */
+  padding-top: var(--s-3);
+  border-top: var(--hl-d);
+  display: flex;
+  justify-content: space-between;
+  font-size: var(--fs-caption);
+  color: var(--cs);
+}

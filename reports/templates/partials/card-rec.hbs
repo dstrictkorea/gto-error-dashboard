@@ -1,0 +1,47 @@
+{{!-- ═══════════════════════════════════════════════════════════════
+  card-rec.hbs — Recommendation card (strict OR soft)
+
+  Contract §1:
+    - Strict → solid border + filled badge + bold title + imperative action
+    - Soft   → dashed border + outline badge + lighter title + italic action
+
+  Differentiation on ≥3 of: border style, background tone, title weight,
+  action text styling. Badge text is language-keyed. Rank is 1-based.
+
+  Data expected via block param:
+    this.title, this.observed, this.action, this.strength ('strict'|'soft')
+    @root.lang, @root.labels.recommendedAction / observed
+    @index        — 0-based position in recommendations array
+═══════════════════════════════════════════════════════════════ --}}
+<article class="card card--rec card--{{strength}}" role="region" aria-label="{{title}}">
+  <header class="card__head">
+    <span class="card__badge">
+      {{#if (eq strength "strict")}}
+        {{#if (eq @root.lang "ko")}}조치 필요{{else}}ACTION REQUIRED{{/if}}
+      {{else}}
+        {{#if (eq @root.lang "ko")}}검토 권고{{else}}REVIEW SUGGESTED{{/if}}
+      {{/if}}
+    </span>
+    <span class="card__rank">#{{add @index 1}}</span>
+  </header>
+
+  <h3 class="card__title">{{title}}</h3>
+
+  <div>
+    <div class="card__label">{{@root.labels.observed}}</div>
+    <p class="card__observed">{{observed}}</p>
+  </div>
+
+  {{#if action}}
+  <div>
+    <div class="card__label card__action-label">
+      {{#if (eq strength "strict")}}
+        {{#if (eq @root.lang "ko")}}권고 조치{{else}}Recommended action{{/if}}
+      {{else}}
+        {{#if (eq @root.lang "ko")}}검토 사항{{else}}Review if needed{{/if}}
+      {{/if}}
+    </div>
+    <p class="card__action">{{action}}</p>
+  </div>
+  {{/if}}
+</article>

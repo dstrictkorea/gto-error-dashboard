@@ -1,0 +1,82 @@
+{{!-- ═══════════════════════════════════════════════
+  Smoke-test template — verifies the v2 pipeline end-to-end:
+    · Font loading (Uniform + Noto Sans KR)
+    · Landscape A4 page geometry
+    · CSS Grid KPI strip with adaptive density
+    · Bilingual typography (lang attr + locale tuning)
+    · Page break handling via .page containers
+═══════════════════════════════════════════════ --}}
+
+{{!-- ── Page 1: Cover ─────────────────────────────── --}}
+<section class="page cover-page">
+  <div class="cover">
+    <header class="cover__brand">
+      <span class="mark">d'strict</span>
+      <span class="org">{{orgLine}}</span>
+    </header>
+
+    <div class="cover__title">
+      <span class="cover__eyebrow">{{eyebrow}}</span>
+      <h1 class="cover__headline">{{headline}}</h1>
+      <p class="cover__subhead">{{subhead}}</p>
+    </div>
+
+    <dl class="cover__meta">
+      <div>
+        <dt>{{labels.period}}</dt>
+        <dd>{{meta.period}}</dd>
+      </div>
+      <div>
+        <dt>{{labels.scope}}</dt>
+        <dd>{{meta.scope}}</dd>
+      </div>
+      <div>
+        <dt>{{labels.generated}}</dt>
+        <dd>{{meta.generated}}</dd>
+      </div>
+      <div>
+        <dt>{{labels.version}}</dt>
+        <dd>{{meta.version}}</dd>
+      </div>
+    </dl>
+  </div>
+</section>
+
+{{!-- ── Page 2: Executive snapshot ────────────────── --}}
+<section class="page">
+  <header class="page-chrome">
+    <span class="brand-mark">d'strict · GTO</span>
+    <span class="meta">
+      <span>{{headline}}</span>
+      <span>·</span>
+      <span>{{meta.period}}</span>
+    </span>
+  </header>
+
+  <article class="section" style="margin-top:0">
+    <header>
+      <span class="num">01</span>
+      <h2>{{labels.executiveSummary}}</h2>
+      <span class="eyebrow">{{labels.snapshot}}</span>
+    </header>
+
+    <p class="narrative">
+      {{{narrative}}}
+    </p>
+
+    <div class="kpi-strip keep-together">
+      {{#each kpis}}
+      <div class="kpi kpi--{{accent}}">
+        <div class="kpi__label">{{label}}</div>
+        <div class="kpi__value">{{value}}{{#if unit}}<span class="kpi__unit">{{unit}}</span>{{/if}}</div>
+        {{#if hint}}<div class="kpi__hint">{{hint}}</div>{{/if}}
+      </div>
+      {{/each}}
+    </div>
+  </article>
+
+  <footer class="page-footer">
+    <span>{{meta.generated}}</span>
+    <span>{{labels.page}} 2</span>
+  </footer>
+</section>

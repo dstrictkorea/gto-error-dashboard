@@ -1,0 +1,68 @@
+/* ══════════════════════════════════════════════
+ *  Base — reset, typography, locale tuning
+ * ══════════════════════════════════════════════ */
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background: var(--cbg);
+  color: var(--ct);
+  font-family: var(--ff-sans);
+  font-size: var(--fs-body);
+  line-height: var(--lh-body);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: geometricPrecision;
+  font-feature-settings: "kern", "liga", "calt", "tnum";
+}
+
+/* Korean locale: looser line-height, Noto stack first, subtle letter tracking */
+html[lang="ko"] body {
+  font-family: var(--ff-sans-kr);
+  line-height: var(--lh-body-ko);
+  letter-spacing: -0.005em;
+}
+
+h1, h2, h3, h4, p, ul, ol, figure { margin: 0; padding: 0; }
+
+h1 {
+  font-size: var(--fs-h1);
+  font-weight: 700;
+  line-height: var(--lh-tight);
+  color: var(--ct);
+  letter-spacing: -0.015em;
+}
+h2 {
+  font-size: var(--fs-h2);
+  font-weight: 700;
+  line-height: var(--lh-snug);
+  color: var(--ct);
+  letter-spacing: -0.01em;
+}
+h3 {
+  font-size: var(--fs-h3);
+  font-weight: 500;
+  line-height: var(--lh-snug);
+  color: var(--cs);
+}
+
+p { orphans: 3; widows: 3; }
+
+small, .caption {
+  font-size: var(--fs-caption);
+  color: var(--cs);
+  line-height: 1.4;
+}
+
+.tnum { font-variant-numeric: tabular-nums; }
+.upper { text-transform: uppercase; letter-spacing: 0.08em; }
+.muted { color: var(--cs); }
+.ink   { color: var(--ct); }
+.brand { color: var(--cp); }
+
+hr {
+  border: 0;
+  border-top: var(--hl);
+  margin: var(--s-4) 0;
+}

@@ -1,0 +1,72 @@
+/* ══════════════════════════════════════════════
+ *  Design tokens — single source of truth.
+ *  Mirrors the PDFKit palette so v2 output matches existing identity
+ *  while layout/typography move to a proper engine.
+ * ══════════════════════════════════════════════ */
+
+:root {
+  /* Brand / semantic */
+  --cp:         #534AB7;  /* primary purple */
+  --cp-ink:     #2F2A6D;  /* purple ink for headings on light */
+  --ct:         #1a1a18;  /* primary text */
+  --cs:         #73726c;  /* secondary / caption text */
+  --cok:        #3B6D11;  /* ok / positive */
+  --ce:         #A32D2D;  /* error / critical */
+  --cw:         #854F0B;  /* warn */
+  --cl:         #e8e6df;  /* divider / hairline */
+  --cbg:        #f6f5f0;  /* page cream background */
+  --ccard:      #ffffff;  /* card surface */
+  --chi:        #FDE68A;  /* highlight */
+
+  /* Branch palette (from config.js) */
+  --br-amgn:    #0891b2;
+  --br-ays:     #059669;
+  --br-ambs:    #2563eb;
+  --br-amjj:    #7c3aed;
+  --br-amny:    #185FA5;
+  --br-amlv:    #993C1D;
+  --br-amdb:    #534AB7;
+
+  /* Type scale (print-optimised, in pt) */
+  --fs-display: 40pt;
+  --fs-h1:      22pt;
+  --fs-h2:      14pt;
+  --fs-h3:      11pt;
+  --fs-body:    9.5pt;
+  --fs-caption: 8pt;
+  --fs-kpi:     30pt;
+  --fs-kpi-lbl: 8pt;
+
+  /* Line heights */
+  --lh-tight:   1.05;
+  --lh-snug:    1.25;
+  --lh-body:    1.5;
+  --lh-body-ko: 1.7;
+
+  /* Spacing scale (mm — print natural) */
+  --s-0:  0;
+  --s-1:  1mm;
+  --s-2:  2mm;
+  --s-3:  3mm;
+  --s-4:  4mm;
+  --s-5:  5mm;
+  --s-6:  6mm;
+  --s-8:  8mm;
+  --s-10: 10mm;
+  --s-12: 12mm;
+  --s-16: 16mm;
+
+  /* Radii */
+  --r-sm: 1.5mm;
+  --r-md: 2.5mm;
+  --r-lg: 4mm;
+
+  /* Hairlines */
+  --hl:   0.2mm solid var(--cl);
+  --hl-d: 0.2mm solid #d9d7cf;
+
+  /* Font stacks (Uniform = Latin, Noto Sans KR = Hangul fallback) */
+  --ff-sans:    "Uniform", "Noto Sans KR", -apple-system, system-ui, sans-serif;
+  --ff-sans-kr: "Noto Sans KR", "Uniform", -apple-system, system-ui, sans-serif;
+  --ff-mono:    ui-monospace, "SF Mono", Consolas, monospace;
+}

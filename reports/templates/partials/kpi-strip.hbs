@@ -1,0 +1,18 @@
+{{!-- ═══════════════════════════════════════════════════════════════
+  kpi-strip.hbs — KPI block fed by ctx.kpis
+
+  Expects each KPI to carry:
+    { id, label, value/formatted, unit?, hint?, accent? }
+
+  Accent values map to .kpi--{brand|ok|warn|crit}. When absent we fall
+  back to 'brand'.
+═══════════════════════════════════════════════════════════════ --}}
+<div class="kpi-strip kpi-strip--{{kpiColumns}} keep-together">
+  {{#each kpis}}
+  <div class="kpi kpi--{{default accent "brand"}}">
+    <div class="kpi__label">{{label}}</div>
+    <div class="kpi__value">{{default formatted value}}{{#if unit}}<span class="kpi__unit">{{unit}}</span>{{/if}}</div>
+    {{#if hint}}<div class="kpi__hint">{{hint}}</div>{{/if}}
+  </div>
+  {{/each}}
+</div>

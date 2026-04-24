@@ -1,0 +1,58 @@
+{{!-- ═══════════════════════════════════════════════════════════════
+  evidence.hbs — Recommendations + Observations composite section
+
+  Contract §4 (section structure):
+    - Recommendations header renders only when recommendations.length > 0
+    - Observations header renders only when observations.length > 0
+    - When no recommendations but observations exist, Observations still
+      keeps its own labelled header (never renamed to "Recommendations")
+    - If both empty, show the empty-case message from Contract §5
+
+  Contract §3 (card cap): observations.length ≤ 3 is enforced at the
+  content layer by combineObservations() + OBS_DENSITY_CAP.
+  Recommendations cap (≤3) is enforced by MAX_RECOMMENDATIONS.
+═══════════════════════════════════════════════════════════════ --}}
+
+{{#if recommendations.length}}
+<section class="ev-section ev-section--recs" aria-labelledby="ev-recs-title">
+  <header class="ev-section__header">
+    <h2 class="ev-section__title" id="ev-recs-title">{{labels.recommendations}}</h2>
+    <span class="ev-section__count">{{recommendations.length}}</span>
+  </header>
+  {{#each recommendations}}
+    {{> card-rec this}}
+  {{/each}}
+</section>
+{{/if}}
+
+{{#if observations.length}}
+<section class="ev-section ev-section--obs" aria-labelledby="ev-obs-title">
+  <header class="ev-section__header">
+    <h2 class="ev-section__title" id="ev-obs-title">{{labels.observations}}</h2>
+    <span class="ev-section__count">{{observations.length}}</span>
+  </header>
+  {{#each observations}}
+    {{#if (eq type "combinedObservation")}}
+      {{> card-combined this}}
+    {{else}}
+      {{> card-obs this}}
+    {{/if}}
+  {{/each}}
+</section>
+{{/if}}
+
+{{#unless (or recommendations.length observations.length)}}
+<section class="ev-section ev-section--empty">
+  <p class="ev-empty">
+    {{#if (eq lang "ko")}}
+      운영이 안정적입니다. 이번 주기에 주목할 패턴이나 필요한 조치가 없습니다.
+    {{else}}
+      Operations stable. No significant patterns or actions required this cycle.
+    {{/if}}
+  </p>
+</section>
+{{/unless}}
+
+{{#if confidenceLegend}}
+<p class="confidence-legend">{{confidenceLegend}}</p>
+{{/if}}

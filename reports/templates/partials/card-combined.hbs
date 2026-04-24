@@ -1,0 +1,25 @@
+{{!-- ═══════════════════════════════════════════════════════════════
+  card-combined.hbs — Combined observation block (group of ≥2 merged)
+
+  Contract §3:
+    - Group title heading
+    - Bullet list (pre-formatted with · per line by content layer)
+    - Max 3 bullets + "...and N more" overflow line (enforced in
+      recommendations.js::buildCombinedCard, exposed via truncatedCount).
+    - Single unified note replaces individual source notes.
+
+  The content layer produces card.observed as newline-separated lines
+  each already prefixed with "· ". We split on \n and strip the prefix
+  so CSS controls bullet presentation.
+═══════════════════════════════════════════════════════════════ --}}
+<article class="card card--obs card--combined" role="note">
+  <h3 class="card__title">{{title}}</h3>
+  <ul class="card__bullets">
+    {{#each (splitLines observed) as |line|}}
+    <li class="{{#if (startsWith line "· …")}}overflow{{/if}}">{{stripBullet line}}</li>
+    {{/each}}
+  </ul>
+  {{#if note}}
+  <p class="card__note">{{note}}</p>
+  {{/if}}
+</article>
