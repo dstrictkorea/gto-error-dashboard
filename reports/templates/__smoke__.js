@@ -125,7 +125,7 @@ const ctxEmpty = {
   lang: 'en', variant: 'monthlyBranch', period: 'March 2026', scope: 'AMGN',
   generated: '2026-04-01',
   labels: {
-    title: 'Incident Operations Report',
+    title: 'Error Report',
     executiveSummary: 'Executive Summary',
     kpiStrip: 'Key Metrics',
     recommendations: 'Recommendations',
@@ -146,7 +146,7 @@ assert(!emptyHtml.includes('ev-section__header'), 'empty case must not render se
 
 // Korean empty case
 const ctxEmptyKo = Object.assign({}, ctxEmpty, { lang: 'ko',
-  labels: Object.assign({}, ctxEmpty.labels, { title: '인시던트 운영 리포트' }) });
+  labels: Object.assign({}, ctxEmpty.labels, { title: '에러 리포트' }) });
 const emptyHtmlKo = compile('monthly-branch')(ctxEmptyKo);
 assert(emptyHtmlKo.includes('운영이 안정적'), 'KO empty case must show 운영이 안정적');
 
@@ -217,7 +217,7 @@ assert(combHtml.includes('overflow'), 'overflow class applied to tail line');
 // ══════════════════════════════════════════════════════════════════
 const annualCtx = Object.assign({}, ctxGlobal, {
   variant: 'annual', period: '2026',
-  labels: Object.assign({}, ctxGlobal.labels, { title: 'Annual Operations Report' }),
+  labels: Object.assign({}, ctxGlobal.labels, { title: 'Annual Error Report' }),
 });
 const annualHtml = compile('annual')(annualCtx);
 assert(annualHtml.length > 500, 'annual should render substantive content');

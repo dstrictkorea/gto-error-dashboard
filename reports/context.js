@@ -95,7 +95,7 @@ function buildV2Context(rows, opts = {}) {
 
   // Doc title for <title> element
   const titleParts = [
-    lang === 'ko' ? '인시던트 운영 리포트' : 'Incident Operations Report',
+    lang === 'ko' ? '에러 리포트' : 'Error Report',
     scope || (lang === 'ko' ? '전체' : 'All Branches'),
     period,
   ].filter(Boolean);

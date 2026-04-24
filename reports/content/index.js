@@ -141,7 +141,7 @@ function buildReportContext(rawRows, opts = {}) {
 function getLabels(lang) {
   if (lang === 'ko') {
     return {
-      title: '인시던트 운영 리포트',
+      title: '에러 리포트',
       executiveSummary: '핵심 요약',
       kpiStrip: '핵심 지표',
       narrative: '운영 서술',
@@ -155,7 +155,7 @@ function getLabels(lang) {
     };
   }
   return {
-    title: 'Incident Operations Report',
+    title: 'Error Report',
     executiveSummary: 'Executive Summary',
     kpiStrip: 'Key Metrics',
     narrative: 'Operational Narrative',

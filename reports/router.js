@@ -147,7 +147,7 @@ router.get('/monthly-branch', async (req, res) => {
 
     const MONTH_ABBR = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
     const tag = (branch || 'DSKR-GTO');
-    const fileName = `${tag}-v2-Monthly-Branch-${MONTH_ABBR[month]}${String(year).slice(2)}-${lang.toUpperCase()}.pdf`;
+    const fileName = `${tag}-Monthly Error Report_${MONTH_ABBR[month]}${String(year).slice(2)}.pdf`;
 
     const pdf = await renderPdf({ template: 'monthly-branch', data: ctx });
     console.log(`[v2/monthly-branch] ${fileName} rows=${rows.length} recs=${ctx.recommendations.length} obs=${ctx.observations.length} ${Date.now()-t0}ms`);
@@ -186,7 +186,7 @@ router.get('/monthly-global', async (req, res) => {
     });
 
     const MONTH_ABBR = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
-    const fileName = `DSKR-GTO-v2-Monthly-Global-${MONTH_ABBR[month]}${String(year).slice(2)}-${lang.toUpperCase()}.pdf`;
+    const fileName = `DSKR-GTO-Monthly Error Report_${MONTH_ABBR[month]}${String(year).slice(2)}.pdf`;
 
     const pdf = await renderPdf({ template: 'monthly-global', data: ctx });
     console.log(`[v2/monthly-global] ${fileName} rows=${rows.length} recs=${ctx.recommendations.length} obs=${ctx.observations.length} ${Date.now()-t0}ms`);
@@ -223,8 +223,7 @@ router.get('/annual', async (req, res) => {
       generated: new Date().toLocaleDateString(lang === 'ko' ? 'ko-KR' : 'en-GB'),
     });
 
-    const tag = branch || 'DSKR-GTO';
-    const fileName = `${tag}-v2-Annual-${String(year).slice(2)}-${lang.toUpperCase()}.pdf`;
+    const fileName = `DSKR-GTO-Annual Error Report_${String(year).slice(2)}.pdf`;
 
     const pdf = await renderPdf({ template: 'annual', data: ctx });
     console.log(`[v2/annual] ${fileName} rows=${rows.length} recs=${ctx.recommendations.length} obs=${ctx.observations.length} ${Date.now()-t0}ms`);
