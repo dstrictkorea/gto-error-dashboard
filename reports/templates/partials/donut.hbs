@@ -1,0 +1,28 @@
+{{!-- donut.hbs — CSS conic-gradient action type donut
+  Fields: actionTypeSorted[], donutGradient, actionTotal,
+          actionSummary, labels.casesLabel
+--}}
+{{#if actionTypeSorted.length}}
+<div class="donut-wrap">
+  <div class="donut-chart-area">
+    <div class="donut" style="background: conic-gradient({{donutGradient}})">
+      <div class="donut-hole">
+        <span class="donut-center-val">{{actionTotal}}</span>
+        <span class="donut-center-lbl">{{labels.casesLabel}}</span>
+      </div>
+    </div>
+  </div>
+  <div class="donut-legend">
+    {{#each actionTypeSorted}}
+    <div class="donut-legend-row">
+      <span class="donut-dot" style="background:{{color}}"></span>
+      <span class="donut-lbl">{{name}}</span>
+      <span class="donut-val">{{valLabel}}</span>
+    </div>
+    {{/each}}
+    {{#if actionSummary}}<p class="chart-summary donut-summary">{{actionSummary}}</p>{{/if}}
+  </div>
+</div>
+{{else}}
+<p class="hbar__empty">—</p>
+{{/if}}

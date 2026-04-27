@@ -271,6 +271,19 @@ function buildVisualContext(prepared, opts) {
     color: ACTION_COLOR[r.name] || '#8A8A84',
     segW: Math.round(atTotal ? r.count / atTotal * 100 : 0),
   }));
+  // Donut gradient — cumulative conic-gradient string for action type donut
+  let _cumPct = 0;
+  const donutGradient = actionTypeSorted.length
+    ? actionTypeSorted.map((r, idx, arr) => {
+        const startPct = _cumPct;
+        _cumPct += idx === arr.length - 1
+          ? (100 - _cumPct)
+          : Math.round(atTotal ? r.count / atTotal * 100 : 0);
+        return `${r.color} ${startPct}% ${_cumPct}%`;
+      }).join(', ')
+    : '#8A8A84 0% 100%';
+  const actionTotal = atEntries.reduce((s, [, c]) => s + c, 0);
+
   const topAtPct = actionTypeSorted.length && total
     ? pctStr(actionTypeSorted[0].count / total) : '—';
   const actionSummary = actionTypeSorted.length
@@ -636,6 +649,8 @@ function buildVisualContext(prepared, opts) {
     zoneSorted,
     categorySorted,
     actionTypeSorted,
+    donutGradient,
+    actionTotal,
     timeTakenBuckets,
     difficultyDistribution,
     // Segment data (stacked bar / pill)
@@ -918,6 +933,10 @@ function buildV2Context(rows, opts = {}) {
   ].filter(Boolean);
   const docTitle = `${titleParts.join(' · ')} — d'strict GTO`;
 
+  // Title-block fields (for {{> title-block}} partial)
+  const reportTitle = extLabels.reportTypeTitle + (scope ? ` · ${scope}` : '');
+  const reportSubtitle = period || generated;
+
   return Object.assign({}, ctx, visual, {
     kpis: specKpis,
     kpiColumns: '8',
@@ -926,6 +945,8 @@ function buildV2Context(rows, opts = {}) {
     period,
     scope,
     labels,
+    reportTitle,
+    reportSubtitle,
   });
 }
 
@@ -994,7 +1015,7 @@ function buildSmokeContext({ lang = 'en', now = new Date() } = {}) {
     },
     kpis: [
       { accent: 'brand', label: lang === 'ko' ? '전체 인시던트' : 'Total Incidents', value: '1,248', hint: lang === 'ko' ? '전년 대비 +8%' : '+8% YoY' },
-      { accent: 'crit',  label: lang === 'ko' ? '중대 (Lv 4+)'  : 'Critical (Lv 4+)', value: '37', hint: lang === 'ko' ? '전년 대비 −12%' : '−12% YoY' },
+      { accent: 'crit',  label: lang === 'ko' ? '처리 난이도 높음 (Lv 4+)' : 'High-Difficulty (Lv 4+)', value: '37', hint: lang === 'ko' ? '전년 대비 −12%' : '−12% YoY' },
       { accent: 'ok',    label: lang === 'ko' ? '평균 해결 시간' : 'Avg Resolution', value: '42', unit: lang === 'ko' ? '분' : 'min', hint: lang === 'ko' ? '목표 60분 이내' : 'SLA: <60 min' },
       { accent: 'warn',  label: lang === 'ko' ? '평균 난이도'    : 'Avg Difficulty', value: '2.3', unit: '/5', hint: lang === 'ko' ? '중간 수준' : 'Moderate' },
       { accent: 'brand', label: lang === 'ko' ? '가동률'         : 'Availability', value: '99.82', unit: '%', hint: lang === 'ko' ? '목표 99.5%' : 'Target 99.5%' },

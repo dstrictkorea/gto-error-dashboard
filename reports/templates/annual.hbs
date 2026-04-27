@@ -1,9 +1,9 @@
 {{!-- ═══════════════════════════════════════════════════════════════
-  annual.hbs — Annual executive dashboard (v2 rebuild)
+  annual.hbs — Annual executive dashboard (v2)
 
   Layout:
-    Page 1 (always): header · KPI strip · 4 chart rows
-    Page 2 (if data): clusters · matrix · branch comparison · recs
+    Page 1: chrome · title-block · KPI strip · 4 chart rows · footer
+    Page 2 (if data): chrome · clusters · matrix · branch comparison · recs · footer
     Zero-data: 1 page empty state
 ═══════════════════════════════════════════════════════════════ --}}
 
@@ -19,6 +19,9 @@
     </span>
     <span class="meta"><span>{{labels.page}} 1</span></span>
   </header>
+
+  {{!-- Title Block --}}
+  {{> title-block}}
 
   {{!-- KPI Strip --}}
   {{> kpi-strip}}
@@ -62,7 +65,7 @@
     </div>
   </div>
 
-  {{!-- Row 3: Resolve Time (6) + Action Type or Difficulty (6) --}}
+  {{!-- Row 3: Resolve Time (6) + Action Type Donut (6) --}}
   <div class="dash-row">
     <div class="dash-col--6">
       <div class="chart-card">
@@ -72,22 +75,25 @@
     </div>
     <div class="dash-col--6">
       <div class="chart-card">
-        <div class="chart-title">{{#if actionTypeSorted.length}}{{labels.actionTypeDist}}{{else}}{{labels.reportedDifficulty}}{{/if}}</div>
-        {{#if actionTypeSorted.length}}
-          {{> action-pill}}
-        {{else}}
-          {{> difficulty-strip}}
-        {{/if}}
+        <div class="chart-title">{{labels.actionTypeDist}}</div>
+        {{> donut}}
       </div>
     </div>
   </div>
 
-  {{!-- Row 4: Top Yearly Repeated Issues (12) --}}
+  {{!-- Row 4: Reported Difficulty (6) + Recommendations (6) --}}
   <div class="dash-row">
-    <div class="dash-col--12">
+    <div class="dash-col--6">
       <div class="chart-card">
-        <div class="chart-title">{{labels.yearlyRepeated}}</div>
-        {{> issue-table}}
+        <div class="chart-title">{{labels.reportedDifficulty}}</div>
+        {{> difficulty-strip}}
+        {{#if diffSummary}}<p class="chart-summary">{{diffSummary}}</p>{{/if}}
+      </div>
+    </div>
+    <div class="dash-col--6">
+      <div class="chart-card">
+        <div class="chart-title">{{#if recommendations.length}}{{labels.recommendations}}{{else}}{{labels.observations}}{{/if}}</div>
+        {{> evidence}}
       </div>
     </div>
   </div>
@@ -104,7 +110,7 @@
   </footer>
 </section>
 
-{{!-- ── PAGE 2 (clusters · matrix · branch comparison · recs) ──── --}}
+{{!-- ── PAGE 2 (clusters · matrix · branch comparison) ──────────── --}}
 {{#if hasData}}
 {{#if (or repeatedIssueClusters.length branchComparisonRows.length)}}
 <section class="page">
@@ -122,9 +128,10 @@
   {{#if repeatedIssueClusters.length}}
   <div class="dash-row">
     <div class="dash-col--12">
-      <div class="chart-card">
+      <div class="chart-card chart-card--clusters">
         <div class="chart-title">{{labels.yearlyIssueClusters}}</div>
         {{> cluster-cards}}
+        {{#if issueSummary}}<p class="chart-summary">{{issueSummary}}</p>{{/if}}
       </div>
     </div>
   </div>
@@ -145,18 +152,6 @@
       </div>
     </div>
   </div>
-
-  {{!-- Recommendations / Observations (12) --}}
-  {{#if (or recommendations.length observations.length)}}
-  <div class="dash-row">
-    <div class="dash-col--12">
-      <div class="chart-card">
-        <div class="chart-title">{{#if recommendations.length}}{{labels.recommendations}}{{else}}{{labels.observations}}{{/if}}</div>
-        {{> evidence}}
-      </div>
-    </div>
-  </div>
-  {{/if}}
 
   <footer class="page-footer">
     <span>{{generated}}</span>

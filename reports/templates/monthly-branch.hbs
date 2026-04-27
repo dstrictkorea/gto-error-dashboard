@@ -1,9 +1,11 @@
 {{!-- ═══════════════════════════════════════════════════════════════
-  monthly-branch.hbs — Branch-scoped monthly dashboard (v2 rebuild)
+  monthly-branch.hbs — Branch-scoped monthly dashboard (v2)
 
-  Layout:
-    Page 1 (always): header · KPI strip · 4 chart rows · recs
-    Page 2 (if data): issue clusters · solver / matrix
+  Layout (≤ 2 pages):
+    Page 1: chrome · title-block · KPI · narrative ·
+            zone(8)+trend(4) · category(4)+resolve(4)+donut(4) ·
+            clusters(12) · footer
+    Page 2 (if data): chrome · matrix(6)+difficulty(3)+recs(3) · footer
     Zero-data: 1 page empty state
 ═══════════════════════════════════════════════════════════════ --}}
 
@@ -19,6 +21,9 @@
     </span>
     <span class="meta"><span>{{labels.page}} 1</span></span>
   </header>
+
+  {{!-- Title Block --}}
+  {{> title-block}}
 
   {{!-- KPI Strip --}}
   {{> kpi-strip}}
@@ -45,57 +50,40 @@
     </div>
   </div>
 
-  {{!-- Row 2: Category (6) + Resolve Time (6) --}}
+  {{!-- Row 2: Category (4) + Resolve Time (4) + Action Type Donut (4) --}}
   <div class="dash-row">
-    <div class="dash-col--6">
+    <div class="dash-col--4">
       <div class="chart-card">
         <div class="chart-title">{{labels.categoryDistribution}}{{#if catDominant}} ★{{/if}}</div>
         {{> stacked-bar items=categorySorted summary=catSummary}}
       </div>
     </div>
-    <div class="dash-col--6">
+    <div class="dash-col--4">
       <div class="chart-card">
         <div class="chart-title">{{labels.resolveTimeDist}}</div>
         {{> stacked-bar items=timeTakenBuckets summary=resolveSummary}}
       </div>
     </div>
-  </div>
-
-  {{!-- Row 3: Action Type (6) + Reported Difficulty (6) --}}
-  <div class="dash-row">
-    <div class="dash-col--6">
-      <div class="chart-card">
-        <div class="chart-title">{{labels.actionTypeDist}}</div>
-        {{#if actionTypeSorted.length}}
-          {{> action-pill}}
-        {{else}}
-          {{> stacked-bar items=timeTakenBuckets summary=resolveSummary}}
-        {{/if}}
-      </div>
-    </div>
-    <div class="dash-col--6">
-      <div class="chart-card">
-        <div class="chart-title">{{labels.reportedDifficulty}}</div>
-        {{> difficulty-strip}}
-      </div>
-    </div>
-  </div>
-
-  {{!-- Row 4: Top Repeated Issues (8) + Recommendations (4) --}}
-  <div class="dash-row">
-    <div class="dash-col--8">
-      <div class="chart-card">
-        <div class="chart-title">{{labels.topRepeatedIssues}}</div>
-        {{> issue-table}}
-      </div>
-    </div>
     <div class="dash-col--4">
       <div class="chart-card">
-        <div class="chart-title">{{#if recommendations.length}}{{labels.recommendations}}{{else}}{{labels.observations}}{{/if}}</div>
-        {{> evidence}}
+        <div class="chart-title">{{labels.actionTypeDist}}</div>
+        {{> donut}}
       </div>
     </div>
   </div>
+
+  {{!-- Row 3: Issue Clusters — Visual Centerpiece (12) --}}
+  {{#if repeatedIssueClusters.length}}
+  <div class="dash-row">
+    <div class="dash-col--12">
+      <div class="chart-card chart-card--clusters">
+        <div class="chart-title">{{labels.issueClusters}}</div>
+        {{> cluster-cards}}
+        {{#if issueSummary}}<p class="chart-summary">{{issueSummary}}</p>{{/if}}
+      </div>
+    </div>
+  </div>
+  {{/if}}
 
   {{else}}
   <div class="zero-data-card">
@@ -109,9 +97,8 @@
   </footer>
 </section>
 
-{{!-- ── PAGE 2 (clusters · solver · matrix) ─────────────────────── --}}
+{{!-- ── PAGE 2 (matrix · difficulty · recommendations) ────────────── --}}
 {{#if hasData}}
-{{#if repeatedIssueClusters.length}}
 <section class="page">
   <header class="page-chrome">
     <span class="brand-mark">d'strict · GTO</span>
@@ -124,32 +111,26 @@
     <span class="meta"><span>{{labels.page}} 2</span></span>
   </header>
 
-  {{!-- Issue Cluster Cards (12) --}}
+  {{!-- Row 1: Zone × Category Matrix (6) + Difficulty (3) + Recommendations (3) --}}
   <div class="dash-row">
-    <div class="dash-col--12">
-      <div class="chart-card">
-        <div class="chart-title">{{labels.issueClusters}}</div>
-        {{> cluster-cards}}
-      </div>
-    </div>
-  </div>
-
-  {{!-- Solver Distribution (4) + Zone × Category Matrix (8) --}}
-  <div class="dash-row">
-    {{#if solverSorted.length}}
-    <div class="dash-col--4">
-      <div class="chart-card">
-        <div class="chart-title">{{labels.solverDistribution}}</div>
-        {{> hbar items=solverSorted}}
-      </div>
-    </div>
-    <div class="dash-col--8">
-    {{else}}
-    <div class="dash-col--12">
-    {{/if}}
+    <div class="dash-col--6">
       <div class="chart-card">
         <div class="chart-title">{{labels.zoneCategoryMatrix}}</div>
         {{> zone-matrix}}
+        {{#if matrixSummary}}<p class="chart-summary">{{matrixSummary}}</p>{{/if}}
+      </div>
+    </div>
+    <div class="dash-col--3">
+      <div class="chart-card">
+        <div class="chart-title">{{labels.reportedDifficulty}}</div>
+        {{> difficulty-strip}}
+        {{#if diffSummary}}<p class="chart-summary">{{diffSummary}}</p>{{/if}}
+      </div>
+    </div>
+    <div class="dash-col--3">
+      <div class="chart-card">
+        <div class="chart-title">{{#if recommendations.length}}{{labels.recommendations}}{{else}}{{labels.observations}}{{/if}}</div>
+        {{> evidence}}
       </div>
     </div>
   </div>
@@ -159,5 +140,4 @@
     <span>{{labels.page}} 2</span>
   </footer>
 </section>
-{{/if}}
 {{/if}}

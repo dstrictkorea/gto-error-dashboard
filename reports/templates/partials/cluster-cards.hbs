@@ -1,20 +1,26 @@
-{{!-- cluster-cards.hbs — Issue cluster cards grid
+{{!-- cluster-cards.hbs — Issue cluster cards grid (2-column, visual centerpiece)
   Uses root: repeatedIssueClusters[], labels.*
+  Each card has: title, count, share, zone, category, categoryColor, branches, monthsAppeared, actionTaken
 --}}
 {{#if repeatedIssueClusters.length}}
 <div class="cluster-grid">
   {{#each repeatedIssueClusters}}
-  <div class="cluster-card">
-    <div class="cluster-card__title">{{title}}</div>
-    <div class="cluster-card__meta">
-      <span class="cluster-card__tag">{{@root.labels.colZone}}: <span>{{zone}}</span></span>
-      <span class="cluster-card__tag">{{@root.labels.colCategory}}: <span>{{category}}</span></span>
-      {{#if @root.branchSorted.length}}
-      <span class="cluster-card__tag">{{@root.labels.branchLabel}}: <span>{{branches}}</span></span>
-      {{/if}}
-      <span class="cluster-card__count">{{count}}</span>
+  <div class="cluster-card" style="--cluster-color: {{categoryColor}}">
+    <div class="cluster-card__head">
+      <div class="cluster-card__chips">
+        <span class="cluster-chip" style="background:{{categoryColor}}22; color:{{categoryColor}}">{{category}}</span>
+        <span class="cluster-chip cluster-chip--zone">{{zone}}</span>
+      </div>
+      <span class="cluster-card__badge">{{count}} · {{share}}</span>
     </div>
+    <div class="cluster-card__title">{{title}}</div>
     <div class="cluster-card__action">{{actionTaken}}</div>
+    {{#if @root.branchSorted.length}}
+    <div class="cluster-card__footer">
+      <span class="cluster-card__tag">{{@root.labels.branchLabel}}: {{branches}}</span>
+      {{#if monthsAppeared}}<span class="cluster-card__tag">{{monthsAppeared}} {{@root.labels.monthsLabel}}</span>{{/if}}
+    </div>
+    {{/if}}
   </div>
   {{/each}}
 </div>
