@@ -93,10 +93,9 @@ function renderP1Page(){
   el('p1-tbl').innerHTML=pageData.map(function(r,rowIdx){
     var i=r._idx;
     var actualIdx=start+rowIdx;
-    var zebra=actualIdx%2===0?'background:rgba(0,0,0,0.01)':'';
-    return'<tr class="cp" data-idx="'+i+'" style="'+zebra+'" onclick="showDetail(parseInt(this.getAttribute(\'data-idx\')))">'
+    return'<tr class="cp" data-idx="'+i+'" onclick="showDetail(parseInt(this.getAttribute(\'data-idx\')))">'
       +'<td class="text-muted text-semibold text-nowrap">'+(actualIdx+1)+'</td>'
-      +'<td>'+brBadge(r.Branch)+'</td><td><span class="zp">'+esc(r.Zone)+'</span></td><td class="text-muted text-xs">'+r.Date+'</td><td class="text-semibold text-sm">'+esc(r.SolvedBy)+'</td><td>'+catBadge(r.Category)+'</td><td class="td-left td-detail" title="'+esc(r.IssueDetail)+'">'+esc(typeof autoTr==='function'?autoTr(r.IssueDetail):r.IssueDetail)+'</td><td class="text-xs text-muted">'+esc(typeof autoTrAction==='function'?autoTrAction(r.ActionType):r.ActionType)+'</td><td>'+tmBadge(typeof autoTr==='function'?autoTr(r.TimeTaken):r.TimeTaken)+'</td><td>'+stars(r.Difficulty)+'</td></tr>'
+      +'<td>'+brBadge(r.Branch)+'</td><td><span class="zp">'+esc(r.Zone)+'</span></td><td class="text-muted text-xs">'+r.Date+'</td><td class="text-semibold text-sm">'+esc(r.SolvedBy)+'</td><td>'+catBadge(r.Category)+'</td><td class="td-left td-detail td-wrap" title="'+esc(r.IssueDetail)+'">'+esc(typeof autoTr==='function'?autoTr(r.IssueDetail):r.IssueDetail)+'</td><td class="text-xs text-muted">'+esc(typeof autoTrAction==='function'?autoTrAction(r.ActionType):r.ActionType)+'</td><td>'+tmBadge(typeof autoTr==='function'?autoTr(r.TimeTaken):r.TimeTaken)+'</td><td>'+stars(r.Difficulty)+'</td></tr>'
   }).join('');
 
   // Enhanced pagination controls

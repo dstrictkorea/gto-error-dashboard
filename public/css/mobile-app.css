@@ -1098,10 +1098,12 @@ html.dark-mode .mobile-app .mobile-bottom-nav {
   display: none !important;
 }
 
-/* Pagination compact */
+/* Pagination: 44px touch target (WCAG 2.5.5) */
 .mobile-app #pAdmin #adm-daily-pg button,
 .mobile-app #pAdmin #adm-monthly-pg button {
-  padding: 4px 8px !important;
+  padding: 10px 12px !important;
+  min-height: 44px !important;
+  min-width: 44px !important;
   font-size: 11px !important;
 }
 
@@ -1116,4 +1118,21 @@ html.dark-mode .mobile-app .mobile-bottom-nav {
     flex-shrink: 0;
     min-width: 60px;
   }
+}
+
+/* ── 375px breakpoint ─────────────────────────────────── */
+@media (max-width: 375px) {
+  .mobile-app .g4 { grid-template-columns: 1fr 1fr !important; gap: 6px !important; }
+  .mobile-app .mc-val { font-size: 26px !important; }
+  .mobile-app .ntab { font-size: 10px !important; padding: 8px 5px !important; }
+  .mobile-app #pAdmin th { font-size: 9px !important; padding: 5px 3px !important; }
+  .mobile-app #pAdmin td { font-size: 10px !important; padding: 5px 3px !important; }
+}
+
+/* ── 320px breakpoint ─────────────────────────────────── */
+@media (max-width: 320px) {
+  .mobile-app .g4 { grid-template-columns: 1fr !important; }
+  .mobile-app .mc { padding: 10px !important; }
+  .mobile-app .mc-val { font-size: 22px !important; }
+  .mobile-app .ntab { font-size: 9px !important; padding: 6px 4px !important; }
 }

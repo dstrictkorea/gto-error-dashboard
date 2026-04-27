@@ -345,7 +345,7 @@ function renderP0(){
   var medals=['\ud83e\udd47','\ud83e\udd48','\ud83e\udd49'];
   el('top-issues').innerHTML=top.length?top.map(function(v,i){
     var rank=i<3?'<span class="medal-icon">'+medals[i]+'</span>':'<span class="rank-num">'+(i+1)+'</span>';
-    return'<tr><td class="td-rank">'+rank+'</td><td>'+brBadge(v.br)+'</td><td><span class="zp">'+esc(v.zone)+'</span></td><td>'+catFull(v.cat)+'</td><td class="td-left td-detail">'+esc(v.s)+'</td><td class="td-count">'+v.cnt+'</td></tr>'
+    return'<tr><td class="td-rank">'+rank+'</td><td>'+brBadge(v.br)+'</td><td><span class="zp">'+esc(v.zone)+'</span></td><td>'+catFull(v.cat)+'</td><td class="td-left td-detail td-wrap">'+esc(v.s)+'</td><td class="td-count">'+v.cnt+'</td></tr>'
   }).join(''):'<tr><td colspan="6" class="td-empty">'+t('noErrors')+'</td></tr>';
 }
 
