@@ -8,13 +8,15 @@
   margin: 0;
 }
 
-/* Paginated container — each .page flushes to a new printed page. */
+/* Paginated container — each .page flushes to a new printed page.
+   min-height is 210mm minus Puppeteer footer margin (22px ≈ 5.8mm)
+   so the footer never overlaps page content. */
 .page {
   page-break-after: always;
   break-after: page;
-  /* A4 landscape: 297mm wide × 210mm tall */
-  min-height: 210mm;
-  padding: 8mm 12mm;
+  /* A4 landscape: 297mm wide × 210mm tall; subtract Puppeteer footer (22px) */
+  min-height: calc(210mm - 22px);
+  padding: 8mm 12mm 4mm;
   display: flex;
   flex-direction: column;
   position: relative;

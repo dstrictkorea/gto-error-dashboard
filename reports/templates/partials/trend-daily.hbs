@@ -6,7 +6,7 @@
 <div class="trend-wrap">
   <div class="trend-counts">
     {{#each dailyTrend}}
-    <span class="trend-count{{#if isPeak}} is-peak{{/if}}">{{count}}</span>
+    <span class="trend-count{{#if isPeak}} is-peak{{/if}}{{#if isLatest}} is-latest{{/if}}">{{#if isPeak}}{{count}}{{else}}{{#if isLatest}}{{count}}{{/if}}{{/if}}</span>
     {{/each}}
   </div>
   <div class="trend-bars" style="position:relative">
@@ -18,8 +18,9 @@
     {{/if}}
   </div>
   <div class="trend-footer">
-    <span>{{dailyTrendFirst}}</span>
-    <span>{{dailyTrendLast}}</span>
+    {{#each dailyTrend}}
+    <span class="trend-xlbl{{#unless showDateLabel}} trend-xlbl--hidden{{/unless}}">{{dateLabel}}</span>
+    {{/each}}
   </div>
   <div class="trend-peak-row">
     <span>{{@root.labels.peakLabel}}: {{dailyTrendPeak}}</span>

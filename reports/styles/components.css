@@ -559,7 +559,7 @@ html[lang="ko"] .card__action {
   display: flex;
   align-items: flex-end;
   gap: 2px;
-  height: 56px;
+  height: 72px;
   padding-bottom: 2px;
 }
 .trend-bar {
@@ -574,11 +574,18 @@ html[lang="ko"] .card__action {
 .trend-bar.is-latest { opacity: 0.8; background: var(--teal); }
 .trend-footer {
   display: flex;
-  justify-content: space-between;
-  font-size: 9.5px;
+  font-size: 9px;
   color: var(--muted);
   letter-spacing: -0.1px;
+  margin-top: 1px;
 }
+.trend-xlbl {
+  flex: 1;
+  text-align: center;
+  overflow: hidden;
+  white-space: nowrap;
+}
+.trend-xlbl--hidden { visibility: hidden; }
 .trend-peak-row {
   display: flex;
   justify-content: space-between;
@@ -880,16 +887,17 @@ html[lang="ko"] .narrative-compact {
  * ══════════════════════════════════════════════ */
 
 .chart-summary {
-  font-size: 10px;
-  color: var(--muted);
-  line-height: 1.45;
+  font-size: 11px;
+  color: var(--text);
+  line-height: 1.4;
   margin: 5px 0 0;
-  letter-spacing: -0.1px;
-  font-style: italic;
+  letter-spacing: -0.15px;
+  font-style: normal;
+  font-weight: 400;
 }
 html[lang="ko"] .chart-summary {
-  font-size: 9.5px;
-  line-height: 1.6;
+  font-size: 10.5px;
+  line-height: 1.55;
 }
 
 /* ══════════════════════════════════════════════
@@ -1085,6 +1093,11 @@ html[lang="ko"] .chart-summary {
 }
 .trend-count.is-peak {
   color: var(--purple);
+  font-weight: 700;
+  font-size: 7.5px;
+}
+.trend-count.is-latest {
+  color: var(--teal);
   font-weight: 700;
   font-size: 7.5px;
 }
@@ -1337,5 +1350,36 @@ html[lang="ko"] .chart-summary {
 .chart-card--clusters {
   border: 1px solid var(--border);
   background: var(--card);
+}
+
+/* ══════════════════════════════════════════════
+ *  Comment Block — Manager/branch comment
+ * ══════════════════════════════════════════════ */
+
+.comment-block {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--purple);
+  border-radius: var(--radius);
+  padding: 9px 14px;
+  margin: 6px 0 8px;
+  break-inside: avoid;
+}
+.comment-block__header {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--purple);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 4px;
+}
+.comment-block__body {
+  font-size: 12px;
+  color: var(--text);
+  line-height: 1.55;
+  white-space: pre-wrap;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+  letter-spacing: -0.15px;
 }
 

@@ -33,16 +33,19 @@
   {{!-- Narrative (compact) --}}
   <p class="narrative-compact">{{narrative.s1}} {{narrative.s2}}</p>
 
-  {{!-- Row 1: Zone Distribution (8) + Daily Trend (4) --}}
+  {{!-- Manager comment (optional) --}}
+  {{> comment-block}}
+
+  {{!-- Row 1: Zone Distribution (6) + Daily Trend (6) --}}
   <div class="dash-row">
-    <div class="dash-col--8">
+    <div class="dash-col--6">
       <div class="chart-card">
         <div class="chart-title">{{labels.zoneDistribution}}</div>
         {{> hbar items=zoneSorted}}
         {{#if zoneSummary}}<p class="chart-summary">{{zoneSummary}}</p>{{/if}}
       </div>
     </div>
-    <div class="dash-col--4">
+    <div class="dash-col--6">
       <div class="chart-card">
         <div class="chart-title">{{labels.dailyTrendTitle}}</div>
         {{> trend-daily}}
@@ -91,10 +94,6 @@
   </div>
   {{/if}}
 
-  <footer class="page-footer">
-    <span>{{generated}}</span>
-    <span>{{labels.page}} 1</span>
-  </footer>
 </section>
 
 {{!-- ── PAGE 2 (matrix · difficulty · recommendations) ────────────── --}}
@@ -117,14 +116,12 @@
       <div class="chart-card">
         <div class="chart-title">{{labels.zoneCategoryMatrix}}</div>
         {{> zone-matrix}}
-        {{#if matrixSummary}}<p class="chart-summary">{{matrixSummary}}</p>{{/if}}
       </div>
     </div>
     <div class="dash-col--3">
       <div class="chart-card">
         <div class="chart-title">{{labels.reportedDifficulty}}</div>
         {{> difficulty-strip}}
-        {{#if diffSummary}}<p class="chart-summary">{{diffSummary}}</p>{{/if}}
       </div>
     </div>
     <div class="dash-col--3">
@@ -135,9 +132,6 @@
     </div>
   </div>
 
-  <footer class="page-footer">
-    <span>{{generated}}</span>
-    <span>{{labels.page}} 2</span>
-  </footer>
+
 </section>
 {{/if}}

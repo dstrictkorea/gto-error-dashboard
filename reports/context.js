@@ -60,6 +60,16 @@ function pctStr(r, digits) {
   return `${Math.round(r * 100 * f) / f}%`;
 }
 
+// Unit-aware count formatter — enforces "건" (KO) or "N errors/cases/reports" (EN)
+function formatCount(n, type, lang) {
+  if (lang === 'ko') return `${n}건`;
+  const pluralSuffix = n === 1 ? '' : 's';
+  if (type === 'errors')  return `${n} error${pluralSuffix}`;
+  if (type === 'cases')   return `${n} case${pluralSuffix}`;
+  if (type === 'reports') return `${n} report${pluralSuffix}`;
+  return String(n);
+}
+
 function toBarRows(entries, total) {
   if (!entries.length) return [];
   const maxCount = entries[0][1] || 1;
@@ -68,7 +78,7 @@ function toBarRows(entries, total) {
     count,
     pct: pctStr(total ? count / total : 0),
     barW: Math.round(count / maxCount * 100),
-    valLabel: `${count} (${pctStr(total ? count / total : 0)})`,
+    valLabel: `${count} (${pctStr(total ? count / total : 0)})`,  // overridden per-chart below
   }));
 }
 
@@ -202,6 +212,7 @@ function buildVisualContext(prepared, opts) {
     ...r,
     color: BRANCH_COLOR[r.name] || '#8A8A84',
     segW: Math.round(total ? r.count / total * 100 : 0),
+    valLabel: `${formatCount(r.count, 'errors', lang)} (${r.pct})`,
   }));
   const topBranchPct = branchSorted.length && total
     ? pctStr(branchSorted[0].count / total) : '—';
@@ -219,6 +230,7 @@ function buildVisualContext(prepared, opts) {
     ...r,
     color: zoneColor(r.name),
     segW: Math.round(total ? r.count / total * 100 : 0),
+    valLabel: `${formatCount(r.count, 'errors', lang)} (${r.pct})`,
   }));
   const topZonePct = zoneSorted.length && total
     ? pctStr(zoneSorted[0].count / total) : '—';
@@ -242,6 +254,7 @@ function buildVisualContext(prepared, opts) {
     ...r,
     color: CATEGORY_COLOR[r.name] || '#8A8A84',
     segW: Math.round(catTotal ? r.count / catTotal * 100 : 0),
+    valLabel: `${formatCount(r.count, 'errors', lang)} (${r.pct})`,
   }));
   // Dominance: top category ≥ 60%
   const catDominant = categorySorted.length && total && categorySorted[0].count / total >= 0.6;
@@ -270,6 +283,7 @@ function buildVisualContext(prepared, opts) {
     ...r,
     color: ACTION_COLOR[r.name] || '#8A8A84',
     segW: Math.round(atTotal ? r.count / atTotal * 100 : 0),
+    valLabel: `${formatCount(r.count, 'errors', lang)} (${r.pct})`,
   }));
   // Donut gradient — cumulative conic-gradient string for action type donut
   let _cumPct = 0;
@@ -321,7 +335,7 @@ function buildVisualContext(prepared, opts) {
     count: bkt[i],
     pct: pctStr(bktTotalRecorded ? bkt[i] / bktTotalRecorded : 0),
     barW: Math.round(bkt[i] / bktMax * 100),
-    valLabel: `${bkt[i]} (${pctStr(bktTotalRecorded ? bkt[i] / bktTotalRecorded : 0)})`,
+    valLabel: `${formatCount(bkt[i], 'errors', lang)} (${pctStr(bktTotalRecorded ? bkt[i] / bktTotalRecorded : 0)})`,
     color: RESOLVE_BUCKET_COLOR[i],
     segW: Math.round(bktTotalRecorded ? bkt[i] / bktTotalRecorded * 100 : 0),
   }));
@@ -363,7 +377,7 @@ function buildVisualContext(prepared, opts) {
     count,
     pct: pctStr(diffTotal ? count / diffTotal : 0),
     barW: Math.round(count / diffMax * 100),
-    valLabel: `${count} (${pctStr(diffTotal ? count / diffTotal : 0)})`,
+    valLabel: `${formatCount(count, 'reports', lang)} (${pctStr(diffTotal ? count / diffTotal : 0)})`,
     color: DIFF_COLOR[i],
     segW: Math.round(diffTotal ? count / diffTotal * 100 : 0),
   }));
@@ -389,7 +403,7 @@ function buildVisualContext(prepared, opts) {
   const dailyAvgNum = dayEntries.length ? total / dayEntries.length : 0;
   const avgBarH = Math.round(dailyAvgNum / dayMaxCount * 100);
 
-  const dailyTrend = dayEntries.map(([date, count]) => ({
+  const dailyTrend = dayEntries.map(([date, count], idx) => ({
     date,
     dateLabel: date.slice(5).replace('-', '/'),
     count,
@@ -397,6 +411,7 @@ function buildVisualContext(prepared, opts) {
     isPeak: peakDayEntry && date === peakDayEntry[0],
     isLatest: false,
     isAboveAvg: count > dailyAvgNum,
+    showDateLabel: idx === 0 || idx === dayEntries.length - 1 || (idx % 5 === 4),
   }));
   if (dailyTrend.length > 0) dailyTrend[dailyTrend.length - 1].isLatest = true;
 
@@ -404,8 +419,8 @@ function buildVisualContext(prepared, opts) {
   const peakCount = peakDayEntry ? peakDayEntry[1] : 0;
   const trendSummary = peakDayEntry
     ? (lang === 'ko'
-        ? `${peakDateLabel} ${peakCount}건으로 평균(${dailyAvgNum.toFixed(1)}건) 대비 높게 발생했습니다.`
-        : `Incidents peaked on ${peakDateLabel} (${peakCount} cases), above the daily average of ${dailyAvgNum.toFixed(1)}.`)
+        ? `${peakDateLabel}에 ${peakCount}건으로 일 평균(${dailyAvgNum.toFixed(1)}건) 대비 최다 발생했습니다.`
+        : `Incidents peaked on ${peakDateLabel} with ${formatCount(peakCount, 'errors', lang)}, above the daily average of ${dailyAvgNum.toFixed(1)}.`)
     : '';
 
   // ── Monthly trend (annual) ───────────────────────────────────
@@ -518,6 +533,7 @@ function buildVisualContext(prepared, opts) {
     }
     const topIssue = [...iFreq.entries()].sort((a, b) => b[1] - a[1])[0]?.[0] || '—';
     const topAction = [...aFreq.entries()].sort((a, b) => b[1] - a[1])[0]?.[0] || '—';
+    const shareStr = pctStr(total ? e.count / total : 0);
     return {
       title: topIssue,
       count: e.count,
@@ -527,7 +543,10 @@ function buildVisualContext(prepared, opts) {
       branches: [...e.branches].slice(0, 3).join(', ') || '—',
       monthsAppeared: e.months.size,
       actionTaken: topAction,
-      share: pctStr(total ? e.count / total : 0),
+      share: shareStr,
+      badge: lang === 'ko'
+        ? `${e.count}건 · 전체의 ${shareStr}`
+        : `${formatCount(e.count, 'cases', lang)} · ${shareStr} of total`,
     };
   });
 
@@ -572,6 +591,7 @@ function buildVisualContext(prepared, opts) {
         ? `${topMatrixCell} 조합이 가장 많이 발생했습니다.`
         : `${topMatrixCell} is the strongest concentration.`)
     : '';
+  const matrixCaption = lang === 'ko' ? '값 = 오류 건수' : 'Values = error count';
   const zoneCategoryMatrix = {
     categories: topCatNames.map(c => ({ name: c, color: CATEGORY_COLOR[c] || '#8A8A84' })),
     rows: matRawRows.map(({ zone, cells }) => ({
@@ -602,6 +622,7 @@ function buildVisualContext(prepared, opts) {
       branch,
       color: BRANCH_COLOR[branch] || '#8A8A84',
       total: count,
+      totalLabel: lang === 'ko' ? `${count}건` : formatCount(count, 'errors', lang),
       share: pctStr(total ? count / total : 0),
       topZone: bZone,
       topCategory: bCat,
@@ -636,12 +657,28 @@ function buildVisualContext(prepared, opts) {
   // Trend navigation labels
   const dailyTrendFirst = dailyTrend.length ? dailyTrend[0].dateLabel : '';
   const dailyTrendLast = dailyTrend.length ? dailyTrend[dailyTrend.length - 1].dateLabel : '';
-  const dailyTrendPeak = peakDayEntry ? peakDayEntry[1] : 0;
-  const dailyTrendLatest = dailyTrend.length ? dailyTrend[dailyTrend.length - 1].count : 0;
+  const dailyTrendPeak = lang === 'ko'
+    ? `${peakCount}건`
+    : formatCount(peakCount, 'errors', lang);
+  const dailyTrendLatest = (() => {
+    const n = dailyTrend.length ? dailyTrend[dailyTrend.length - 1].count : 0;
+    return lang === 'ko' ? `${n}건` : formatCount(n, 'errors', lang);
+  })();
   const monthlyTrendFirst = monthlyTrend.length ? monthlyTrend[0].monthLabel : '';
   const monthlyTrendLast = monthlyTrend.length ? monthlyTrend[monthlyTrend.length - 1].monthLabel : '';
   const monthlyTrendPeak = peakMonEntry ? peakMonEntry[1] : 0;
   const monthlyTrendLatest = monthlyTrend.length ? monthlyTrend[monthlyTrend.length - 1].count : 0;
+
+  // ── Insight deduplication (priority order = array order) ────────
+  // Earlier entries win; later entries that are identical are nulled.
+  const _seenInsights = new Set();
+  function _dedup(s) {
+    if (!s || typeof s !== 'string') return s || '';
+    const k = s.trim().toLowerCase().replace(/\s+/g, ' ');
+    if (_seenInsights.has(k)) return '';
+    _seenInsights.add(k);
+    return s;
+  }
 
   return {
     // Distributions
@@ -674,17 +711,17 @@ function buildVisualContext(prepared, opts) {
     fastRatePct,
     slowRatePct,
     medianBucketLabel,
-    // Summary sentences
-    branchSummary,
-    zoneSummary,
-    catSummary,
-    actionSummary,
-    resolveSummary,
-    diffSummary,
-    trendSummary,
-    monthlyTrendSummary,
-    issueSummary,
-    matrixSummary,
+    // Summary sentences (deduped in priority order)
+    branchSummary:       _dedup(branchSummary),
+    zoneSummary:         _dedup(zoneSummary),
+    catSummary:          _dedup(catSummary),
+    actionSummary:       _dedup(actionSummary),
+    resolveSummary:      _dedup(resolveSummary),
+    diffSummary:         _dedup(diffSummary),
+    trendSummary:        _dedup(trendSummary),
+    monthlyTrendSummary: _dedup(monthlyTrendSummary),
+    issueSummary:        _dedup(issueSummary),
+    matrixSummary:       _dedup(matrixSummary),
     // Visibility flags (hide if < threshold)
     showBranch,
     showZone,
@@ -698,6 +735,7 @@ function buildVisualContext(prepared, opts) {
     recentIncidentLog,
     // Matrix + comparison
     zoneCategoryMatrix,
+    matrixCaption,
     branchComparisonRows,
     solverSorted,
     // Scalars
@@ -858,7 +896,7 @@ function buildExtLabels(lang, variant) {
     colRank:          '#',
     colZone:          ko ? '존'       : 'Zone',
     colCategory:      ko ? '유형'     : 'Category',
-    colCount:         ko ? '건수'     : 'Count',
+    colCount:         ko ? '건수'     : 'Errors',
     colIssue:         ko ? '주요 오류 내용' : 'Representative Issue',
     colAction:        ko ? '주요 조치'  : 'Representative Action',
     colMonths:        ko ? '발생 월'   : 'Months',
@@ -869,13 +907,15 @@ function buildExtLabels(lang, variant) {
     colActionType:    ko ? '처리 방식' : 'Action Type',
     colIssueDetail:   ko ? '오류 내용' : 'Issue Detail',
     colActionTaken:   ko ? '조치 내용' : 'Action Taken',
-    colTotal:         ko ? '총계'     : 'Total',
+    colTotal:         ko ? '오류 건수' : 'Errors',
     colShare:         ko ? '비율'     : 'Share',
     colTopZone:       ko ? '주요 존'   : 'Top Zone',
     colTopCategory:   ko ? '주요 유형' : 'Top Category',
     colHighDiff:      ko ? '난이도↑'   : 'Hi-Diff',
     colMedianResolve: ko ? '중앙 처리' : 'Med.Resolve',
     colDifficulty:    ko ? '난이도'    : 'Difficulty',
+    // Comment block
+    managerComment:   ko ? '담당자 코멘트' : 'Manager Comment',
     // Zero-data message
     noData: ko
       ? '해당 기간 발생한 오류가 없습니다.'
@@ -899,6 +939,7 @@ function buildV2Context(rows, opts = {}) {
   const variant   = opts.variant || 'monthlyBranch';
   const period    = opts.period  || '';
   const scope     = opts.scope   || null;
+  const comment   = opts.comment || null;
   const now       = opts.now     || new Date();
   const generated = opts.generated || fmtDate(now, lang);
 
@@ -944,6 +985,7 @@ function buildV2Context(rows, opts = {}) {
     generated,
     period,
     scope,
+    comment,
     labels,
     reportTitle,
     reportSubtitle,

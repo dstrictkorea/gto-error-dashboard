@@ -893,6 +893,9 @@ async function branchReport(action,type){
   // v2 GET endpoint — raw PDF bytes, no base64
   var params=new URLSearchParams({lang:lang,year:year,branch:br,download:'1'});
   if(type!=='annual') params.set('month',String(month));
+  var cmtEl=document.getElementById('branch-rpt-comment');
+  var cmt=cmtEl?cmtEl.value.trim():'';
+  if(cmt) params.set('comment',cmt);
   var endpoint=(type==='annual'?'/api/v2/annual':'/api/v2/monthly-branch')+'?'+params.toString();
   try{
     var resp=await fetch(endpoint);

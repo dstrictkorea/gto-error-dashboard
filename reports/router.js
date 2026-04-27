@@ -40,6 +40,17 @@ const {
 
 const router = express.Router();
 
+// ── PDF options helper — Puppeteer footer ────────────────────────
+function buildPdfOpts(generated) {
+  const dateStr = (generated || '').replace(/</g, '').replace(/>/g, '');
+  return {
+    displayHeaderFooter: true,
+    headerTemplate: '<span></span>',
+    footerTemplate: `<div style="display:flex;justify-content:space-between;align-items:center;width:100%;padding:0 12mm;font-size:8.5pt;font-family:-apple-system,Helvetica,Arial,sans-serif;color:#9ca3af;box-sizing:border-box"><span>${dateStr}</span><span>Page <span class="pageNumber"></span></span></div>`,
+    margin: { top: '0', right: '0', bottom: '22px', left: '0' },
+  };
+}
+
 // ── Helpers ──────────────────────────────────────────────────────
 
 const MONTHS_EN = [
@@ -139,17 +150,20 @@ router.get('/monthly-branch', async (req, res) => {
       ? `${year}년 ${MONTHS_KO[month]}`
       : `${MONTHS_EN[month]} ${year}`;
 
+    // Optional free-text comment from admin UI
+    const comment = req.query.comment ? String(req.query.comment).slice(0, 2000) : null;
+
+    const generated = new Date().toLocaleDateString(lang === 'ko' ? 'ko-KR' : 'en-GB');
     const rows = await fetchRows(month, year, branch, null);
     const ctx  = buildMonthlyBranchContext(rows, {
-      lang, period: periodLabel, scope,
-      generated: new Date().toLocaleDateString(lang === 'ko' ? 'ko-KR' : 'en-GB'),
+      lang, period: periodLabel, scope, comment, generated,
     });
 
     const MONTH_ABBR = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
     const tag = (branch || 'DSKR-GTO');
     const fileName = `${tag}-Monthly Error Report_${MONTH_ABBR[month]}${String(year).slice(2)}.pdf`;
 
-    const pdf = await renderPdf({ template: 'monthly-branch', data: ctx });
+    const pdf = await renderPdf({ template: 'monthly-branch', data: ctx, pdf: buildPdfOpts(generated) });
     console.log(`[v2/monthly-branch] ${fileName} rows=${rows.length} recs=${ctx.recommendations.length} obs=${ctx.observations.length} ${Date.now()-t0}ms`);
     sendPdf(res, pdf, fileName, download, Date.now() - t0);
   } catch (e) {
@@ -179,16 +193,16 @@ router.get('/monthly-global', async (req, res) => {
       ? `${year}년 ${MONTHS_KO[month]}`
       : `${MONTHS_EN[month]} ${year}`;
 
+    const generated = new Date().toLocaleDateString(lang === 'ko' ? 'ko-KR' : 'en-GB');
     const rows = await fetchRows(month, year, null, regionBranches);
     const ctx  = buildMonthlyGlobalContext(rows, {
-      lang, period: periodLabel, scope,
-      generated: new Date().toLocaleDateString(lang === 'ko' ? 'ko-KR' : 'en-GB'),
+      lang, period: periodLabel, scope, generated,
     });
 
     const MONTH_ABBR = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
     const fileName = `DSKR-GTO-Monthly Error Report_${MONTH_ABBR[month]}${String(year).slice(2)}.pdf`;
 
-    const pdf = await renderPdf({ template: 'monthly-global', data: ctx });
+    const pdf = await renderPdf({ template: 'monthly-global', data: ctx, pdf: buildPdfOpts(generated) });
     console.log(`[v2/monthly-global] ${fileName} rows=${rows.length} recs=${ctx.recommendations.length} obs=${ctx.observations.length} ${Date.now()-t0}ms`);
     sendPdf(res, pdf, fileName, download, Date.now() - t0);
   } catch (e) {
@@ -217,15 +231,15 @@ router.get('/annual', async (req, res) => {
     const periodLabel = lang === 'ko' ? `${year}년` : String(year);
 
     // Annual: fetch all months (month=null skips month filter)
+    const generated = new Date().toLocaleDateString(lang === 'ko' ? 'ko-KR' : 'en-GB');
     const rows = await fetchRows(null, year, branch, regionBranches);
     const ctx  = buildAnnualContext(rows, {
-      lang, period: periodLabel, scope,
-      generated: new Date().toLocaleDateString(lang === 'ko' ? 'ko-KR' : 'en-GB'),
+      lang, period: periodLabel, scope, generated,
     });
 
     const fileName = `DSKR-GTO-Annual Error Report_${String(year).slice(2)}.pdf`;
 
-    const pdf = await renderPdf({ template: 'annual', data: ctx });
+    const pdf = await renderPdf({ template: 'annual', data: ctx, pdf: buildPdfOpts(generated) });
     console.log(`[v2/annual] ${fileName} rows=${rows.length} recs=${ctx.recommendations.length} obs=${ctx.observations.length} ${Date.now()-t0}ms`);
     sendPdf(res, pdf, fileName, download, Date.now() - t0);
   } catch (e) {

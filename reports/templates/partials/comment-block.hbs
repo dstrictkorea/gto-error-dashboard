@@ -1,0 +1,10 @@
+{{!-- comment-block.hbs — Optional admin/manager comment block
+  Rendered only when ctx.comment is non-empty.
+  Wired from: admin.js #branch-rpt-comment → URL param → router → context
+--}}
+{{#if comment}}
+<div class="comment-block">
+  <div class="comment-block__header">{{labels.managerComment}}</div>
+  <div class="comment-block__body">{{comment}}</div>
+</div>
+{{/if}}

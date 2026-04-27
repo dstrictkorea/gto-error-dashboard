@@ -80,8 +80,10 @@ const TPL = {
   en: {
     s1(v) {
       const plural = v.totalCount === 1 ? '' : 's';
-      const crit = `${fmtInt(v.criticalCount)} critical`;
-      return `${v.scope} logged ${fmtInt(v.totalCount)} incident${plural}${v.periodTail}, including ${crit}.`;
+      const hd = v.highDifficultyCount > 0
+        ? `, including ${fmtInt(v.highDifficultyCount)} high-difficulty report${v.highDifficultyCount === 1 ? '' : 's'}`
+        : '';
+      return `${v.scope} logged ${fmtInt(v.totalCount)} incident${plural}${v.periodTail}${hd}.`;
     },
     's2.empty'()            { return `No qualifying incident records were ingested for this period.`; },
     's2.criticalHigh'(v)    { return `Critical incidents reached ${v.criticalSharePct}% of volume, above the 15% escalation threshold.`; },
@@ -107,7 +109,10 @@ const TPL = {
   },
   ko: {
     s1(v) {
-      return `${v.scope}은(는) ${v.periodTailKo} 총 ${fmtInt(v.totalCount)}건의 인시던트를 기록했으며, 이 중 ${fmtInt(v.criticalCount)}건이 중대 사안입니다.`;
+      const hd = v.highDifficultyCount > 0
+        ? `, 이 중 ${fmtInt(v.highDifficultyCount)}건이 고난이도 처리 건`
+        : '';
+      return `${v.scope}은(는) ${v.periodTailKo} 총 ${fmtInt(v.totalCount)}건의 인시던트를 기록했습니다${hd}.`;
     },
     's2.empty'()            { return `해당 기간에 집계 가능한 인시던트 레코드가 없습니다.`; },
     's2.criticalHigh'(v)    { return `중대 인시던트가 전체의 ${v.criticalSharePct}%를 차지하여 15% 경계선을 넘어섰습니다.`; },
@@ -162,7 +167,7 @@ function buildVars(derived, opts) {
     periodTail,
     periodTailKo,
     totalCount: derived.totalCount,
-    criticalCount: derived.criticalCount,
+    highDifficultyCount: derived.highDifficultyCount || 0,
     criticalSharePct: pctDec(derived.criticalShare),
     medianResolveMin: derived.medianResolveMin == null ? null : Math.round(derived.medianResolveMin),
     completenessPct: pctDec(derived.reportingCompleteness),
