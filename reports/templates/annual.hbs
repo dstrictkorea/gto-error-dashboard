@@ -1,38 +1,100 @@
 {{!-- ═══════════════════════════════════════════════════════════════
-  annual.hbs — Annual executive report
+  annual.hbs — Annual executive dashboard (v2 rebuild)
 
-  Pages:
-    1. Executive snapshot: header + KPI strip + narrative
-    2. Evidence: Recommendations + Observations (rendering contract)
-
-  Reads ctx produced by reports/content/index.js::buildReportContext
-  with variant='annual'. Annual uses the same 3-rec cap and shared
-  evidence partial; the content layer drives content depth through its
-  trigger catalog (T11 and others gated on variant='annual').
+  Layout:
+    Page 1 (always): header · KPI strip · 4 chart rows
+    Page 2 (if data): clusters · matrix · branch comparison · recs
+    Zero-data: 1 page empty state
 ═══════════════════════════════════════════════════════════════ --}}
 
-{{!-- ── Page 1 — annual snapshot ──────────────────── --}}
+{{!-- ── PAGE 1 ─────────────────────────────────────────────────── --}}
 <section class="page">
   <header class="page-chrome">
     <span class="brand-mark">d'strict · GTO</span>
     <span class="meta">
-      <span>{{labels.title}}</span>
+      <span>{{labels.reportTypeTitle}}</span>
       <span>·</span>
       <span>{{period}}</span>
       {{#if scope}}<span>·</span><span>{{scope}}</span>{{/if}}
     </span>
+    <span class="meta"><span>{{labels.page}} 1</span></span>
   </header>
 
-  <article class="section" style="margin-top:0">
-    <header>
-      <span class="num">01</span>
-      <h2>{{labels.executiveSummary}}</h2>
-      <span class="eyebrow">{{#if (eq lang "ko")}}연간 스냅샷{{else}}Annual snapshot{{/if}}</span>
-    </header>
+  {{!-- KPI Strip --}}
+  {{> kpi-strip}}
 
-    {{> narrative}}
-    {{> kpi-strip kpiColumns=(default kpiColumns "5")}}
-  </article>
+  {{#if hasData}}
+
+  {{!-- Narrative (compact) --}}
+  <p class="narrative-compact">{{narrative.s1}} {{narrative.s2}}</p>
+
+  {{!-- Row 1: Monthly Trend (8) + Branch Distribution (4) --}}
+  <div class="dash-row">
+    <div class="dash-col--8">
+      <div class="chart-card">
+        <div class="chart-title">{{labels.monthlyTrendTitle}}</div>
+        {{> trend-monthly}}
+      </div>
+    </div>
+    <div class="dash-col--4">
+      <div class="chart-card">
+        <div class="chart-title">{{labels.branchDistribution}}</div>
+        {{> hbar items=branchSorted}}
+      </div>
+    </div>
+  </div>
+
+  {{!-- Row 2: Zone (6) + Category (6) --}}
+  <div class="dash-row">
+    <div class="dash-col--6">
+      <div class="chart-card">
+        <div class="chart-title">{{labels.zoneDistribution}}</div>
+        {{> hbar items=zoneSorted}}
+      </div>
+    </div>
+    <div class="dash-col--6">
+      <div class="chart-card">
+        <div class="chart-title">{{labels.categoryDistribution}}</div>
+        {{> hbar items=categorySorted}}
+      </div>
+    </div>
+  </div>
+
+  {{!-- Row 3: Resolve Time (6) + Action Type or Difficulty (6) --}}
+  <div class="dash-row">
+    <div class="dash-col--6">
+      <div class="chart-card">
+        <div class="chart-title">{{labels.resolveTimeDist}}</div>
+        {{> hbar items=timeTakenBuckets}}
+      </div>
+    </div>
+    <div class="dash-col--6">
+      <div class="chart-card">
+        <div class="chart-title">{{#if actionTypeSorted.length}}{{labels.actionTypeDist}}{{else}}{{labels.reportedDifficulty}}{{/if}}</div>
+        {{#if actionTypeSorted.length}}
+          {{> hbar items=actionTypeSorted}}
+        {{else}}
+          {{> hbar items=difficultyDistribution}}
+        {{/if}}
+      </div>
+    </div>
+  </div>
+
+  {{!-- Row 4: Top Yearly Repeated Issues (12) --}}
+  <div class="dash-row">
+    <div class="dash-col--12">
+      <div class="chart-card">
+        <div class="chart-title">{{labels.yearlyRepeated}}</div>
+        {{> issue-table}}
+      </div>
+    </div>
+  </div>
+
+  {{else}}
+  <div class="zero-data-card">
+    <p>{{labels.noData}}</p>
+  </div>
+  {{/if}}
 
   <footer class="page-footer">
     <span>{{generated}}</span>
@@ -40,28 +102,64 @@
   </footer>
 </section>
 
-{{!-- ── Page 2 — evidence (recs + observations) ─────── --}}
+{{!-- ── PAGE 2 (clusters · matrix · branch comparison · recs) ──── --}}
+{{#if hasData}}
+{{#if (or repeatedIssueClusters.length branchComparisonRows.length)}}
 <section class="page">
   <header class="page-chrome">
     <span class="brand-mark">d'strict · GTO</span>
     <span class="meta">
-      <span>{{labels.title}}</span>
+      <span>{{labels.reportTypeTitle}}</span>
       <span>·</span>
       <span>{{period}}</span>
     </span>
+    <span class="meta"><span>{{labels.page}} 2</span></span>
   </header>
 
-  <article class="section" style="margin-top:0">
-    <header>
-      <span class="num">02</span>
-      <h2>{{#if recommendations.length}}{{labels.recommendations}}{{else}}{{labels.observations}}{{/if}}</h2>
-      <span class="eyebrow">{{labels.executiveSummary}}</span>
-    </header>
-    {{> evidence}}
-  </article>
+  {{!-- Yearly Issue Clusters (12) --}}
+  {{#if repeatedIssueClusters.length}}
+  <div class="dash-row">
+    <div class="dash-col--12">
+      <div class="chart-card">
+        <div class="chart-title">{{labels.yearlyIssueClusters}}</div>
+        {{> cluster-cards}}
+      </div>
+    </div>
+  </div>
+  {{/if}}
+
+  {{!-- Zone × Category Matrix (6) + Branch Comparison (6) --}}
+  <div class="dash-row">
+    <div class="dash-col--6">
+      <div class="chart-card">
+        <div class="chart-title">{{labels.zoneCategoryMatrix}}</div>
+        {{> zone-matrix}}
+      </div>
+    </div>
+    <div class="dash-col--6">
+      <div class="chart-card">
+        <div class="chart-title">{{labels.branchComparison}}</div>
+        {{> branch-table}}
+      </div>
+    </div>
+  </div>
+
+  {{!-- Recommendations / Observations (12) --}}
+  {{#if (or recommendations.length observations.length)}}
+  <div class="dash-row">
+    <div class="dash-col--12">
+      <div class="chart-card">
+        <div class="chart-title">{{#if recommendations.length}}{{labels.recommendations}}{{else}}{{labels.observations}}{{/if}}</div>
+        {{> evidence}}
+      </div>
+    </div>
+  </div>
+  {{/if}}
 
   <footer class="page-footer">
     <span>{{generated}}</span>
     <span>{{labels.page}} 2</span>
   </footer>
 </section>
+{{/if}}
+{{/if}}

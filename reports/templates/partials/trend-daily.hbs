@@ -1,0 +1,23 @@
+{{!-- trend-daily.hbs — Daily mini-bar trend chart
+  Uses root context: dailyTrend[], dailyTrendFirst, dailyTrendLast,
+                     dailyTrendPeak, dailyTrendLatest
+--}}
+{{#if dailyTrend.length}}
+<div class="trend-wrap">
+  <div class="trend-bars">
+    {{#each dailyTrend}}
+    <div class="trend-bar{{#if isPeak}} is-peak{{/if}}{{#if isLatest}} is-latest{{/if}}" style="height:{{barH}}%"></div>
+    {{/each}}
+  </div>
+  <div class="trend-footer">
+    <span>{{dailyTrendFirst}}</span>
+    <span>{{dailyTrendLast}}</span>
+  </div>
+  <div class="trend-peak-row">
+    <span>{{@root.labels.peakLabel}}: {{dailyTrendPeak}}</span>
+    <span>{{@root.labels.latestLabel}}: {{dailyTrendLatest}}</span>
+  </div>
+</div>
+{{else}}
+<p class="hbar__empty">—</p>
+{{/if}}

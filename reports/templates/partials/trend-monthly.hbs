@@ -1,0 +1,23 @@
+{{!-- trend-monthly.hbs — Monthly mini-bar trend chart (annual reports)
+  Uses root context: monthlyTrend[], monthlyTrendFirst, monthlyTrendLast,
+                     monthlyTrendPeak, monthlyTrendLatest
+--}}
+{{#if monthlyTrend.length}}
+<div class="trend-wrap">
+  <div class="trend-bars">
+    {{#each monthlyTrend}}
+    <div class="trend-bar{{#if isPeak}} is-peak{{/if}}{{#if isLatest}} is-latest{{/if}}" style="height:{{barH}}%"></div>
+    {{/each}}
+  </div>
+  <div class="trend-footer">
+    <span>{{monthlyTrendFirst}}</span>
+    <span>{{monthlyTrendLast}}</span>
+  </div>
+  <div class="trend-peak-row">
+    <span>{{@root.labels.peakLabel}}: {{monthlyTrendPeak}}</span>
+    <span>{{@root.labels.latestLabel}}: {{monthlyTrendLatest}}</span>
+  </div>
+</div>
+{{else}}
+<p class="hbar__empty">—</p>
+{{/if}}

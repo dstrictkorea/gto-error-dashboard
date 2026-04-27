@@ -421,14 +421,13 @@ function _renderAdmDailyTable(){
   var start=_admDailyPage*ps, end=Math.min(start+ps,total);
   tbody.innerHTML=_admDailyData.slice(start,end).map(function(r,i){
     var detail=r.IssueDetail||'--';
-    var shortDetail=detail.length>40?detail.slice(0,40)+'…':detail;
     return '<tr>'
       +'<td class="text-center text-muted text-nowrap">'+(start+i+1)+'</td>'
       +'<td class="text-center text-nowrap">'+brBadge(r.Branch)+'</td>'
       +'<td class="text-center text-nowrap"><span class="zp">'+esc(r.Zone||'--')+'</span></td>'
       +'<td class="text-center text-xs text-nowrap">'+esc(r.Date||'')+'</td>'
       +'<td class="text-center text-nowrap">'+catBadge(r.Category||'')+'</td>'
-      +'<td class="td-left td-detail" title="'+esc(detail)+'">'+esc(shortDetail)+'</td>'
+      +'<td class="td-left td-detail td-wrap">'+esc(detail)+'</td>'
       +'<td class="text-center text-xs text-nowrap">'+esc(r.ActionType||'--')+'</td>'
       +'<td class="text-center text-nowrap">'+stars(r.Difficulty||1)+'</td>'
       +'</tr>';
@@ -784,14 +783,13 @@ function _renderAdmMonthlyTable(){
   var start=_admMonthlyPage*ps, end=Math.min(start+ps,total);
   tbody.innerHTML=_admMonthlyData.slice(start,end).map(function(r,i){
     var detail=r.IssueDetail||'--';
-    var shortDetail=detail.length>40?detail.slice(0,40)+'…':detail;
     return '<tr>'
       +'<td class="text-center text-muted text-nowrap">'+(start+i+1)+'</td>'
       +'<td class="text-center text-nowrap">'+brBadge(r.Branch)+'</td>'
       +'<td class="text-center text-nowrap"><span class="zp">'+esc(r.Zone||'--')+'</span></td>'
       +'<td class="text-center text-xs text-nowrap">'+esc(r.Date||'')+'</td>'
       +'<td class="text-center text-nowrap">'+catBadge(r.Category||'')+'</td>'
-      +'<td class="td-left td-detail" title="'+esc(detail)+'">'+esc(shortDetail)+'</td>'
+      +'<td class="td-left td-detail td-wrap">'+esc(detail)+'</td>'
       +'<td class="text-center text-xs text-nowrap">'+esc(r.ActionType||'--')+'</td>'
       +'<td class="text-center text-nowrap">'+stars(r.Difficulty||1)+'</td>'
       +'</tr>';

@@ -1036,12 +1036,26 @@ tbody td.td-left {
   line-height: 1.55;
 }
 
-/* Long description cells — allow natural wrap */
-tbody td.td-detail {
+/* Long description cells — full text, no clipping */
+tbody td.td-detail,
+tbody td.td-wrap {
   text-align: left;
   word-break: break-word;
   white-space: normal;
+  overflow-wrap: anywhere;
   line-height: 1.55;
+  max-width: 320px;
+  vertical-align: top;
+}
+
+/* Admin table: all headers centered, detail column left-aligned */
+.adm-table thead th { text-align: center; }
+.adm-table tbody td { text-align: center; vertical-align: middle; }
+.adm-table tbody td.td-left,
+.adm-table tbody td.td-detail,
+.adm-table tbody td.td-wrap {
+  text-align: left;
+  vertical-align: top;
 }
 
 /* Zebra striping */

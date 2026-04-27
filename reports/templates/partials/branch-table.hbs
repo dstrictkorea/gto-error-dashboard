@@ -1,0 +1,33 @@
+{{!-- branch-table.hbs — Branch performance comparison table
+  Uses root: branchComparisonRows[], labels.*
+--}}
+{{#if branchComparisonRows.length}}
+<table class="branch-table">
+  <thead>
+    <tr>
+      <th class="col-branch-name" style="text-align:left">{{@root.labels.colBranch}}</th>
+      <th>{{@root.labels.colTotal}}</th>
+      <th>{{@root.labels.colShare}}</th>
+      <th>{{@root.labels.colTopZone}}</th>
+      <th>{{@root.labels.colTopCategory}}</th>
+      <th>{{@root.labels.colHighDiff}}</th>
+      <th>{{@root.labels.colMedianResolve}}</th>
+    </tr>
+  </thead>
+  <tbody>
+    {{#each branchComparisonRows}}
+    <tr>
+      <td class="col-branch-name">{{branch}}</td>
+      <td>{{total}}</td>
+      <td>{{share}}</td>
+      <td>{{topZone}}</td>
+      <td>{{topCategory}}</td>
+      <td>{{highDifficulty}}</td>
+      <td>{{medianResolve}}</td>
+    </tr>
+    {{/each}}
+  </tbody>
+</table>
+{{else}}
+<p class="hbar__empty">—</p>
+{{/if}}

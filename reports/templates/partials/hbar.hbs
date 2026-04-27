@@ -1,0 +1,14 @@
+{{!-- hbar.hbs — Horizontal bar chart
+  Call: {{> hbar items=someArray}}
+  Each item: { name, count, barW, valLabel }
+--}}
+<div class="hbar">
+  {{#each items}}
+  <div class="hbar__row">
+    <span class="hbar__lbl">{{name}}</span>
+    <div class="hbar__track"><div class="hbar__fill" style="width:{{barW}}%"></div></div>
+    <span class="hbar__val">{{valLabel}}</span>
+  </div>
+  {{/each}}
+  {{#unless items.length}}<p class="hbar__empty">—</p>{{/unless}}
+</div>

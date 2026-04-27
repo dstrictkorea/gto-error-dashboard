@@ -5,20 +5,14 @@
 
 @page {
   size: A4 landscape;
-  /* top  right  bottom  left */
-  margin: 14mm 16mm 16mm 16mm;
-}
-
-/* Cover page gets a tighter top margin so the title sits high. */
-@page :first {
-  margin-top: 12mm;
+  margin: 8mm;
 }
 
 /* Paginated container — each .page flushes to a new printed page. */
 .page {
   page-break-after: always;
   break-after: page;
-  min-height: calc(210mm - 30mm); /* landscape H minus vertical margins */
+  min-height: calc(210mm - 16mm); /* landscape H minus 8mm top+bottom margins */
   display: flex;
   flex-direction: column;
   position: relative;

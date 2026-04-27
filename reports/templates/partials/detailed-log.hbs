@@ -1,0 +1,35 @@
+{{!-- detailed-log.hbs — Detailed incident log table (branch page 2)
+  Uses root: detailedIncidentLog[], labels.*
+--}}
+{{#if detailedIncidentLog.length}}
+<table class="log-table">
+  <thead>
+    <tr>
+      <th>{{@root.labels.colDate}}</th>
+      <th>{{@root.labels.colTime}}</th>
+      <th>{{@root.labels.colZone}}</th>
+      <th>{{@root.labels.colCategory}}</th>
+      <th>{{@root.labels.colTimeTaken}}</th>
+      <th>{{@root.labels.colActionType}}</th>
+      <th class="col-detail-hd">{{@root.labels.colIssueDetail}}</th>
+      <th class="col-detail-hd">{{@root.labels.colActionTaken}}</th>
+    </tr>
+  </thead>
+  <tbody>
+    {{#each detailedIncidentLog}}
+    <tr>
+      <td>{{date}}</td>
+      <td>{{time}}</td>
+      <td>{{zone}}</td>
+      <td>{{category}}</td>
+      <td>{{timeTaken}}</td>
+      <td>{{actionType}}</td>
+      <td class="col-detail">{{issueDetail}}</td>
+      <td class="col-action-taken">{{actionTaken}}</td>
+    </tr>
+    {{/each}}
+  </tbody>
+</table>
+{{else}}
+<p class="hbar__empty">—</p>
+{{/if}}

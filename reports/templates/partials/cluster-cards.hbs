@@ -1,0 +1,23 @@
+{{!-- cluster-cards.hbs — Issue cluster cards grid
+  Uses root: repeatedIssueClusters[], labels.*
+--}}
+{{#if repeatedIssueClusters.length}}
+<div class="cluster-grid">
+  {{#each repeatedIssueClusters}}
+  <div class="cluster-card">
+    <div class="cluster-card__title">{{title}}</div>
+    <div class="cluster-card__meta">
+      <span class="cluster-card__tag">{{@root.labels.colZone}}: <span>{{zone}}</span></span>
+      <span class="cluster-card__tag">{{@root.labels.colCategory}}: <span>{{category}}</span></span>
+      {{#if @root.branchSorted.length}}
+      <span class="cluster-card__tag">{{@root.labels.branchLabel}}: <span>{{branches}}</span></span>
+      {{/if}}
+      <span class="cluster-card__count">{{count}}</span>
+    </div>
+    <div class="cluster-card__action">{{actionTaken}}</div>
+  </div>
+  {{/each}}
+</div>
+{{else}}
+<p class="hbar__empty">—</p>
+{{/if}}

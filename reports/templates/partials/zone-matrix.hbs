@@ -1,0 +1,31 @@
+{{!-- zone-matrix.hbs — Zone × Category matrix
+  Uses root: zoneCategoryMatrix.{categories[], rows[{zone, cells[{count,intensityClass}]}]}
+--}}
+{{#if zoneCategoryMatrix.rows.length}}
+<div class="matrix-wrap">
+  <table class="matrix-table">
+    <thead>
+      <tr>
+        <th></th>
+        {{#each zoneCategoryMatrix.categories}}
+        <th title="{{this}}">{{this}}</th>
+        {{/each}}
+      </tr>
+    </thead>
+    <tbody>
+      {{#each zoneCategoryMatrix.rows}}
+      <tr>
+        <td class="row-label">{{zone}}</td>
+        {{#each cells}}
+        <td class="matrix-cell{{#if intensityClass}} matrix-cell--{{intensityClass}}{{/if}}">
+          {{#if count}}{{count}}{{else}}–{{/if}}
+        </td>
+        {{/each}}
+      </tr>
+      {{/each}}
+    </tbody>
+  </table>
+</div>
+{{else}}
+<p class="hbar__empty">—</p>
+{{/if}}

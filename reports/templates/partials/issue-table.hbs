@@ -1,0 +1,29 @@
+{{!-- issue-table.hbs — Top repeated issues ranked table
+  Uses root: topRepeatedIssues[], labels.*
+--}}
+{{#if topRepeatedIssues.length}}
+<table class="issue-table">
+  <thead>
+    <tr>
+      <th>{{@root.labels.colRank}}</th>
+      <th>{{@root.labels.colZone}}</th>
+      <th>{{@root.labels.colCategory}}</th>
+      <th>{{@root.labels.colCount}}</th>
+      <th class="col-issue-hd">{{@root.labels.colIssue}}</th>
+    </tr>
+  </thead>
+  <tbody>
+    {{#each topRepeatedIssues}}
+    <tr>
+      <td class="col-rank">{{rank}}</td>
+      <td>{{zone}}</td>
+      <td>{{category}}</td>
+      <td>{{count}}</td>
+      <td class="col-issue">{{issue}}</td>
+    </tr>
+    {{/each}}
+  </tbody>
+</table>
+{{else}}
+<p class="hbar__empty">—</p>
+{{/if}}

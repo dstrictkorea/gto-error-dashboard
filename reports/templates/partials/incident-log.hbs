@@ -1,0 +1,33 @@
+{{!-- incident-log.hbs — Recent incident log table (global page 2)
+  Uses root: recentIncidentLog[], labels.*
+--}}
+{{#if recentIncidentLog.length}}
+<table class="log-table">
+  <thead>
+    <tr>
+      <th>{{@root.labels.colDate}}</th>
+      <th>{{@root.labels.colBranch}}</th>
+      <th>{{@root.labels.colZone}}</th>
+      <th>{{@root.labels.colCategory}}</th>
+      <th>{{@root.labels.colTimeTaken}}</th>
+      <th>{{@root.labels.colActionType}}</th>
+      <th class="col-detail-hd">{{@root.labels.colIssueDetail}}</th>
+    </tr>
+  </thead>
+  <tbody>
+    {{#each recentIncidentLog}}
+    <tr>
+      <td>{{date}}</td>
+      <td>{{branch}}</td>
+      <td>{{zone}}</td>
+      <td>{{category}}</td>
+      <td>{{timeTaken}}</td>
+      <td>{{actionType}}</td>
+      <td class="col-detail">{{issueDetail}}</td>
+    </tr>
+    {{/each}}
+  </tbody>
+</table>
+{{else}}
+<p class="hbar__empty">—</p>
+{{/if}}

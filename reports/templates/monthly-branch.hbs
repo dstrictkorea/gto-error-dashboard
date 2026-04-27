@@ -1,36 +1,106 @@
 {{!-- ═══════════════════════════════════════════════════════════════
-  monthly-branch.hbs — Branch-scoped monthly report (single site)
+  monthly-branch.hbs — Branch-scoped monthly dashboard (v2 rebuild)
 
-  Pages:
-    1. Executive snapshot: header + KPI strip + narrative
-    2. Evidence: Recommendations + Observations (rendering contract)
-
-  Reads ctx produced by reports/content/index.js::buildReportContext
-  with variant='monthlyBranch'.
+  Layout:
+    Page 1 (always): header · KPI strip · 4 chart rows · recs
+    Page 2 (if data): issue clusters · detailed log · solver / matrix
+    Zero-data: 1 page empty state
 ═══════════════════════════════════════════════════════════════ --}}
 
-{{!-- ── Page 1 — snapshot + narrative ──────────────── --}}
+{{!-- ── PAGE 1 ─────────────────────────────────────────────────── --}}
 <section class="page">
   <header class="page-chrome">
     <span class="brand-mark">d'strict · GTO</span>
     <span class="meta">
-      <span>{{labels.title}}</span>
+      <span>{{labels.reportTypeTitle}}</span>
       <span>·</span>
       <span>{{period}}</span>
       {{#if scope}}<span>·</span><span>{{scope}}</span>{{/if}}
     </span>
+    <span class="meta"><span>{{labels.page}} 1</span></span>
   </header>
 
-  <article class="section" style="margin-top:0">
-    <header>
-      <span class="num">01</span>
-      <h2>{{labels.executiveSummary}}</h2>
-      <span class="eyebrow">{{labels.kpiStrip}}</span>
-    </header>
+  {{!-- KPI Strip --}}
+  {{> kpi-strip}}
 
-    {{> narrative}}
-    {{> kpi-strip kpiColumns=(default kpiColumns "5")}}
-  </article>
+  {{#if hasData}}
+
+  {{!-- Narrative (compact) --}}
+  <p class="narrative-compact">{{narrative.s1}} {{narrative.s2}}</p>
+
+  {{!-- Row 1: Zone Distribution (8) + Daily Trend (4) --}}
+  <div class="dash-row">
+    <div class="dash-col--8">
+      <div class="chart-card">
+        <div class="chart-title">{{labels.zoneDistribution}}</div>
+        {{> hbar items=zoneSorted}}
+      </div>
+    </div>
+    <div class="dash-col--4">
+      <div class="chart-card">
+        <div class="chart-title">{{labels.dailyTrendTitle}}</div>
+        {{> trend-daily}}
+      </div>
+    </div>
+  </div>
+
+  {{!-- Row 2: Category (6) + Resolve Time (6) --}}
+  <div class="dash-row">
+    <div class="dash-col--6">
+      <div class="chart-card">
+        <div class="chart-title">{{labels.categoryDistribution}}</div>
+        {{> hbar items=categorySorted}}
+      </div>
+    </div>
+    <div class="dash-col--6">
+      <div class="chart-card">
+        <div class="chart-title">{{labels.resolveTimeDist}}</div>
+        {{> hbar items=timeTakenBuckets}}
+      </div>
+    </div>
+  </div>
+
+  {{!-- Row 3: Action Type (6) + Reported Difficulty (6) --}}
+  <div class="dash-row">
+    <div class="dash-col--6">
+      <div class="chart-card">
+        <div class="chart-title">{{labels.actionTypeDist}}</div>
+        {{#if actionTypeSorted.length}}
+          {{> hbar items=actionTypeSorted}}
+        {{else}}
+          {{> hbar items=timeTakenBuckets}}
+        {{/if}}
+      </div>
+    </div>
+    <div class="dash-col--6">
+      <div class="chart-card">
+        <div class="chart-title">{{labels.reportedDifficulty}}</div>
+        {{> hbar items=difficultyDistribution}}
+      </div>
+    </div>
+  </div>
+
+  {{!-- Row 4: Top Repeated Issues (8) + Recommendations (4) --}}
+  <div class="dash-row">
+    <div class="dash-col--8">
+      <div class="chart-card">
+        <div class="chart-title">{{labels.topRepeatedIssues}}</div>
+        {{> issue-table}}
+      </div>
+    </div>
+    <div class="dash-col--4">
+      <div class="chart-card">
+        <div class="chart-title">{{#if recommendations.length}}{{labels.recommendations}}{{else}}{{labels.observations}}{{/if}}</div>
+        {{> evidence}}
+      </div>
+    </div>
+  </div>
+
+  {{else}}
+  <div class="zero-data-card">
+    <p>{{labels.noData}}</p>
+  </div>
+  {{/if}}
 
   <footer class="page-footer">
     <span>{{generated}}</span>
@@ -38,29 +108,69 @@
   </footer>
 </section>
 
-{{!-- ── Page 2 — evidence (recs + observations) ─────── --}}
+{{!-- ── PAGE 2 (clusters · solver · matrix · detailed log) ─────── --}}
+{{#if hasData}}
+{{#if (or repeatedIssueClusters.length detailedIncidentLog.length)}}
 <section class="page">
   <header class="page-chrome">
     <span class="brand-mark">d'strict · GTO</span>
     <span class="meta">
-      <span>{{labels.title}}</span>
+      <span>{{labels.reportTypeTitle}}</span>
       <span>·</span>
       <span>{{period}}</span>
       {{#if scope}}<span>·</span><span>{{scope}}</span>{{/if}}
     </span>
+    <span class="meta"><span>{{labels.page}} 2</span></span>
   </header>
 
-  <article class="section" style="margin-top:0">
-    <header>
-      <span class="num">02</span>
-      <h2>{{#if recommendations.length}}{{labels.recommendations}}{{else}}{{labels.observations}}{{/if}}</h2>
-      <span class="eyebrow">{{labels.executiveSummary}}</span>
-    </header>
-    {{> evidence}}
-  </article>
+  {{!-- Issue Cluster Cards (12) --}}
+  {{#if repeatedIssueClusters.length}}
+  <div class="dash-row">
+    <div class="dash-col--12">
+      <div class="chart-card">
+        <div class="chart-title">{{labels.issueClusters}}</div>
+        {{> cluster-cards}}
+      </div>
+    </div>
+  </div>
+  {{/if}}
+
+  {{!-- Solver Distribution (4) + Zone × Category Matrix (8) --}}
+  <div class="dash-row">
+    {{#if solverSorted.length}}
+    <div class="dash-col--4">
+      <div class="chart-card">
+        <div class="chart-title">{{labels.solverDistribution}}</div>
+        {{> hbar items=solverSorted}}
+      </div>
+    </div>
+    <div class="dash-col--8">
+    {{else}}
+    <div class="dash-col--12">
+    {{/if}}
+      <div class="chart-card">
+        <div class="chart-title">{{labels.zoneCategoryMatrix}}</div>
+        {{> zone-matrix}}
+      </div>
+    </div>
+  </div>
+
+  {{!-- Detailed Incident Log (12) --}}
+  {{#if detailedIncidentLog.length}}
+  <div class="dash-row">
+    <div class="dash-col--12">
+      <div class="chart-card">
+        <div class="chart-title">{{labels.detailedLog}}</div>
+        {{> detailed-log}}
+      </div>
+    </div>
+  </div>
+  {{/if}}
 
   <footer class="page-footer">
     <span>{{generated}}</span>
     <span>{{labels.page}} 2</span>
   </footer>
 </section>
+{{/if}}
+{{/if}}
