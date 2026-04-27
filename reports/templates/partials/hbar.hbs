@@ -1,12 +1,15 @@
 {{!-- hbar.hbs — Horizontal bar chart
   Call: {{> hbar items=someArray}}
-  Each item: { name, count, barW, valLabel }
+  Each item: { name, count, barW, valLabel, color? }
+  Color falls back to var(--purple) if not provided.
 --}}
 <div class="hbar">
   {{#each items}}
   <div class="hbar__row">
     <span class="hbar__lbl">{{name}}</span>
-    <div class="hbar__track"><div class="hbar__fill" style="width:{{barW}}%"></div></div>
+    <div class="hbar__track">
+      <div class="hbar__fill" style="width:{{barW}}%;background:{{#if color}}{{color}}{{else}}var(--purple){{/if}}"></div>
+    </div>
     <span class="hbar__val">{{valLabel}}</span>
   </div>
   {{/each}}

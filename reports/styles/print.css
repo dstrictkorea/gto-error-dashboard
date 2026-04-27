@@ -1,21 +1,24 @@
 /* ══════════════════════════════════════════════
  *  Print — @page rules, page chrome, break control
- *  All executive reports: A4 landscape, generous but not bloated margins.
+ *  A4 landscape, zero PDF margins (CSS owns all spacing).
  * ══════════════════════════════════════════════ */
 
 @page {
   size: A4 landscape;
-  margin: 8mm;
+  margin: 0;
 }
 
 /* Paginated container — each .page flushes to a new printed page. */
 .page {
   page-break-after: always;
   break-after: page;
-  min-height: calc(210mm - 16mm); /* landscape H minus 8mm top+bottom margins */
+  /* A4 landscape: 297mm wide × 210mm tall */
+  min-height: 210mm;
+  padding: 8mm 12mm;
   display: flex;
   flex-direction: column;
   position: relative;
+  box-sizing: border-box;
 }
 .page:last-of-type {
   page-break-after: auto;
@@ -27,38 +30,49 @@
 .break-before  { break-before: page;  page-break-before: always; }
 .break-after   { break-after: page;   page-break-after: always; }
 
-/* Orphans/widows everywhere by default — avoids single-line last pages */
+/* Orphans/widows everywhere by default */
 * { orphans: 3; widows: 3; }
 
-/* Running header/footer — minimal, only shows on non-cover pages */
+/* ── Page header (chrome) — pinned to top of each .page ────────── */
 .page-chrome {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  height: 28px;
+  min-height: 28px;
   font-size: var(--fs-caption);
   color: var(--cs);
-  padding-bottom: var(--s-2);
-  border-bottom: var(--hl);
-  margin-bottom: var(--s-5);
+  padding: 0 0 6px 0;
+  border-bottom: 2px solid var(--purple);
+  margin-bottom: var(--s-4);
+  flex-shrink: 0;
 }
 .page-chrome .brand-mark {
   font-weight: 700;
-  color: var(--ct);
+  color: var(--purple);
   letter-spacing: 0.04em;
   text-transform: uppercase;
+  font-size: 11px;
 }
 .page-chrome .meta {
   display: flex;
   gap: var(--s-4);
   align-items: center;
+  font-size: 10px;
+  color: var(--muted);
 }
 
+/* ── Page footer — pinned to bottom via flex margin-top: auto ───── */
 .page-footer {
-  margin-top: auto;                   /* pins to bottom of .page flex */
-  padding-top: var(--s-3);
-  border-top: var(--hl-d);
+  margin-top: auto;
+  padding-top: 5px;
+  border-top: 1px solid var(--border);
   display: flex;
   justify-content: space-between;
+  align-items: center;
   font-size: var(--fs-caption);
   color: var(--cs);
+  height: 24px;
+  min-height: 24px;
+  flex-shrink: 0;
 }

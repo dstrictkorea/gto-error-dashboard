@@ -3,7 +3,7 @@
 
   Layout:
     Page 1 (always): header · KPI strip · 4 chart rows · recs
-    Page 2 (if data): issue clusters · detailed log · solver / matrix
+    Page 2 (if data): issue clusters · solver / matrix
     Zero-data: 1 page empty state
 ═══════════════════════════════════════════════════════════════ --}}
 
@@ -34,6 +34,7 @@
       <div class="chart-card">
         <div class="chart-title">{{labels.zoneDistribution}}</div>
         {{> hbar items=zoneSorted}}
+        {{#if zoneSummary}}<p class="chart-summary">{{zoneSummary}}</p>{{/if}}
       </div>
     </div>
     <div class="dash-col--4">
@@ -48,14 +49,14 @@
   <div class="dash-row">
     <div class="dash-col--6">
       <div class="chart-card">
-        <div class="chart-title">{{labels.categoryDistribution}}</div>
-        {{> hbar items=categorySorted}}
+        <div class="chart-title">{{labels.categoryDistribution}}{{#if catDominant}} ★{{/if}}</div>
+        {{> stacked-bar items=categorySorted summary=catSummary}}
       </div>
     </div>
     <div class="dash-col--6">
       <div class="chart-card">
         <div class="chart-title">{{labels.resolveTimeDist}}</div>
-        {{> hbar items=timeTakenBuckets}}
+        {{> stacked-bar items=timeTakenBuckets summary=resolveSummary}}
       </div>
     </div>
   </div>
@@ -66,16 +67,16 @@
       <div class="chart-card">
         <div class="chart-title">{{labels.actionTypeDist}}</div>
         {{#if actionTypeSorted.length}}
-          {{> hbar items=actionTypeSorted}}
+          {{> action-pill}}
         {{else}}
-          {{> hbar items=timeTakenBuckets}}
+          {{> stacked-bar items=timeTakenBuckets summary=resolveSummary}}
         {{/if}}
       </div>
     </div>
     <div class="dash-col--6">
       <div class="chart-card">
         <div class="chart-title">{{labels.reportedDifficulty}}</div>
-        {{> hbar items=difficultyDistribution}}
+        {{> difficulty-strip}}
       </div>
     </div>
   </div>
@@ -108,9 +109,9 @@
   </footer>
 </section>
 
-{{!-- ── PAGE 2 (clusters · solver · matrix · detailed log) ─────── --}}
+{{!-- ── PAGE 2 (clusters · solver · matrix) ─────────────────────── --}}
 {{#if hasData}}
-{{#if (or repeatedIssueClusters.length detailedIncidentLog.length)}}
+{{#if repeatedIssueClusters.length}}
 <section class="page">
   <header class="page-chrome">
     <span class="brand-mark">d'strict · GTO</span>
@@ -124,7 +125,6 @@
   </header>
 
   {{!-- Issue Cluster Cards (12) --}}
-  {{#if repeatedIssueClusters.length}}
   <div class="dash-row">
     <div class="dash-col--12">
       <div class="chart-card">
@@ -133,7 +133,6 @@
       </div>
     </div>
   </div>
-  {{/if}}
 
   {{!-- Solver Distribution (4) + Zone × Category Matrix (8) --}}
   <div class="dash-row">
@@ -154,18 +153,6 @@
       </div>
     </div>
   </div>
-
-  {{!-- Detailed Incident Log (12) --}}
-  {{#if detailedIncidentLog.length}}
-  <div class="dash-row">
-    <div class="dash-col--12">
-      <div class="chart-card">
-        <div class="chart-title">{{labels.detailedLog}}</div>
-        {{> detailed-log}}
-      </div>
-    </div>
-  </div>
-  {{/if}}
 
   <footer class="page-footer">
     <span>{{generated}}</span>

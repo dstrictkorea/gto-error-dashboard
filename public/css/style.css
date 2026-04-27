@@ -1036,16 +1036,19 @@ tbody td.td-left {
   line-height: 1.55;
 }
 
-/* Long description cells — full text, no clipping */
+/* Long description cells — full text, no clipping (mandatory spec) */
 tbody td.td-detail,
 tbody td.td-wrap {
-  text-align: left;
-  word-break: break-word;
-  white-space: normal;
-  overflow-wrap: anywhere;
-  line-height: 1.55;
-  max-width: 320px;
+  text-align: left !important;
+  white-space: normal !important;
+  overflow: visible !important;
+  text-overflow: clip !important;
+  word-break: break-word !important;
+  overflow-wrap: anywhere !important;
+  line-height: 1.45 !important;
+  max-width: none !important;
   vertical-align: top;
+  height: auto;
 }
 
 /* Admin table: all headers centered, detail column left-aligned */
@@ -1056,11 +1059,70 @@ tbody td.td-wrap {
 .adm-table tbody td.td-wrap {
   text-align: left;
   vertical-align: top;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  line-height: 1.45;
+  max-width: none;
 }
 
 /* Zebra striping */
 tbody tr:nth-child(even) td {
   background: rgba(0,0,0,0.01);
+}
+
+/* ── Admin report status messages ────────────────────────── */
+.rpt-status {
+  display: none;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  margin-top: 8px;
+  border: 1px solid transparent;
+  align-items: center;
+  gap: 8px;
+}
+.rpt-status.is-pending {
+  display: flex;
+  background: var(--bg);
+  border-color: var(--border);
+  color: var(--t2);
+}
+.rpt-status.is-ok {
+  display: block;
+  background: #f0fdf4;
+  border-color: #86efac;
+  color: #166534;
+}
+.rpt-status.is-err {
+  display: block;
+  background: #fef2f2;
+  border-color: #fca5a5;
+  color: #991b1b;
+}
+.rpt-spinner {
+  width: 12px;
+  height: 12px;
+  flex-shrink: 0;
+  border: 2px solid currentColor;
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: spin .7s linear infinite;
+  display: inline-block;
+}
+
+/* ── Admin rank bars ─────────────────────────────────────── */
+.rank-bar-track {
+  flex: 1;
+  background: var(--border);
+  border-radius: 4px;
+  height: 6px;
+  overflow: hidden;
+}
+.rank-bar-fill {
+  height: 100%;
+  border-radius: 4px;
+  min-width: 4px;
 }
 
 tbody tr:hover td {

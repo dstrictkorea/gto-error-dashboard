@@ -523,7 +523,7 @@ html[lang="ko"] .card__action {
 }
 .hbar__track {
   flex: 1;
-  background: #efeee8;
+  background: var(--track, #efeee8);
   border-radius: 999px;
   height: 8px;
   overflow: hidden;
@@ -873,5 +873,247 @@ html[lang="ko"] .card__action {
 html[lang="ko"] .narrative-compact {
   line-height: 1.7;
   font-size: 11px;
+}
+
+/* ══════════════════════════════════════════════
+ *  Chart summary sentence (below any chart)
+ * ══════════════════════════════════════════════ */
+
+.chart-summary {
+  font-size: 10px;
+  color: var(--muted);
+  line-height: 1.45;
+  margin: 5px 0 0;
+  letter-spacing: -0.1px;
+  font-style: italic;
+}
+html[lang="ko"] .chart-summary {
+  font-size: 9.5px;
+  line-height: 1.6;
+}
+
+/* ══════════════════════════════════════════════
+ *  Stacked Bar — category / resolve time
+ *  .sbar__track → full-width pill divided into
+ *  colored segments by segW%.
+ * ══════════════════════════════════════════════ */
+
+.sbar {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.sbar__track {
+  display: flex;
+  width: 100%;
+  height: 10px;
+  border-radius: 999px;
+  overflow: hidden;
+  background: var(--track);
+}
+.sbar__seg {
+  height: 100%;
+  min-width: 1px;
+  transition: none;
+}
+.sbar__legend {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  margin-top: 2px;
+}
+.sbar__row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.sbar__dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.sbar__lbl {
+  font-size: 10px;
+  color: var(--text);
+  flex: 1;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  letter-spacing: -0.1px;
+}
+.sbar__val {
+  font-size: 10px;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  letter-spacing: -0.1px;
+}
+
+/* ══════════════════════════════════════════════
+ *  Action Pill — action type segmented pill
+ *  Thicker track (14px) and larger legend text.
+ * ══════════════════════════════════════════════ */
+
+.apill {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.apill__track {
+  display: flex;
+  width: 100%;
+  height: 14px;
+  border-radius: 999px;
+  overflow: hidden;
+  background: var(--track);
+}
+.apill__seg {
+  height: 100%;
+  min-width: 2px;
+}
+.apill__legend {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.apill__row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.apill__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.apill__lbl {
+  font-size: 10.5px;
+  color: var(--text);
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  letter-spacing: -0.1px;
+}
+.apill__val {
+  font-size: 10.5px;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  letter-spacing: -0.1px;
+}
+
+/* ══════════════════════════════════════════════
+ *  Difficulty Strip — Lv.1–5 compact strip
+ *  Slimmer track (8px) with color gradient rows.
+ * ══════════════════════════════════════════════ */
+
+.dstrip {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.dstrip__track {
+  display: flex;
+  width: 100%;
+  height: 8px;
+  border-radius: 999px;
+  overflow: hidden;
+  background: var(--track);
+}
+.dstrip__seg {
+  height: 100%;
+  min-width: 1px;
+}
+.dstrip__legend {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.dstrip__row {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.dstrip__dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.dstrip__lbl {
+  font-size: 10px;
+  color: var(--text);
+  flex: 1;
+  white-space: nowrap;
+  letter-spacing: -0.1px;
+}
+.dstrip__val {
+  font-size: 10px;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  letter-spacing: -0.1px;
+}
+
+/* ══════════════════════════════════════════════
+ *  Trend chart enhancements
+ *  Count labels row, average baseline line,
+ *  above-avg bar highlight.
+ * ══════════════════════════════════════════════ */
+
+/* Count labels row above bars */
+.trend-counts {
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+  margin-bottom: 1px;
+}
+.trend-count {
+  flex: 1;
+  text-align: center;
+  font-size: 7px;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  overflow: hidden;
+  text-overflow: clip;
+  white-space: nowrap;
+}
+.trend-count.is-peak {
+  color: var(--purple);
+  font-weight: 700;
+  font-size: 7.5px;
+}
+
+/* Bars that exceed the daily average */
+.trend-bar.is-above-avg {
+  opacity: 0.75;
+}
+.trend-bar.is-peak {
+  opacity: 1;
+}
+
+/* Average baseline dashed line (position: absolute inside trend-bars) */
+.trend-avg-line {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 0;
+  border-top: 1px dashed var(--muted);
+  opacity: 0.55;
+  pointer-events: none;
+}
+
+/* Issue table — share and action taken columns */
+.issue-table thead th.col-share-hd { text-align: center; }
+.issue-table tbody td.col-pct {
+  color: var(--muted);
+  font-size: 10px;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
 }
 

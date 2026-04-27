@@ -78,6 +78,9 @@
   --r-md: var(--radius);       /* 10px — d'strict card radius */
   --r-lg: 12px;
 
+  /* ── Chart track ─────────────────────────────────────── */
+  --track: #efeee8;                /* bar track / segment background */
+
   /* ── Hairlines ────────────────────────────────────────── */
   --hl:   1px solid var(--border);
   --hl-d: 1px solid #d9d7cf;

@@ -1,5 +1,6 @@
-{{!-- issue-table.hbs — Top repeated issues ranked table
+{{!-- issue-table.hbs — Top repeated issues ranked table (cluster-based)
   Uses root: topRepeatedIssues[], labels.*
+  Each item: { rank, zone, category, categoryColor, count, share, issue, actionTaken }
 --}}
 {{#if topRepeatedIssues.length}}
 <table class="issue-table">
@@ -9,7 +10,9 @@
       <th>{{@root.labels.colZone}}</th>
       <th>{{@root.labels.colCategory}}</th>
       <th>{{@root.labels.colCount}}</th>
+      <th>{{@root.labels.colShare}}</th>
       <th class="col-issue-hd">{{@root.labels.colIssue}}</th>
+      <th class="col-issue-hd">{{@root.labels.colActionTaken}}</th>
     </tr>
   </thead>
   <tbody>
@@ -17,13 +20,16 @@
     <tr>
       <td class="col-rank">{{rank}}</td>
       <td>{{zone}}</td>
-      <td>{{category}}</td>
+      <td style="color:{{categoryColor}};font-weight:600">{{category}}</td>
       <td>{{count}}</td>
+      <td class="col-pct">{{share}}</td>
       <td class="col-issue">{{issue}}</td>
+      <td class="col-issue">{{actionTaken}}</td>
     </tr>
     {{/each}}
   </tbody>
 </table>
+{{#if @root.issueSummary}}<p class="chart-summary">{{@root.issueSummary}}</p>{{/if}}
 {{else}}
 <p class="hbar__empty">—</p>
 {{/if}}

@@ -1,5 +1,6 @@
 {{!-- zone-matrix.hbs — Zone × Category matrix
-  Uses root: zoneCategoryMatrix.{categories[], rows[{zone, cells[{count,intensityClass}]}]}
+  Uses root: zoneCategoryMatrix.{categories[{name,color}], rows[{zone, cells[{count,intensityClass}]}]}
+  Categories are now objects with .name and .color for consistent coloring.
 --}}
 {{#if zoneCategoryMatrix.rows.length}}
 <div class="matrix-wrap">
@@ -8,7 +9,7 @@
       <tr>
         <th></th>
         {{#each zoneCategoryMatrix.categories}}
-        <th title="{{this}}">{{this}}</th>
+        <th title="{{this.name}}" style="color:{{this.color}}">{{this.name}}</th>
         {{/each}}
       </tr>
     </thead>
@@ -25,6 +26,7 @@
       {{/each}}
     </tbody>
   </table>
+  {{#if @root.matrixSummary}}<p class="chart-summary">{{@root.matrixSummary}}</p>{{/if}}
 </div>
 {{else}}
 <p class="hbar__empty">—</p>

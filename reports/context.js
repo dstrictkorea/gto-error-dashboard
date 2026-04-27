@@ -113,11 +113,81 @@ function getSolvedBy(r) {
   return (r['Solved By'] || r.SolvedBy || '').trim();
 }
 
+// ── Consistent color maps (entity → always same color) ───────────
+
+const BRANCH_COLOR = {
+  AMNY: '#534AB7', AMLV: '#2367A8', AMDB: '#1E8A8A',
+  AMGN: '#3B6D11', AMYS: '#B86B1D', AMBS: '#C45A4A',
+  AMJJ: '#8A8A84',
+};
+
+const CATEGORY_COLOR = {
+  Software:   '#534AB7',
+  Hardware:   '#B86B1D',
+  Network:    '#2367A8',
+  OS:         '#8A8A84',
+  소프트웨어: '#534AB7',
+  하드웨어:   '#B86B1D',
+  네트워크:  '#2367A8',
+};
+
+const ACTION_COLOR = {
+  'On-Site': '#534AB7',
+  'Remote':  '#2367A8',
+  Other:     '#8A8A84',
+  기타:      '#8A8A84',
+};
+
+const DIFF_COLOR = ['#3B6D11', '#1E8A8A', '#B86B1D', '#C45A4A', '#A32D2D'];
+
+// Zone color heuristic — maps zone keywords to semantic colors
+function zoneColor(name) {
+  if (!name) return '#8A8A84';
+  const n = name.toLowerCase();
+  if (/cafe|tea/.test(n))       return '#534AB7';
+  if (/garden|forest/.test(n))  return '#3B6D11';
+  if (/sketch|live/.test(n))    return '#2367A8';
+  if (/flower/.test(n))         return '#C45A4A';
+  if (/beach|wave|water/.test(n)) return '#1E8A8A';
+  if (/entrance/.test(n))       return '#B86B1D';
+  if (/sunset|sun/.test(n))     return '#B86B1D';
+  return '#8A8A84';
+}
+
+// Resolve Time source-system bucket normalization
+const RESOLVE_BUCKET_EN = [
+  'Under 15 min', 'Under 30 Min', 'Under 1 Hour', 'Under 2 Hour', 'Over 2 Hour',
+];
+const RESOLVE_BUCKET_KO = [
+  '15분 미만', '30분 미만', '1시간 미만', '2시간 미만', '2시간 초과',
+];
+const RESOLVE_BUCKET_COLOR = ['#3B6D11', '#1E8A8A', '#B86B1D', '#C45A4A', '#A32D2D'];
+
+function normalizeTimeBucket(v) {
+  if (v == null) return null;
+  const s = String(v).toLowerCase().trim();
+  if (!s) return null;
+  // Under 15 min
+  if (/under\s*15|^15\s*min|15분\s*미만/.test(s)) return 0;
+  // Under 30 Min
+  if (/under\s*30|^30\s*min|30분\s*미만/.test(s)) return 1;
+  // Under 1 Hour (also catches "under 1h", "60 min", "1시간")
+  if (/under\s*1\s*(h|hr|hour)|1\s*시간|under\s*60|60\s*min/.test(s)) return 2;
+  // Under 2 Hour
+  if (/under\s*2\s*(h|hr|hour)|2\s*시간\s*미만/.test(s)) return 3;
+  // Over 2 Hour
+  if (/over\s*2|2\s*시간\s*초과/.test(s)) return 4;
+  // Fallback: try parsing minutes from _minutes if string didn't match
+  return null;
+}
+
 // ── Visual aggregates builder ─────────────────────────────────────
 //
 // Computes all chart-ready data arrays from prepared rows.
 // All bar widths, percentages, and sort orders are resolved here;
 // Handlebars templates remain logic-free.
+
+const EMPTY_CHART_THRESHOLD = 3; // charts with total < 3 are hidden
 
 function buildVisualContext(prepared, opts) {
   const lang = opts.lang === 'ko' ? 'ko' : 'en';
@@ -128,12 +198,36 @@ function buildVisualContext(prepared, opts) {
   // ── Branch distribution ──────────────────────────────────────
   const branchMap = countByKey(included, 'Branch');
   const branchEntries = topNEntries(branchMap, 8);
-  const branchSorted = toBarRows(branchEntries, total);
+  const branchSorted = toBarRows(branchEntries, total).map(r => ({
+    ...r,
+    color: BRANCH_COLOR[r.name] || '#8A8A84',
+    segW: Math.round(total ? r.count / total * 100 : 0),
+  }));
+  const topBranchPct = branchSorted.length && total
+    ? pctStr(branchSorted[0].count / total) : '—';
+  const branchSummary = branchSorted.length
+    ? (lang === 'ko'
+        ? `${branchSorted[0].name}가 전체 오류의 ${topBranchPct}를 차지합니다.`
+        : `${branchSorted[0].name} accounts for ${topBranchPct} of this period's incidents.`)
+    : '';
+  const showBranch = total >= EMPTY_CHART_THRESHOLD;
 
   // ── Zone distribution ────────────────────────────────────────
   const zoneMap = countByKey(included, 'Zone');
   const zoneEntries = topNEntries(zoneMap, 7);
-  const zoneSorted = toBarRows(zoneEntries, total);
+  const zoneSorted = toBarRows(zoneEntries, total).map(r => ({
+    ...r,
+    color: zoneColor(r.name),
+    segW: Math.round(total ? r.count / total * 100 : 0),
+  }));
+  const topZonePct = zoneSorted.length && total
+    ? pctStr(zoneSorted[0].count / total) : '—';
+  const zoneSummary = zoneSorted.length
+    ? (lang === 'ko'
+        ? `${zoneSorted[0].name}가 ${topZonePct}로 최다 발생 Zone입니다.`
+        : `${zoneSorted[0].name} is the top affected zone at ${topZonePct}.`)
+    : '';
+  const showZone = total >= EMPTY_CHART_THRESHOLD;
 
   // ── Category distribution ────────────────────────────────────
   const catMap = new Map();
@@ -143,7 +237,22 @@ function buildVisualContext(prepared, opts) {
     catMap.set(v, (catMap.get(v) || 0) + 1);
   }
   const catEntries = topNEntries(catMap, 7);
-  const categorySorted = toBarRows(catEntries, total);
+  const catTotal = catEntries.reduce((s, [, c]) => s + c, 0) || 1;
+  const categorySorted = toBarRows(catEntries, total).map(r => ({
+    ...r,
+    color: CATEGORY_COLOR[r.name] || '#8A8A84',
+    segW: Math.round(catTotal ? r.count / catTotal * 100 : 0),
+  }));
+  // Dominance: top category ≥ 60%
+  const catDominant = categorySorted.length && total && categorySorted[0].count / total >= 0.6;
+  const catDominantPct = categorySorted.length && total
+    ? pctStr(categorySorted[0].count / total) : '—';
+  const catSummary = categorySorted.length
+    ? (lang === 'ko'
+        ? `${categorySorted[0].name}가 ${catDominantPct}로 가장 높은 비중입니다.${catDominant ? ' (지배적)' : ''}`
+        : `${categorySorted[0].name} dominates the issue mix at ${catDominantPct}.`)
+    : '';
+  const showCategory = total >= EMPTY_CHART_THRESHOLD;
 
   // ── Action type ──────────────────────────────────────────────
   const atRaw = new Map();
@@ -152,45 +261,80 @@ function buildVisualContext(prepared, opts) {
     if (!at) continue;
     const key = /on.?site/i.test(at) ? 'On-Site'
       : /remote/i.test(at) ? 'Remote'
-      : at;
+      : (lang === 'ko' ? '기타' : 'Other');
     atRaw.set(key, (atRaw.get(key) || 0) + 1);
   }
   const atEntries = [...atRaw.entries()].sort((a, b) => b[1] - a[1]);
-  let actionTypeSorted;
-  if (atEntries.length === 0) {
-    actionTypeSorted = [];
-  } else if (atEntries.length <= 3) {
-    actionTypeSorted = toBarRows(atEntries, total);
-  } else {
-    const top3 = atEntries.slice(0, 3);
-    const otherCount = atEntries.slice(3).reduce((s, [, c]) => s + c, 0);
-    const combined = otherCount > 0
-      ? [...top3, [lang === 'ko' ? '기타' : 'Other', otherCount]]
-      : top3;
-    actionTypeSorted = toBarRows(combined, total);
-  }
+  const atTotal = atEntries.reduce((s, [, c]) => s + c, 0) || 1;
+  const actionTypeSorted = toBarRows(atEntries, total).map(r => ({
+    ...r,
+    color: ACTION_COLOR[r.name] || '#8A8A84',
+    segW: Math.round(atTotal ? r.count / atTotal * 100 : 0),
+  }));
+  const topAtPct = actionTypeSorted.length && total
+    ? pctStr(actionTypeSorted[0].count / total) : '—';
+  const actionSummary = actionTypeSorted.length
+    ? (lang === 'ko'
+        ? `대부분의 조치는 ${actionTypeSorted[0].name === 'On-Site' ? '현장' : actionTypeSorted[0].name}에서 처리되었습니다: ${topAtPct}.`
+        : `Most actions were handled ${actionTypeSorted[0].name === 'On-Site' ? 'on-site' : actionTypeSorted[0].name.toLowerCase()} at ${topAtPct}.`)
+    : '';
+  const showActionType = total >= EMPTY_CHART_THRESHOLD;
 
-  // ── Time taken buckets ───────────────────────────────────────
-  const bktLabels = lang === 'ko'
-    ? ['15분 이하', '16–30분', '31–60분', '60분 초과']
-    : ['≤15 min', '16–30 min', '31–60 min', '>60 min'];
-  const bkt = [0, 0, 0, 0];
+  // ── Time taken buckets — source-system canonical labels ───────
+  const bkt = [0, 0, 0, 0, 0];
   for (const r of included) {
-    const m = r._minutes;
-    if (!isFinite(m) || m <= 0) continue;
-    if (m <= 15) bkt[0]++;
-    else if (m <= 30) bkt[1]++;
-    else if (m <= 60) bkt[2]++;
-    else bkt[3]++;
+    // Try raw string label first (source system bucket)
+    const raw = r['Time Taken'] || r.TimeTaken || r.timeTaken || '';
+    const idx = normalizeTimeBucket(raw);
+    if (idx !== null) {
+      bkt[idx]++;
+    } else if (isFinite(r._minutes) && r._minutes > 0) {
+      // Fallback: map numeric minutes
+      const m = r._minutes;
+      if (m <= 15) bkt[0]++;
+      else if (m <= 30) bkt[1]++;
+      else if (m <= 60) bkt[2]++;
+      else if (m <= 120) bkt[3]++;
+      else bkt[4]++;
+    }
   }
+  const bktLabels = lang === 'ko' ? RESOLVE_BUCKET_KO : RESOLVE_BUCKET_EN;
   const bktMax = Math.max(...bkt, 1);
+  const bktTotalRecorded = bkt.reduce((s, v) => s + v, 0) || 1;
+
   const timeTakenBuckets = bktLabels.map((label, i) => ({
+    name: label,
     label,
     count: bkt[i],
-    pct: pctStr(total ? bkt[i] / total : 0),
+    pct: pctStr(bktTotalRecorded ? bkt[i] / bktTotalRecorded : 0),
     barW: Math.round(bkt[i] / bktMax * 100),
-    valLabel: `${bkt[i]} (${pctStr(total ? bkt[i] / total : 0)})`,
+    valLabel: `${bkt[i]} (${pctStr(bktTotalRecorded ? bkt[i] / bktTotalRecorded : 0)})`,
+    color: RESOLVE_BUCKET_COLOR[i],
+    segW: Math.round(bktTotalRecorded ? bkt[i] / bktTotalRecorded * 100 : 0),
   }));
+
+  // Fast rate (Under 15 + Under 30) and Slow rate (Over 2 Hour)
+  const fastCount = bkt[0] + bkt[1];
+  const slowCount = bkt[4];
+  const fastRate = bktTotalRecorded ? fastCount / bktTotalRecorded : 0;
+  const slowRate = bktTotalRecorded ? slowCount / bktTotalRecorded : 0;
+  const fastRatePct = pctStr(fastRate);
+  const slowRatePct = pctStr(slowRate);
+
+  // Median resolve bucket (by cumulative threshold)
+  let cumulative = 0;
+  let medianBucketLabel = bktLabels[0];
+  for (let i = 0; i < 5; i++) {
+    cumulative += bkt[i];
+    if (cumulative >= bktTotalRecorded / 2) { medianBucketLabel = bktLabels[i]; break; }
+  }
+
+  const resolveSummary = bktTotalRecorded > 1
+    ? (lang === 'ko'
+        ? `전체 오류의 ${fastRatePct}가 30분 이내에 해결되었습니다.${slowCount > 0 ? ` 2시간 초과: ${slowRatePct}.` : ''}`
+        : `${fastRatePct} of incidents were resolved within 30 minutes.${slowCount > 0 ? ` Slow (>2hr): ${slowRatePct}.` : ''}`)
+    : '';
+  const showResolve = bktTotalRecorded >= EMPTY_CHART_THRESHOLD;
 
   // ── Difficulty distribution ──────────────────────────────────
   const diffCnt = [0, 0, 0, 0, 0];
@@ -198,14 +342,23 @@ function buildVisualContext(prepared, opts) {
     const d = Math.round(getDifficulty(r));
     if (isFinite(d) && d >= 1 && d <= 5) diffCnt[d - 1]++;
   }
+  const diffTotal = diffCnt.reduce((s, v) => s + v, 0) || 1;
   const diffMax = Math.max(...diffCnt, 1);
   const difficultyDistribution = diffCnt.map((count, i) => ({
+    name: `Lv.${i + 1}`,
     label: `Lv.${i + 1}`,
     count,
-    pct: pctStr(total ? count / total : 0),
+    pct: pctStr(diffTotal ? count / diffTotal : 0),
     barW: Math.round(count / diffMax * 100),
-    valLabel: `${count} (${pctStr(total ? count / total : 0)})`,
+    valLabel: `${count} (${pctStr(diffTotal ? count / diffTotal : 0)})`,
+    color: DIFF_COLOR[i],
+    segW: Math.round(diffTotal ? count / diffTotal * 100 : 0),
   }));
+  const highDiffCount = diffCnt[3] + diffCnt[4];
+  const diffSummary = lang === 'ko'
+    ? `고난이도 보고: ${highDiffCount}건.`
+    : `High-difficulty reports: ${highDiffCount}.`;
+  const showDifficulty = total >= EMPTY_CHART_THRESHOLD;
 
   // ── Daily trend ──────────────────────────────────────────────
   const dayMap = new Map();
@@ -219,6 +372,10 @@ function buildVisualContext(prepared, opts) {
   const peakDayEntry = dayEntries.reduce(
     (best, e) => e[1] > (best ? best[1] : 0) ? e : best, null
   );
+  // Average per active day
+  const dailyAvgNum = dayEntries.length ? total / dayEntries.length : 0;
+  const avgBarH = Math.round(dailyAvgNum / dayMaxCount * 100);
+
   const dailyTrend = dayEntries.map(([date, count]) => ({
     date,
     dateLabel: date.slice(5).replace('-', '/'),
@@ -226,8 +383,17 @@ function buildVisualContext(prepared, opts) {
     barH: Math.round(count / dayMaxCount * 100),
     isPeak: peakDayEntry && date === peakDayEntry[0],
     isLatest: false,
+    isAboveAvg: count > dailyAvgNum,
   }));
   if (dailyTrend.length > 0) dailyTrend[dailyTrend.length - 1].isLatest = true;
+
+  const peakDateLabel = peakDayEntry ? peakDayEntry[0].slice(5).replace('-', '/') : '—';
+  const peakCount = peakDayEntry ? peakDayEntry[1] : 0;
+  const trendSummary = peakDayEntry
+    ? (lang === 'ko'
+        ? `${peakDateLabel} ${peakCount}건으로 평균(${dailyAvgNum.toFixed(1)}건) 대비 높게 발생했습니다.`
+        : `Incidents peaked on ${peakDateLabel} (${peakCount} cases), above the daily average of ${dailyAvgNum.toFixed(1)}.`)
+    : '';
 
   // ── Monthly trend (annual) ───────────────────────────────────
   const monMap = new Map();
@@ -241,6 +407,8 @@ function buildVisualContext(prepared, opts) {
   const peakMonEntry = monEntries.reduce(
     (best, e) => e[1] > (best ? best[1] : 0) ? e : best, null
   );
+  const monAvgNum = monEntries.length ? total / monEntries.length : 0;
+
   const monthlyTrend = monEntries.map(([k, count]) => {
     const mIdx = parseInt(k.slice(5)) - 1;
     return {
@@ -250,36 +418,23 @@ function buildVisualContext(prepared, opts) {
       barH: Math.round(count / monMaxCount * 100),
       isPeak: peakMonEntry && k === peakMonEntry[0],
       isLatest: false,
+      isAboveAvg: count > monAvgNum,
     };
   });
   if (monthlyTrend.length > 0) monthlyTrend[monthlyTrend.length - 1].isLatest = true;
 
-  // ── Top repeated issues ──────────────────────────────────────
-  // Group by Zone + Category + Issue text
-  const SENTINEL = new Set(['-', '--', 'n/a', 'na', 'none', 'tbd', '미정', '없음', '해당없음']);
-  const issueMap = new Map();
-  for (const r of included) {
-    const zone = (r.Zone || '').trim();
-    const cat = getCategory(r);
-    const issueRaw = getIssueDetail(r) || getActionTaken(r);
-    const key = `${zone}||${cat}||${issueRaw.slice(0, 60)}`;
-    if (!issueMap.has(key)) {
-      issueMap.set(key, { zone, category: cat, issue: issueRaw, count: 0 });
-    }
-    issueMap.get(key).count++;
-  }
-  const topRepeatedIssues = [...issueMap.values()]
-    .sort((a, b) => b.count - a.count)
-    .slice(0, 10)
-    .map((e, i) => ({
-      rank: i + 1,
-      zone: e.zone || '—',
-      category: e.category || '—',
-      count: e.count,
-      issue: e.issue || '—',
-    }));
+  const peakMonLabel = peakMonEntry
+    ? (() => { const mi = parseInt(peakMonEntry[0].slice(5)) - 1; return lang === 'ko' ? `${mi+1}월` : MONTHS_EN[mi]; })()
+    : '—';
+  const monthlyTrendSummary = peakMonEntry
+    ? (lang === 'ko'
+        ? `최다 발생 월은 ${peakMonLabel}, ${peakMonEntry[1]}건입니다.`
+        : `Peak month: ${peakMonLabel} with ${peakMonEntry[1]} incidents.`)
+    : '';
 
-  // ── Issue cluster cards ──────────────────────────────────────
+  // ── Top repeated issues (cluster-based) ─────────────────────
+  // Group by Zone + Category; surface representative issue + action
+  const SENTINEL = new Set(['-', '--', 'n/a', 'na', 'none', 'tbd', '미정', '없음', '해당없음']);
   const clMap = new Map();
   for (const r of included) {
     const zone = (r.Zone || '').trim();
@@ -297,32 +452,71 @@ function buildVisualContext(prepared, opts) {
     }
   }
 
-  const repeatedIssueClusters = [...clMap.values()]
+  const clustersSorted = [...clMap.values()]
     .sort((a, b) => b.count - a.count)
-    .slice(0, 5)
-    .map(e => {
-      const iFreq = new Map();
-      const aFreq = new Map();
-      for (const r of e.rows) {
-        const i = getIssueDetail(r);
-        const a = getActionTaken(r);
-        if (i) iFreq.set(i, (iFreq.get(i) || 0) + 1);
-        if (a && a.length >= 3 && !SENTINEL.has(a.toLowerCase())) {
-          aFreq.set(a, (aFreq.get(a) || 0) + 1);
-        }
+    .slice(0, 7);
+
+  // topRepeatedIssues: cluster-based, includes representative issue + action
+  const topRepeatedIssues = clustersSorted.map((e, i) => {
+    const iFreq = new Map();
+    const aFreq = new Map();
+    for (const r of e.rows) {
+      const iss = getIssueDetail(r);
+      const act = getActionTaken(r);
+      if (iss) iFreq.set(iss, (iFreq.get(iss) || 0) + 1);
+      if (act && act.length >= 3 && !SENTINEL.has(act.toLowerCase())) {
+        aFreq.set(act, (aFreq.get(act) || 0) + 1);
       }
-      const topIssue = [...iFreq.entries()].sort((a, b) => b[1] - a[1])[0]?.[0] || '—';
-      const topAction = [...aFreq.entries()].sort((a, b) => b[1] - a[1])[0]?.[0] || '—';
-      return {
-        title: topIssue,
-        count: e.count,
-        zone: e.zone || '—',
-        category: e.cat || '—',
-        branches: [...e.branches].slice(0, 3).join(', ') || '—',
-        monthsAppeared: e.months.size,
-        actionTaken: topAction,
-      };
-    });
+    }
+    const topIssue = [...iFreq.entries()].sort((a, b) => b[1] - a[1])[0]?.[0] || '—';
+    const topAction = [...aFreq.entries()].sort((a, b) => b[1] - a[1])[0]?.[0] || '—';
+    return {
+      rank: i + 1,
+      zone: e.zone || '—',
+      category: e.cat || '—',
+      categoryColor: CATEGORY_COLOR[e.cat] || '#8A8A84',
+      count: e.count,
+      issue: topIssue,
+      actionTaken: topAction,
+      share: pctStr(total ? e.count / total : 0),
+    };
+  });
+
+  // Top-5 share for summary
+  const top5Count = clustersSorted.slice(0, 5).reduce((s, e) => s + e.count, 0);
+  const top5Share = pctStr(total ? top5Count / total : 0);
+  const issueSummary = total > 0
+    ? (lang === 'ko'
+        ? `상위 반복 이슈 5개가 전체의 ${top5Share}를 차지합니다.`
+        : `Top 5 repeated issues account for ${top5Share} of total incidents.`)
+    : '';
+
+  // repeatedIssueClusters (for cluster-cards partial — top 5 only)
+  const repeatedIssueClusters = clustersSorted.slice(0, 5).map(e => {
+    const iFreq = new Map();
+    const aFreq = new Map();
+    for (const r of e.rows) {
+      const iss = getIssueDetail(r);
+      const act = getActionTaken(r);
+      if (iss) iFreq.set(iss, (iFreq.get(iss) || 0) + 1);
+      if (act && act.length >= 3 && !SENTINEL.has(act.toLowerCase())) {
+        aFreq.set(act, (aFreq.get(act) || 0) + 1);
+      }
+    }
+    const topIssue = [...iFreq.entries()].sort((a, b) => b[1] - a[1])[0]?.[0] || '—';
+    const topAction = [...aFreq.entries()].sort((a, b) => b[1] - a[1])[0]?.[0] || '—';
+    return {
+      title: topIssue,
+      count: e.count,
+      zone: e.zone || '—',
+      category: e.cat || '—',
+      categoryColor: CATEGORY_COLOR[e.cat] || '#8A8A84',
+      branches: [...e.branches].slice(0, 3).join(', ') || '—',
+      monthsAppeared: e.months.size,
+      actionTaken: topAction,
+      share: pctStr(total ? e.count / total : 0),
+    };
+  });
 
   // ── Recent incident log ──────────────────────────────────────
   const recentIncidentLog = [...included]
@@ -340,22 +534,6 @@ function buildVisualContext(prepared, opts) {
       issueDetail: getIssueDetail(r) || '—',
     }));
 
-  // ── Detailed incident log (branch page 2) ────────────────────
-  const detailedIncidentLog = [...included]
-    .filter(r => r._date)
-    .sort((a, b) => b._date - a._date)
-    .slice(0, 15)
-    .map(r => ({
-      date: r._date.toISOString().slice(0, 10),
-      time: r.Time || '—',
-      zone: r.Zone || '—',
-      category: getCategory(r) || '—',
-      timeTaken: isFinite(r._minutes) && r._minutes > 0 ? fmtMin(r._minutes, lang) : '—',
-      actionType: getActionType(r) || '—',
-      issueDetail: getIssueDetail(r) || '—',
-      actionTaken: getActionTaken(r) || '—',
-    }));
-
   // ── Zone × Category matrix ───────────────────────────────────
   const topZoneNames = topNEntries(zoneMap, 5).map(([n]) => n);
   const topCatNames = topNEntries(catMap, 5).map(([n]) => n);
@@ -367,8 +545,22 @@ function buildVisualContext(prepared, opts) {
     cells.forEach(c => { if (c > matMax) matMax = c; });
     return { zone, cells };
   });
+  const topMatrixCell = matMax > 0
+    ? (() => {
+        let bz = '—', bc = '—';
+        for (const { zone, cells } of matRawRows) {
+          cells.forEach((c, ci) => { if (c === matMax) { bz = zone; bc = topCatNames[ci]; } });
+        }
+        return `${bz} × ${bc}`;
+      })()
+    : '—';
+  const matrixSummary = matMax > 0
+    ? (lang === 'ko'
+        ? `${topMatrixCell} 조합이 가장 많이 발생했습니다.`
+        : `${topMatrixCell} is the strongest concentration.`)
+    : '';
   const zoneCategoryMatrix = {
-    categories: topCatNames,
+    categories: topCatNames.map(c => ({ name: c, color: CATEGORY_COLOR[c] || '#8A8A84' })),
     rows: matRawRows.map(({ zone, cells }) => ({
       zone,
       cells: cells.map(count => ({
@@ -395,6 +587,7 @@ function buildVisualContext(prepared, opts) {
     const bHighDiff = bRows.filter(r => getDifficulty(r) >= 4).length;
     return {
       branch,
+      color: BRANCH_COLOR[branch] || '#8A8A84',
       total: count,
       share: pctStr(total ? count / total : 0),
       topZone: bZone,
@@ -445,22 +638,49 @@ function buildVisualContext(prepared, opts) {
     actionTypeSorted,
     timeTakenBuckets,
     difficultyDistribution,
+    // Segment data (stacked bar / pill)
+    catDominant,
     // Trend arrays
     dailyTrend,
     dailyTrendFirst,
     dailyTrendLast,
     dailyTrendPeak,
     dailyTrendLatest,
+    avgBarH,
+    dailyAvgNum,
     monthlyTrend,
     monthlyTrendFirst,
     monthlyTrendLast,
     monthlyTrendPeak,
     monthlyTrendLatest,
+    // Resolve time analytics
+    fastRate,
+    slowRate,
+    fastRatePct,
+    slowRatePct,
+    medianBucketLabel,
+    // Summary sentences
+    branchSummary,
+    zoneSummary,
+    catSummary,
+    actionSummary,
+    resolveSummary,
+    diffSummary,
+    trendSummary,
+    monthlyTrendSummary,
+    issueSummary,
+    matrixSummary,
+    // Visibility flags (hide if < threshold)
+    showBranch,
+    showZone,
+    showCategory,
+    showActionType,
+    showResolve,
+    showDifficulty,
     // Evidence tables
     topRepeatedIssues,
     repeatedIssueClusters,
     recentIncidentLog,
-    detailedIncidentLog,
     // Matrix + comparison
     zoneCategoryMatrix,
     branchComparisonRows,

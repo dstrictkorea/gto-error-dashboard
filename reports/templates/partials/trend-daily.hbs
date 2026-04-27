@@ -1,13 +1,21 @@
 {{!-- trend-daily.hbs — Daily mini-bar trend chart
   Uses root context: dailyTrend[], dailyTrendFirst, dailyTrendLast,
-                     dailyTrendPeak, dailyTrendLatest
+                     dailyTrendPeak, dailyTrendLatest, avgBarH, trendSummary
 --}}
 {{#if dailyTrend.length}}
 <div class="trend-wrap">
-  <div class="trend-bars">
+  <div class="trend-counts">
     {{#each dailyTrend}}
-    <div class="trend-bar{{#if isPeak}} is-peak{{/if}}{{#if isLatest}} is-latest{{/if}}" style="height:{{barH}}%"></div>
+    <span class="trend-count{{#if isPeak}} is-peak{{/if}}">{{count}}</span>
     {{/each}}
+  </div>
+  <div class="trend-bars" style="position:relative">
+    {{#each dailyTrend}}
+    <div class="trend-bar{{#if isPeak}} is-peak{{/if}}{{#if isAboveAvg}} is-above-avg{{/if}}{{#if isLatest}} is-latest{{/if}}" style="height:{{barH}}%"></div>
+    {{/each}}
+    {{#if @root.avgBarH}}
+    <div class="trend-avg-line" style="bottom:{{@root.avgBarH}}%"></div>
+    {{/if}}
   </div>
   <div class="trend-footer">
     <span>{{dailyTrendFirst}}</span>
@@ -17,6 +25,7 @@
     <span>{{@root.labels.peakLabel}}: {{dailyTrendPeak}}</span>
     <span>{{@root.labels.latestLabel}}: {{dailyTrendLatest}}</span>
   </div>
+  {{#if trendSummary}}<p class="chart-summary">{{trendSummary}}</p>{{/if}}
 </div>
 {{else}}
 <p class="hbar__empty">—</p>

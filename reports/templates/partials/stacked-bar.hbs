@@ -1,0 +1,26 @@
+{{!-- stacked-bar.hbs — Segmented stacked bar (category / resolve time)
+  Call: {{> stacked-bar items=someArray summary=optionalSummaryString}}
+  Each item: { name, count, valLabel, color, segW }
+  Uses 'name' field for labels (timeTakenBuckets also has name = label).
+--}}
+{{#if items.length}}
+<div class="sbar">
+  <div class="sbar__track">
+    {{#each items}}
+    <div class="sbar__seg" style="width:{{segW}}%;background:{{color}}" title="{{name}}: {{valLabel}}"></div>
+    {{/each}}
+  </div>
+  <div class="sbar__legend">
+    {{#each items}}
+    <div class="sbar__row">
+      <span class="sbar__dot" style="background:{{color}}"></span>
+      <span class="sbar__lbl">{{name}}</span>
+      <span class="sbar__val">{{valLabel}}</span>
+    </div>
+    {{/each}}
+  </div>
+  {{#if summary}}<p class="chart-summary">{{summary}}</p>{{/if}}
+</div>
+{{else}}
+<p class="hbar__empty">—</p>
+{{/if}}

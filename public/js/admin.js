@@ -90,29 +90,28 @@ async function adminReport(region,action){
   var statusEl=document.getElementById(region==='global'?'adm-g-status':'adm-k-status');
   if(!yearEl||!monthEl||!statusEl) return;
   var year=parseInt(yearEl.value), monthVal=parseInt(monthEl.value);
-  var commentEl=document.getElementById(region==='global'?'adm-g-comment':'adm-k-comment');
-  var comment=commentEl?commentEl.value:'';
-  var titleEl=document.getElementById(region==='global'?'adm-g-title':'adm-k-title');
-  var customTitle=titleEl?titleEl.value.trim():'';
   var isAnnual=isNaN(monthVal)||monthVal===-1;
-  var endpoint=isAnnual?'/api/annual-report':'/api/report';
-  var body=isAnnual?{year:year,action:action,lang:lang,region:region,comment:comment,title:customTitle}
-    :{month:monthVal,year:year,action:action,lang:lang,reportType:'monthly',region:region,comment:comment,title:customTitle};
+  // v2 GET endpoint — raw PDF bytes, no base64
+  var params=new URLSearchParams({lang:lang,year:year,region:region,download:'1'});
+  if(!isAnnual) params.set('month',String(monthVal));
+  var endpoint=(isAnnual?'/api/v2/annual':'/api/v2/monthly-global')+'?'+params.toString();
   statusEl.style.cssText='display:block;padding:8px 12px;border-radius:8px;font-size:12px;font-weight:600;background:var(--bg);border:1px solid var(--border);margin-top:8px;color:var(--t2)';
   statusEl.innerHTML='<div style="display:flex;align-items:center;gap:8px"><div style="width:12px;height:12px;border:2px solid var(--border);border-top-color:#534AB7;border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0"></div>PDF 생성 중...</div>';
   try{
-    var resp=await fetch(endpoint,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
-    var d=await resp.json(); if(!d.ok) throw new Error(d.error||'생성 실패');
+    var resp=await fetch(endpoint);
+    if(!resp.ok) throw new Error('HTTP '+resp.status+(resp.statusText?' '+resp.statusText:''));
+    var blob=await resp.blob();
+    var cd=resp.headers.get('Content-Disposition')||'';
+    var fnMatch=cd.match(/filename="([^"]+)"/);
+    var fileName=fnMatch?fnMatch[1]:(isAnnual?'Annual_Report_'+year+'.pdf':'Monthly_Report_'+year+'.pdf');
     statusEl.style.cssText='display:block;padding:8px 12px;border-radius:8px;font-size:12px;font-weight:600;background:#f0fdf4;border:1px solid #86efac;margin-top:8px;color:#166534';
-    statusEl.textContent='✅ '+d.message;
+    statusEl.textContent='✅ '+fileName;
     if(action==='download'||action==='preview'){
-      var bin=atob(d.pdfBase64),arr=new Uint8Array(bin.length);
-      for(var i=0;i<bin.length;i++) arr[i]=bin.charCodeAt(i);
-      var blob=new Blob([arr],{type:'application/pdf'}),url=URL.createObjectURL(blob);
-      if(action==='download'){var a=document.createElement('a');a.href=url;a.download=d.fileName;document.body.appendChild(a);a.click();document.body.removeChild(a);setTimeout(function(){URL.revokeObjectURL(url);},3000);}
+      var url=URL.createObjectURL(blob);
+      if(action==='download'){var a=document.createElement('a');a.href=url;a.download=fileName;document.body.appendChild(a);a.click();document.body.removeChild(a);setTimeout(function(){URL.revokeObjectURL(url);},3000);}
       else{window.open(url,'_blank');setTimeout(function(){URL.revokeObjectURL(url);},120000);}
     }
-    if(typeof toast==='function') toast(d.fileName+' 생성 완료','success');
+    if(typeof toast==='function') toast(fileName+' 생성 완료','success');
   }catch(e){
     statusEl.style.cssText='display:block;padding:8px 12px;border-radius:8px;font-size:12px;font-weight:600;background:#fef2f2;border:1px solid #fca5a5;margin-top:8px;color:#991b1b';
     statusEl.textContent='❌ '+e.message;
@@ -884,7 +883,6 @@ async function branchReport(action,type){
   if(typeof _loggedBranch==='undefined'||!_loggedBranch) return;
   var br=_loggedBranch, lang=window._brRptLang||'en', region=window._brRptRegion||'global';
   var isKorea=region==='korea';
-  var comment=(document.getElementById('branch-rpt-comment')||{}).value||'';
   var mSel=document.getElementById('monthSel'), ySel=document.getElementById('yearSel');
   var month=mSel?parseInt(mSel.value):CM, year=ySel?parseInt(ySel.value):CY;
   var statusEl=document.getElementById(type==='annual'?'br-annual-status':'br-monthly-status');
@@ -892,22 +890,24 @@ async function branchReport(action,type){
     statusEl.style.cssText='padding:8px 12px;border-radius:8px;font-size:12px;font-weight:600;background:var(--bg);border:1px solid var(--border);margin-top:10px;color:var(--t2)';
     statusEl.innerHTML='<div style="display:flex;align-items:center;gap:8px"><div style="width:12px;height:12px;border:2px solid var(--border);border-top-color:#534AB7;border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0"></div>'+(isKorea?'리포트 생성 중...':'Generating...')+'</div>';
   }
-  var endpoint=type==='annual'?'/api/annual-report':'/api/report';
-  var body=type==='annual'
-    ?{year:year,action:action,lang:lang,region:region,comment:comment,branchFilter:br}
-    :{month:month,year:year,action:action,lang:lang,reportType:'monthly',region:region,comment:comment,branchFilter:br};
+  // v2 GET endpoint — raw PDF bytes, no base64
+  var params=new URLSearchParams({lang:lang,year:year,branch:br,download:'1'});
+  if(type!=='annual') params.set('month',String(month));
+  var endpoint=(type==='annual'?'/api/v2/annual':'/api/v2/monthly-branch')+'?'+params.toString();
   try{
-    var resp=await fetch(endpoint,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
-    var d=await resp.json(); if(!d.ok) throw new Error(d.error||(isKorea?'생성 실패':'Failed'));
-    if(statusEl){statusEl.style.cssText='padding:8px 12px;border-radius:8px;font-size:12px;font-weight:600;background:#f0fdf4;border:1px solid #86efac;margin-top:10px;color:#166534';statusEl.textContent='✅ '+d.message;}
+    var resp=await fetch(endpoint);
+    if(!resp.ok) throw new Error('HTTP '+resp.status+(resp.statusText?' '+resp.statusText:''));
+    var blob=await resp.blob();
+    var cd=resp.headers.get('Content-Disposition')||'';
+    var fnMatch=cd.match(/filename="([^"]+)"/);
+    var fileName=fnMatch?fnMatch[1]:(type==='annual'?br+'_Annual_'+year+'.pdf':br+'_Monthly_'+year+'.pdf');
+    if(statusEl){statusEl.style.cssText='padding:8px 12px;border-radius:8px;font-size:12px;font-weight:600;background:#f0fdf4;border:1px solid #86efac;margin-top:10px;color:#166534';statusEl.textContent='✅ '+fileName;}
     if(action==='download'||action==='preview'){
-      var bin=atob(d.pdfBase64),arr=new Uint8Array(bin.length);
-      for(var i=0;i<bin.length;i++) arr[i]=bin.charCodeAt(i);
-      var blob=new Blob([arr],{type:'application/pdf'}),url=URL.createObjectURL(blob);
-      if(action==='download'){var a=document.createElement('a');a.href=url;a.download=d.fileName;document.body.appendChild(a);a.click();document.body.removeChild(a);setTimeout(function(){URL.revokeObjectURL(url);},3000);}
+      var url=URL.createObjectURL(blob);
+      if(action==='download'){var a=document.createElement('a');a.href=url;a.download=fileName;document.body.appendChild(a);a.click();document.body.removeChild(a);setTimeout(function(){URL.revokeObjectURL(url);},3000);}
       else{window.open(url,'_blank');setTimeout(function(){URL.revokeObjectURL(url);},120000);}
     }
-    if(typeof toast==='function') toast(d.fileName+(isKorea?' 생성 완료':' generated'),'success');
+    if(typeof toast==='function') toast(fileName+(isKorea?' 생성 완료':' generated'),'success');
   }catch(e){
     if(statusEl){statusEl.style.cssText='padding:8px 12px;border-radius:8px;font-size:12px;font-weight:600;background:#fef2f2;border:1px solid #fca5a5;margin-top:10px;color:#991b1b';statusEl.textContent='❌ '+e.message;}
     if(typeof toast==='function') toast((isKorea?'리포트 생성 실패: ':'Report failed: ')+e.message,'error');

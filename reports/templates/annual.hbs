@@ -40,6 +40,7 @@
       <div class="chart-card">
         <div class="chart-title">{{labels.branchDistribution}}</div>
         {{> hbar items=branchSorted}}
+        {{#if branchSummary}}<p class="chart-summary">{{branchSummary}}</p>{{/if}}
       </div>
     </div>
   </div>
@@ -50,12 +51,13 @@
       <div class="chart-card">
         <div class="chart-title">{{labels.zoneDistribution}}</div>
         {{> hbar items=zoneSorted}}
+        {{#if zoneSummary}}<p class="chart-summary">{{zoneSummary}}</p>{{/if}}
       </div>
     </div>
     <div class="dash-col--6">
       <div class="chart-card">
-        <div class="chart-title">{{labels.categoryDistribution}}</div>
-        {{> hbar items=categorySorted}}
+        <div class="chart-title">{{labels.categoryDistribution}}{{#if catDominant}} ★{{/if}}</div>
+        {{> stacked-bar items=categorySorted summary=catSummary}}
       </div>
     </div>
   </div>
@@ -65,16 +67,16 @@
     <div class="dash-col--6">
       <div class="chart-card">
         <div class="chart-title">{{labels.resolveTimeDist}}</div>
-        {{> hbar items=timeTakenBuckets}}
+        {{> stacked-bar items=timeTakenBuckets summary=resolveSummary}}
       </div>
     </div>
     <div class="dash-col--6">
       <div class="chart-card">
         <div class="chart-title">{{#if actionTypeSorted.length}}{{labels.actionTypeDist}}{{else}}{{labels.reportedDifficulty}}{{/if}}</div>
         {{#if actionTypeSorted.length}}
-          {{> hbar items=actionTypeSorted}}
+          {{> action-pill}}
         {{else}}
-          {{> hbar items=difficultyDistribution}}
+          {{> difficulty-strip}}
         {{/if}}
       </div>
     </div>
