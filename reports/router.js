@@ -28,7 +28,8 @@ const path    = require('path');
 
 const { renderPdf }  = require('./renderer');
 const { buildSmokeContext, buildMonthlyBranchContext,
-        buildMonthlyGlobalContext, buildAnnualContext } = require('./context');
+        buildMonthlyGlobalContext, buildAnnualContext,
+        buildSystemMonthlyContext } = require('./context');
 
 // SharePoint data access — same imports as server.js v1 endpoints.
 // Router imports them directly so it stays self-contained.
@@ -253,6 +254,47 @@ router.get('/annual', async (req, res) => {
   } catch (e) {
     console.error('[v2/annual] error:', e);
     res.status(500).json({ error: 'annual render failed', detail: e.message });
+  }
+});
+
+// ── /api/v2/system-monthly (POST) ────────────────────────────
+// Body: { state: <formState>, lang, branch, month, year }
+// Returns application/pdf — same visual style as Error Reports.
+router.post('/system-monthly', async (req, res) => {
+  const t0 = Date.now();
+  try {
+    const { state: formState, lang: rawLang, branch: rawBranch, month: rawMonth, year: rawYear } = req.body || {};
+    if (!formState || !formState.groups) return res.status(400).json({ error: 'state.groups required' });
+
+    const lang   = rawLang === 'ko' ? 'ko' : 'en';
+    const branch = (typeof rawBranch === 'string') ? rawBranch.toUpperCase().slice(0, 10) : '';
+    const year   = parseInt(rawYear, 10) || new Date().getFullYear();
+    const monthIdx = parseInt(rawMonth, 10);
+    const ko = lang === 'ko';
+
+    const MONTHS_EN = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+    const MONTHS_KO = ['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
+    const period = (isFinite(monthIdx) && monthIdx >= 0 && monthIdx <= 11)
+      ? (ko ? `${year}년 ${MONTHS_KO[monthIdx]}` : `${MONTHS_EN[monthIdx]} ${year}`)
+      : String(year);
+
+    const generated = new Date().toLocaleDateString(ko ? 'ko-KR' : 'en-GB');
+    const title = branch
+      ? `${branch} ${ko ? period : period} System Team Monthly Closing Report`
+      : `${period} System Team Monthly Closing Report`;
+
+    const ctx = buildSystemMonthlyContext(formState, { lang, period, scope: branch, title, generated });
+
+    const MONTH_ABBR = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
+    const mAbbr = (isFinite(monthIdx) && monthIdx >= 0 && monthIdx <= 11) ? MONTH_ABBR[monthIdx] : String(year);
+    const fileName = `${branch || 'GTO'}-System_Team_Monthly_Closing_Report_${mAbbr}${String(year).slice(2)}.pdf`;
+
+    const pdf = await renderPdf({ template: 'system-monthly', data: ctx, pdf: buildPdfOpts(generated) });
+    console.log(`[v2/system-monthly] ${fileName} groups=${ctx.groups.length} ${Date.now()-t0}ms`);
+    sendPdf(res, pdf, fileName, true, Date.now() - t0);
+  } catch (e) {
+    console.error('[v2/system-monthly] error:', e);
+    res.status(500).json({ error: 'system-monthly render failed', detail: e.message });
   }
 });
 

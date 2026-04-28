@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>System Team Monthly Closing Report</title>
+<style>
+@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/variable/pretendardvariable-dynamic-subset.min.css');
+:root{
+  --bg:#f6f5f0;--card:#fff;--border:#e8e6df;
+  --text:#1a1a18;--muted:#73726c;--hint:#a3a29c;
+  --blue:#185FA5;--blue-bg:#E6F1FB;
+  --red:#A32D2D;--red-bg:#FCEBEB;
+  --green:#3B6D11;--green-bg:#EAF3DE;
+  --purple:#534AB7;--purple-bg:#EEEDFE;
+  --teal:#0F6E56;--teal-bg:#E1F5EE;
+  --amber:#854F0B;--amber-bg:#FAEEDA;
+  --radius:10px;
+  --font:'Pretendard Variable','Pretendard',-apple-system,BlinkMacSystemFont,'Malgun Gothic','맑은 고딕',Arial,sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:15px;font-weight:300;line-height:1.6;letter-spacing:-0.2px}
+button,input,textarea,select,[contenteditable]{font-family:inherit;color:inherit}
+button{cursor:pointer;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+
+/* ── App bar ── */
+.appbar{position:sticky;top:0;z-index:50;background:#1a1a18;color:#fff;border-bottom:1px solid #000}
+.appbar-inner{max-width:1100px;margin:0 auto;padding:10px 24px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:14px}
+.brand-logo{font-size:18px;font-weight:700;letter-spacing:-0.5px;color:#FFC000}
+.brand-sub{font-size:11px;font-weight:400;color:#B0B0B0;letter-spacing:0}
+.bar-spacer{flex:1}
+.btn{padding:7px 12px;border-radius:6px;border:1px solid #444;background:#2a2a28;color:#eee;font-size:12px;font-weight:500;display:inline-flex;align-items:center;gap:6px;transition:all .15s;min-height:34px}
+.btn:hover{background:#3a3a36;border-color:#666}
+.btn.primary{background:var(--purple);border-color:var(--purple);color:#fff}
+.btn.primary:hover{background:#4239a0}
+.mode-toggle{display:inline-flex;background:#2a2a28;border:1px solid #444;border-radius:6px;overflow:hidden}
+.mode-toggle button{padding:7px 14px;font-size:12px;font-weight:600;background:transparent;color:#aaa;border:0;min-height:34px}
+.mode-toggle button.on{background:#FFC000;color:#1a1a18}
+
+/* ── Page ── */
+.page{max-width:1100px;margin:0 auto;padding:24px 24px 60px}
+
+/* ── Report header ── */
+.report-head{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:24px 28px;margin-bottom:18px}
+.rh-title{font-size:24px;font-weight:700;letter-spacing:-0.6px;line-height:1.3;color:var(--text)}
+.rh-meta{display:flex;flex-wrap:wrap;gap:18px;margin-top:14px;padding-top:14px;border-top:1px solid var(--border)}
+.rh-meta-item{display:flex;flex-direction:column;gap:3px;min-width:130px}
+.rh-meta-lbl{font-size:12px;font-weight:600;color:var(--muted);letter-spacing:0.5px;text-transform:uppercase}
+.rh-meta-val{font-size:15px;font-weight:500;color:var(--text);letter-spacing:-0.2px;outline:none;min-width:60px;min-height:20px}
+.rh-meta-val[contenteditable=true]:hover{background:rgba(83,74,183,0.05);border-radius:4px}
+.rh-meta-val[contenteditable=true]:focus{background:var(--purple-bg);border-radius:4px;padding:2px 6px;margin:-2px -6px}
+
+/* ── Groups ── */
+.group{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:14px;overflow:hidden}
+.group-head{display:flex;align-items:center;gap:10px;padding:14px 22px;background:#1a1a18;color:#fff;border-bottom:1px solid #000;position:relative}
+.group-num{font-size:15px;font-weight:700;color:#FFC000;min-width:24px}
+.group-title{font-size:18px;font-weight:600;letter-spacing:-0.4px;flex:1;outline:none}
+.group-title[contenteditable=true]:focus{background:rgba(255,255,255,0.1);border-radius:4px;padding:2px 6px;margin:-2px -6px}
+.group-body{padding:8px 0}
+.group-actions{display:flex;gap:5px;flex-shrink:0}
+.group-actions button{width:26px;height:26px;border:1px solid rgba(255,255,255,0.18);background:rgba(255,255,255,0.06);color:#ddd;border-radius:5px;font-size:12px;line-height:1;display:flex;align-items:center;justify-content:center;min-height:26px;padding:0;font-weight:600}
+.group-actions button:hover{background:rgba(255,255,255,0.18);color:#fff}
+.group-actions .danger:hover{background:rgba(255,107,107,0.25);color:#FF6B6B;border-color:rgba(255,107,107,0.5)}
+
+/* ── Blocks ── */
+.block{padding:18px 22px;border-bottom:1px solid var(--border)}
+.block:last-child{border-bottom:none}
+.block-head{display:flex;align-items:flex-start;gap:10px;margin-bottom:10px}
+.block-num{font-size:14px;font-weight:700;color:var(--purple);flex-shrink:0;padding-top:1px;min-width:32px}
+.block-title{flex:1;font-size:16px;font-weight:600;letter-spacing:-0.3px;outline:none}
+.block-title[contenteditable=true]:focus{background:var(--purple-bg);border-radius:4px;padding:2px 8px;margin:-2px -8px}
+.block-actions{display:flex;gap:4px;flex-shrink:0}
+.block-actions button{width:24px;height:24px;border:1px solid var(--border);background:transparent;color:var(--muted);border-radius:4px;font-size:11px;line-height:1;min-height:24px;padding:0;display:flex;align-items:center;justify-content:center}
+.block-actions button:hover{background:var(--purple-bg);color:var(--purple);border-color:var(--purple)}
+.block-actions .danger:hover{background:var(--red-bg);color:var(--red);border-color:var(--red)}
+.add-block{display:flex;align-items:center;justify-content:center;gap:6px;width:calc(100% - 44px);margin:6px 22px 14px;padding:11px;font-size:13px;font-weight:500;color:var(--muted);background:transparent;border:1px dashed var(--border);border-radius:6px}
+.add-block:hover{background:var(--purple-bg);color:var(--purple);border-color:var(--purple);border-style:solid}
+
+/* ── Items (bullets) ── */
+.items{display:flex;flex-direction:column;gap:8px;margin-bottom:14px}
+.item{display:flex;gap:10px;padding:8px 10px;border-radius:6px;background:#fafaf7;border:1px solid var(--border);align-items:flex-start}
+.item-bullet{flex-shrink:0;width:24px;height:24px;border-radius:50%;background:var(--purple-bg);color:var(--purple);font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;margin-top:1px}
+.item-text{flex:1;font-size:14.5px;line-height:1.65;letter-spacing:-0.2px;outline:none;min-height:22px;word-break:keep-all;overflow-wrap:anywhere}
+.item-text[contenteditable=true]:focus{background:#fff;box-shadow:0 0 0 2px var(--purple-bg);border-radius:4px;padding:2px 4px;margin:-2px -4px}
+.item-del{flex-shrink:0;width:22px;height:22px;border:none;background:transparent;color:var(--muted);font-size:14px;border-radius:4px;display:none;align-items:center;justify-content:center;padding:0}
+.item:hover .item-del{display:flex}
+.item-del:hover{background:var(--red-bg);color:var(--red)}
+.add-item{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;font-size:13px;font-weight:500;color:var(--purple);background:var(--purple-bg);border:1px dashed var(--purple);border-radius:6px}
+.add-item:hover{background:var(--purple);color:#fff;border-style:solid}
+
+/* ── Gallery ── */
+.gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px;margin-top:10px}
+.gallery-item{position:relative;border-radius:8px;overflow:hidden;border:1px solid var(--border);background:#f0efe9;aspect-ratio:4/3}
+.gallery-item img{width:100%;height:100%;object-fit:cover;cursor:zoom-in}
+.gallery-item .img-del{position:absolute;top:6px;right:6px;width:26px;height:26px;border-radius:50%;background:rgba(0,0,0,0.65);color:#fff;border:none;font-size:14px;display:none;align-items:center;justify-content:center}
+.gallery-item:hover .img-del{display:flex}
+.dropzone{border:2px dashed var(--border);border-radius:8px;padding:22px;text-align:center;background:#fafaf7;color:var(--muted);font-size:13px;font-weight:500;transition:all .15s;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:6px;aspect-ratio:4/3;justify-content:center}
+.dropzone:hover,.dropzone.over{border-color:var(--purple);background:var(--purple-bg);color:var(--purple)}
+.dropzone .dz-ic{font-size:28px;opacity:0.7}
+
+/* ── Add section ── */
+.add-section-wrap{max-width:1100px;margin:0 auto 20px;padding:0 24px}
+.add-section-btn{width:100%;padding:14px;font-size:14px;font-weight:500;color:var(--muted);background:transparent;border:1px dashed var(--border);border-radius:var(--radius);display:flex;align-items:center;justify-content:center;gap:8px}
+.add-section-btn:hover{background:var(--purple-bg);color:var(--purple);border-color:var(--purple);border-style:solid}
+
+/* ── Toast ── */
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#1a1a18;color:#fff;padding:11px 20px;border-radius:6px;font-size:14px;font-weight:500;z-index:200;opacity:0;transition:opacity .2s;pointer-events:none}
+.toast.on{opacity:1}
+
+/* ── Lightbox ── */
+.lightbox{position:fixed;inset:0;background:rgba(0,0,0,0.92);display:none;align-items:center;justify-content:center;z-index:100;padding:20px;cursor:zoom-out}
+.lightbox.on{display:flex}
+.lightbox img{max-width:95vw;max-height:95vh;object-fit:contain;border-radius:6px}
+.lb-close{position:absolute;top:20px;right:24px;width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,0.15);color:#fff;border:none;font-size:20px}
+
+/* ── Footer ── */
+.footer{text-align:center;padding:24px 0 8px;color:var(--hint);font-size:12px}
+
+/* ── View mode ── */
+body.mode-view .group-actions,
+body.mode-view .block-actions,
+body.mode-view .item-del,
+body.mode-view .add-item,
+body.mode-view .add-block,
+body.mode-view .dropzone{display:none!important}
+body.mode-view [contenteditable]{contenteditable:false;pointer-events:none}
+body.mode-view .item:hover .item-del{display:none!important}
+
+/* ── Print ── */
+@media print{
+  .appbar,.add-section-wrap,.add-block,.add-item,.group-actions,.block-actions,.item-del,.dropzone,.toast,.lightbox,.footer{display:none!important}
+  .page{max-width:none;padding:0}
+  .group{break-inside:avoid;margin-bottom:10px}
+  .block{break-inside:avoid}
+}
+</style>
+</head>
+<body class="mode-edit">
+
+<div class="appbar">
+  <div class="appbar-inner">
+    <div class="brand">
+      <span class="brand-logo">d'strict</span>
+      <span class="brand-sub" id="barTitle">System Team Monthly Report</span>
+    </div>
+    <div class="bar-spacer"></div>
+    <div class="mode-toggle" id="modeToggle">
+      <button data-mode="edit" class="on" onclick="setMode('edit')" id="btnModeEdit">✏️ Edit</button>
+      <button data-mode="view" onclick="setMode('view')" id="btnModeView">👁 View</button>
+    </div>
+    <button class="btn" id="btnLang" onclick="toggleLang()">🌐 <span id="btnLangLbl">한국어</span></button>
+    <button class="btn" onclick="loadFromFile()">📂 <span data-i18n="loadBtn">Load</span></button>
+    <button class="btn primary" id="btnGenPdf" onclick="generatePdf()">📄 <span data-i18n="genPdf">Download PDF</span></button>
+    <button class="btn" onclick="saveAsHtml()">💾 <span data-i18n="htmlBtn">Save HTML</span></button>
+    <button class="btn" onclick="window.print()">🖨 <span data-i18n="printBtn">Print</span></button>
+    <input type="file" id="fileLoad" accept=".html,application/xhtml+xml" style="display:none" onchange="handleFileLoad(this)">
+  </div>
+</div>
+
+<div class="page">
+  <div class="report-head">
+    <div class="rh-title" id="rhTitle"></div>
+    <div class="rh-meta">
+      <div class="rh-meta-item">
+        <span class="rh-meta-lbl" data-i18n="metaPeriod">Reporting Period</span>
+        <span class="rh-meta-val" contenteditable="true" id="metaPeriod" data-field="period"></span>
+      </div>
+      <div class="rh-meta-item">
+        <span class="rh-meta-lbl" data-i18n="metaAuthor">Author</span>
+        <span class="rh-meta-val" contenteditable="true" id="metaAuthor" data-field="author"></span>
+      </div>
+      <div class="rh-meta-item">
+        <span class="rh-meta-lbl" data-i18n="metaDate">Submission Date</span>
+        <span class="rh-meta-val" contenteditable="true" id="metaDate" data-field="date"></span>
+      </div>
+      <div class="rh-meta-item">
+        <span class="rh-meta-lbl" data-i18n="metaSite">Site</span>
+        <span class="rh-meta-val" contenteditable="true" id="metaSite" data-field="site"></span>
+      </div>
+    </div>
+  </div>
+
+  <div id="groups"></div>
+</div>
+
+<div class="add-section-wrap">
+  <button class="add-section-btn" onclick="addGroup()" data-i18n="addSection">＋ Add new section</button>
+</div>
+
+<div class="footer" data-i18n="footer">Generated with d'strict System Report Template · Save HTML for a shareable single-file document</div>
+
+<div class="toast" id="toast"></div>
+<div class="lightbox" id="lightbox" onclick="closeLightbox()">
+  <img id="lbImg" src="" alt="">
+  <button class="lb-close" onclick="closeLightbox();event.stopPropagation()">✕</button>
+</div>
+
+<!-- Embedded state — replaced on Save HTML -->
+<script id="savedState" type="application/json">{}</script>
+
+<script>
+(function(){
+'use strict';
+
+// ── URL params ────────────────────────────────────────────────
+var params = new URLSearchParams(location.search);
+var BRANCH = (params.get('branch')||'').toUpperCase() || 'AMXX';
+var MONTH_IDX = parseInt(params.get('month') || '') ;
+if(isNaN(MONTH_IDX) || MONTH_IDX < 0 || MONTH_IDX > 11) MONTH_IDX = new Date().getMonth();
+var YEAR = parseInt(params.get('year') || '') || new Date().getFullYear();
+var INIT_LANG = params.get('lang') === 'ko' ? 'ko' : 'en';
+
+var MONTHS_EN = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+var MONTHS_KO = ['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
+var SITES = {AMGN:'Arte Museum Gangneung',AMYS:'Arte Museum Yeosu',AMBS:'Arte Museum Busan',AMJJ:'Arte Museum Jeju',AMNY:'Arte Museum New York',AMLV:'Arte Museum Las Vegas',AMDB:'Arte Museum Dubai'};
+
+var TITLE = BRANCH + ' ' + MONTHS_EN[MONTH_IDX] + ' ' + YEAR + ' System Team Monthly Closing Report';
+var PERIOD_EN = MONTHS_EN[MONTH_IDX] + ' ' + YEAR;
+var PERIOD_KO = YEAR + '년 ' + MONTHS_KO[MONTH_IDX];
+var STORAGE_KEY = 'sysrpt_' + BRANCH + '_' + YEAR + '_' + MONTH_IDX;
+
+// ── i18n ─────────────────────────────────────────────────────
+var T = {
+  en:{
+    loadBtn:'Load',htmlBtn:'Save HTML',printBtn:'Print',genPdf:'Download PDF',pdfGenerating:'Generating PDF…',
+    metaPeriod:'Reporting Period',metaAuthor:'Author',metaDate:'Submission Date',metaSite:'Site',
+    addSection:'＋ Add new section',addBlock:'＋ Add subsection',addNote:'＋ Add note',
+    newSection:'New Section',newBlock:'New Subsection',newNote:'New note — click to edit',
+    moveUp:'↑',moveDown:'↓',del:'✕',
+    footer:"Generated with d'strict System Report Template · Save HTML for a shareable single-file document",
+    langBtn:'한국어',saved:'Saved',htmlSaved:'Saved as HTML',loaded:'Loaded',
+    confirmDel:'Delete this section?',confirmDelBlock:'Delete this subsection?',
+    dropImages:'Drop images here',orClick:'or click to browse',
+  },
+  ko:{
+    loadBtn:'불러오기',htmlBtn:'HTML 저장',printBtn:'인쇄',genPdf:'PDF 다운로드',pdfGenerating:'PDF 생성 중…',
+    metaPeriod:'보고 기간',metaAuthor:'작성자',metaDate:'제출일',metaSite:'현장',
+    addSection:'＋ 섹션 추가',addBlock:'＋ 소목차 추가',addNote:'＋ 항목 추가',
+    newSection:'새 섹션',newBlock:'새 소목차',newNote:'새 항목 — 클릭하여 편집',
+    moveUp:'↑',moveDown:'↓',del:'✕',
+    footer:"d'strict 시스템 리포트 템플릿으로 생성 · HTML 저장으로 단일 파일 공유",
+    langBtn:'English',saved:'저장됨',htmlSaved:'HTML로 저장되었습니다',loaded:'불러오기 완료',
+    confirmDel:'이 섹션을 삭제하시겠습니까?',confirmDelBlock:'이 소목차를 삭제하시겠습니까?',
+    dropImages:'이미지를 여기에 드래그하세요',orClick:'또는 클릭하여 선택',
+  }
+};
+var lang = INIT_LANG;
+function t(k){ return (T[lang]||T.en)[k] || k; }
+
+// ── Default groups ────────────────────────────────────────────
+var DEFAULT_GROUPS = [
+  {title:'System',blocks:[
+    {title:'Projectors',items:[],images:[]},
+    {title:'Software',items:[],images:[]},
+    {title:'Hardware',items:[],images:[]},
+    {title:'Network',items:[],images:[]},
+  ]},
+  {title:'Facility',blocks:[
+    {title:'Electricity',items:[],images:[]},
+    {title:'Fire / Safety',items:[],images:[]},
+    {title:'Lighting / Signage',items:[],images:[]},
+    {title:'Interior',items:[],images:[]},
+  ]},
+  {title:'Presentation of Museum Projects',blocks:[]},
+  {title:'HVAC / Plumbing / Elevator / Escalator',blocks:[]},
+  {title:'Contractor Invoices / Amazon Invoices',blocks:[
+    {title:'Vendor Worksheet',items:[],images:[]},
+    {title:MONTHS_EN[MONTH_IDX]+' Invoices for Systems',items:[],images:[]},
+    {title:'Systems Team Amazon Purchases',items:[],images:[]},
+  ]},
+  {title:'Internal System Team Announcements',blocks:[]},
+  {title:"Next Month's Game Plan",blocks:[]},
+];
+
+// ── State ─────────────────────────────────────────────────────
+var state = {
+  meta:{ period: PERIOD_EN, author:'', date:'', site: BRANCH+' ('+(SITES[BRANCH]||BRANCH)+')' },
+  groups: JSON.parse(JSON.stringify(DEFAULT_GROUPS)),
+};
+
+// Try loading saved state (embedded or localStorage)
+(function loadInitial(){
+  try{
+    var emb = JSON.parse(document.getElementById('savedState').textContent||'{}');
+    if(emb && emb.groups && emb.groups.length){ state = emb; return; }
+  }catch(e){}
+  try{
+    var stored = localStorage.getItem(STORAGE_KEY);
+    if(stored){ var parsed = JSON.parse(stored); if(parsed && parsed.groups) state = parsed; }
+  }catch(e){}
+})();
+
+// ── Utils ─────────────────────────────────────────────────────
+function uid(){ return Math.random().toString(36).slice(2,9); }
+var _toastTimer;
+function toast(msg){
+  var el=document.getElementById('toast'); el.textContent=msg; el.classList.add('on');
+  clearTimeout(_toastTimer); _toastTimer=setTimeout(function(){el.classList.remove('on');},1800);
+}
+
+// ── Persist ───────────────────────────────────────────────────
+var _saveTimer;
+function scheduleSave(){
+  clearTimeout(_saveTimer);
+  _saveTimer = setTimeout(function(){
+    syncMetaFromDom();
+    try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }catch(e){}
+  }, 600);
+}
+
+function syncMetaFromDom(){
+  var fields = ['period','author','date','site'];
+  fields.forEach(function(f){
+    var el = document.getElementById('meta'+f.charAt(0).toUpperCase()+f.slice(1));
+    if(el) state.meta[f] = el.textContent;
+  });
+}
+
+// ── Render ────────────────────────────────────────────────────
+function renderAll(){
+  // Update title
+  document.title = TITLE;
+  document.getElementById('rhTitle').textContent = TITLE;
+  // Update meta fields
+  var mP = document.getElementById('metaPeriod');
+  var mA = document.getElementById('metaAuthor');
+  var mD = document.getElementById('metaDate');
+  var mS = document.getElementById('metaSite');
+  if(mP && !mP._focused) mP.textContent = state.meta.period || '';
+  if(mA && !mA._focused) mA.textContent = state.meta.author || '';
+  if(mD && !mD._focused) mD.textContent = state.meta.date || '';
+  if(mS && !mS._focused) mS.textContent = state.meta.site || '';
+
+  // Update i18n labels
+  document.querySelectorAll('[data-i18n]').forEach(function(el){
+    el.textContent = t(el.dataset.i18n);
+  });
+  document.getElementById('btnLangLbl').textContent = t('langBtn');
+
+  // Render groups
+  var container = document.getElementById('groups');
+  container.innerHTML = '';
+  state.groups.forEach(function(g, gi){ container.appendChild(renderGroup(g, gi)); });
+}
+
+function renderGroup(g, gi){
+  var div = document.createElement('div');
+  div.className = 'group';
+  div.id = 'g'+gi;
+
+  var head = document.createElement('div');
+  head.className = 'group-head';
+  head.innerHTML = '<span class="group-num">'+(gi+1)+'.</span>';
+
+  var titleEl = document.createElement('span');
+  titleEl.className = 'group-title';
+  titleEl.contentEditable = 'true';
+  titleEl.textContent = g.title;
+  titleEl.oninput = function(){ g.title = this.textContent; scheduleSave(); };
+  head.appendChild(titleEl);
+
+  var acts = document.createElement('div');
+  acts.className = 'group-actions';
+  if(gi > 0) acts.appendChild(mkBtn('↑', function(){ moveGroup(gi,-1); }));
+  if(gi < state.groups.length-1) acts.appendChild(mkBtn('↓', function(){ moveGroup(gi,1); }));
+  mkDangerBtn('✕', function(){ deleteGroup(gi); }, acts);
+  head.appendChild(acts);
+  div.appendChild(head);
+
+  var body = document.createElement('div');
+  body.className = 'group-body';
+  g.blocks.forEach(function(b, bi){ body.appendChild(renderBlock(b, g, gi, bi)); });
+
+  // Add block button
+  var addBlockBtn = document.createElement('button');
+  addBlockBtn.className = 'add-block';
+  addBlockBtn.textContent = t('addBlock');
+  addBlockBtn.onclick = function(){ addBlock(gi); };
+  body.appendChild(addBlockBtn);
+
+  div.appendChild(body);
+  return div;
+}
+
+function renderBlock(b, g, gi, bi){
+  var div = document.createElement('div');
+  div.className = 'block';
+
+  var head = document.createElement('div');
+  head.className = 'block-head';
+  head.innerHTML = '<span class="block-num">'+(gi+1)+'.'+(bi+1)+'</span>';
+
+  var titleEl = document.createElement('span');
+  titleEl.className = 'block-title';
+  titleEl.contentEditable = 'true';
+  titleEl.textContent = b.title;
+  titleEl.oninput = function(){ b.title = this.textContent; scheduleSave(); };
+  head.appendChild(titleEl);
+
+  var acts = document.createElement('div');
+  acts.className = 'block-actions';
+  if(bi > 0) acts.appendChild(mkBtn('↑', function(){ moveBlock(gi,bi,-1); }));
+  if(bi < g.blocks.length-1) acts.appendChild(mkBtn('↓', function(){ moveBlock(gi,bi,1); }));
+  mkDangerBtn('✕', function(){ deleteBlock(gi,bi); }, acts);
+  head.appendChild(acts);
+  div.appendChild(head);
+
+  // Items
+  if(!b.items) b.items = [];
+  var itemsEl = document.createElement('div');
+  itemsEl.className = 'items';
+  b.items.forEach(function(item, ii){ itemsEl.appendChild(renderItem(item, b, gi, bi, ii)); });
+  div.appendChild(itemsEl);
+
+  // Add item
+  var addBtn = document.createElement('button');
+  addBtn.className = 'add-item';
+  addBtn.textContent = t('addNote');
+  addBtn.onclick = function(){ addItem(gi, bi); };
+  div.appendChild(addBtn);
+
+  // Gallery
+  if(!b.images) b.images = [];
+  div.appendChild(renderGallery(b, gi, bi));
+
+  return div;
+}
+
+function renderItem(item, b, gi, bi, ii){
+  var row = document.createElement('div');
+  row.className = 'item';
+
+  var bullet = document.createElement('span');
+  bullet.className = 'item-bullet';
+  bullet.textContent = ii+1;
+  row.appendChild(bullet);
+
+  var textEl = document.createElement('span');
+  textEl.className = 'item-text';
+  textEl.contentEditable = 'true';
+  textEl.textContent = typeof item === 'string' ? item : (item.text || '');
+  textEl.oninput = function(){ b.items[ii] = this.textContent; scheduleSave(); };
+  textEl.onblur = function(){ if(!this.textContent.trim()){ deleteItem(gi,bi,ii); } };
+  row.appendChild(textEl);
+
+  var del = document.createElement('button');
+  del.className = 'item-del';
+  del.textContent = '✕';
+  del.title = t('del');
+  del.onclick = function(){ deleteItem(gi,bi,ii); };
+  row.appendChild(del);
+
+  return row;
+}
+
+function renderGallery(b, gi, bi){
+  var wrap = document.createElement('div');
+  if(!b.images) b.images = [];
+
+  if(b.images.length || true){ // always show gallery in edit mode
+    var grid = document.createElement('div');
+    grid.className = 'gallery';
+
+    b.images.forEach(function(img, idx){
+      var cell = document.createElement('div');
+      cell.className = 'gallery-item';
+      var image = document.createElement('img');
+      image.src = img.data;
+      image.alt = img.name || '';
+      image.onclick = function(){ openLightbox(img.data); };
+      cell.appendChild(image);
+      var del = document.createElement('button');
+      del.className = 'img-del';
+      del.textContent = '✕';
+      del.onclick = function(){ b.images.splice(idx,1); scheduleSave(); renderAll(); };
+      cell.appendChild(del);
+      grid.appendChild(cell);
+    });
+
+    // Drop zone
+    var dz = document.createElement('div');
+    dz.className = 'dropzone';
+    dz.innerHTML = '<span class="dz-ic">🖼</span><span>'+t('dropImages')+'</span><span style="font-size:11px;color:var(--hint)">'+t('orClick')+'</span>';
+    dz.onclick = function(){
+      var inp = document.createElement('input');
+      inp.type='file'; inp.accept='image/*'; inp.multiple=true;
+      inp.onchange = function(){ handleImages(this.files, b, gi, bi); };
+      inp.click();
+    };
+    dz.addEventListener('dragover', function(e){ e.preventDefault(); dz.classList.add('over'); });
+    dz.addEventListener('dragleave', function(){ dz.classList.remove('over'); });
+    dz.addEventListener('drop', function(e){ e.preventDefault(); dz.classList.remove('over'); handleImages(e.dataTransfer.files, b, gi, bi); });
+    grid.appendChild(dz);
+    wrap.appendChild(grid);
+  }
+  return wrap;
+}
+
+// ── Image handling ────────────────────────────────────────────
+function handleImages(files, b, gi, bi){
+  Array.from(files).forEach(function(file){
+    if(!file.type.startsWith('image/')) return;
+    var reader = new FileReader();
+    reader.onload = function(e){
+      if(!b.images) b.images = [];
+      b.images.push({ name: file.name, data: e.target.result });
+      scheduleSave();
+      renderAll();
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+// ── Lightbox ─────────────────────────────────────────────────
+function openLightbox(src){
+  document.getElementById('lbImg').src = src;
+  document.getElementById('lightbox').classList.add('on');
+}
+function closeLightbox(){
+  document.getElementById('lightbox').classList.remove('on');
+  document.getElementById('lbImg').src = '';
+}
+window.closeLightbox = closeLightbox;
+
+// ── Mutation helpers ──────────────────────────────────────────
+function moveGroup(gi, dir){
+  var a = state.groups, j = gi + dir;
+  if(j < 0 || j >= a.length) return;
+  var tmp = a[gi]; a[gi] = a[j]; a[j] = tmp;
+  scheduleSave(); renderAll();
+}
+function deleteGroup(gi){
+  if(!confirm(t('confirmDel'))) return;
+  state.groups.splice(gi,1); scheduleSave(); renderAll();
+}
+function addGroup(){
+  state.groups.push({title:t('newSection'),blocks:[]});
+  scheduleSave(); renderAll();
+  // Focus newly created title
+  setTimeout(function(){
+    var g = document.getElementById('g'+(state.groups.length-1));
+    if(g){ var el = g.querySelector('.group-title'); if(el){ el.focus(); selectAll(el); } }
+  }, 50);
+}
+function addBlock(gi){
+  var g = state.groups[gi];
+  g.blocks.push({title:t('newBlock'),items:[],images:[]});
+  scheduleSave(); renderAll();
+}
+function moveBlock(gi, bi, dir){
+  var a = state.groups[gi].blocks, j = bi + dir;
+  if(j < 0 || j >= a.length) return;
+  var tmp = a[bi]; a[bi] = a[j]; a[j] = tmp;
+  scheduleSave(); renderAll();
+}
+function deleteBlock(gi, bi){
+  if(!confirm(t('confirmDelBlock'))) return;
+  state.groups[gi].blocks.splice(bi,1); scheduleSave(); renderAll();
+}
+function addItem(gi, bi){
+  var b = state.groups[gi].blocks[bi];
+  if(!b.items) b.items = [];
+  b.items.push('');
+  scheduleSave(); renderAll();
+  setTimeout(function(){
+    var g = document.getElementById('g'+gi);
+    if(!g) return;
+    var blocks = g.querySelectorAll('.block');
+    if(blocks[bi]){
+      var items = blocks[bi].querySelectorAll('.item-text');
+      var last = items[items.length-1];
+      if(last){ last.focus(); }
+    }
+  }, 50);
+}
+function deleteItem(gi, bi, ii){
+  state.groups[gi].blocks[bi].items.splice(ii,1);
+  scheduleSave(); renderAll();
+}
+
+// ── Utility button builders ───────────────────────────────────
+function mkBtn(label, onclick){
+  var b = document.createElement('button');
+  b.textContent = label; b.type = 'button';
+  b.onclick = onclick;
+  return b;
+}
+function mkDangerBtn(label, onclick, parent){
+  var b = mkBtn(label, onclick);
+  b.classList.add('danger');
+  if(parent) parent.appendChild(b);
+  return b;
+}
+function selectAll(el){
+  var range = document.createRange();
+  range.selectNodeContents(el);
+  var sel = window.getSelection();
+  sel.removeAllRanges(); sel.addRange(range);
+}
+
+// ── Mode ──────────────────────────────────────────────────────
+function setMode(mode){
+  document.body.className = 'mode-'+mode;
+  document.getElementById('btnModeEdit').classList.toggle('on', mode==='edit');
+  document.getElementById('btnModeView').classList.toggle('on', mode==='view');
+  // toggle contenteditable
+  document.querySelectorAll('[contenteditable]').forEach(function(el){
+    el.contentEditable = mode === 'edit' ? 'true' : 'false';
+  });
+}
+window.setMode = setMode;
+
+// ── Language toggle ───────────────────────────────────────────
+function toggleLang(){
+  lang = lang === 'en' ? 'ko' : 'en';
+  // Update period if it hasn't been manually edited
+  var mP = document.getElementById('metaPeriod');
+  var defaultEn = PERIOD_EN, defaultKo = PERIOD_KO;
+  if(mP){
+    var cur = mP.textContent.trim();
+    if(cur === defaultEn || cur === defaultKo){
+      state.meta.period = lang === 'ko' ? defaultKo : defaultEn;
+    }
+  }
+  renderAll();
+}
+window.toggleLang = toggleLang;
+
+// ── Generate PDF via server ───────────────────────────────────
+async function generatePdf(){
+  syncMetaFromDom();
+  var btn = document.getElementById('btnGenPdf');
+  if(btn){ btn.disabled = true; btn.querySelector('span').textContent = t('pdfGenerating'); }
+  try{
+    var resp = await fetch('/api/v2/system-monthly', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ state: state, lang: lang, branch: BRANCH, month: MONTH_IDX, year: YEAR }),
+    });
+    if(!resp.ok){ var err = await resp.json().catch(function(){return{error:'HTTP '+resp.status};}); throw new Error(err.error||'HTTP '+resp.status); }
+    var blob = await resp.blob();
+    var cd = resp.headers.get('Content-Disposition') || '';
+    var fnMatch = cd.match(/filename="([^"]+)"/);
+    var fname = fnMatch ? fnMatch[1] : (BRANCH+'_System_Monthly_Report.pdf');
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a'); a.href = url; a.download = fname;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(function(){ URL.revokeObjectURL(url); }, 3000);
+    toast(fname + (lang === 'ko' ? ' 다운로드 완료' : ' downloaded'));
+  }catch(e){
+    toast((lang === 'ko' ? 'PDF 생성 실패: ' : 'PDF failed: ') + e.message);
+  }finally{
+    if(btn){ btn.disabled = false; btn.querySelector('span').textContent = t('genPdf'); }
+  }
+}
+window.generatePdf = generatePdf;
+
+// ── Save as HTML ──────────────────────────────────────────────
+function saveAsHtml(){
+  syncMetaFromDom();
+  var html = document.documentElement.outerHTML;
+  // Replace savedState content with current state JSON
+  html = html.replace(
+    /(<script[^>]*id="savedState"[^>]*>)([\s\S]*?)(<\/script>)/,
+    function(m, open, _content, close){
+      return open + JSON.stringify(state) + close;
+    }
+  );
+  var blob = new Blob([html], {type:'text/html'});
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  var fname = BRANCH+'_'+MONTHS_EN[MONTH_IDX]+'_'+YEAR+'_System_Team_Monthly_Closing_Report.html';
+  a.href = url; a.download = fname;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  setTimeout(function(){ URL.revokeObjectURL(url); }, 3000);
+  toast(t('htmlSaved'));
+}
+window.saveAsHtml = saveAsHtml;
+
+// ── Load from file ────────────────────────────────────────────
+function loadFromFile(){ document.getElementById('fileLoad').click(); }
+window.loadFromFile = loadFromFile;
+
+function handleFileLoad(input){
+  var file = input.files[0]; if(!file) return;
+  var reader = new FileReader();
+  reader.onload = function(e){
+    try{
+      var html = e.target.result;
+      // Extract savedState JSON from loaded HTML
+      var match = html.match(/<script[^>]*id="savedState"[^>]*>([\s\S]*?)<\/script>/);
+      if(match && match[1].trim() && match[1].trim() !== '{}'){
+        var loaded = JSON.parse(match[1]);
+        if(loaded && loaded.groups){ state = loaded; scheduleSave(); renderAll(); toast(t('loaded')); return; }
+      }
+      toast('No saved data found in file.');
+    }catch(err){ toast('Failed to load: '+err.message); }
+  };
+  reader.readAsText(file);
+  input.value = '';
+}
+window.handleFileLoad = handleFileLoad;
+
+// ── Meta field focus tracking ─────────────────────────────────
+['metaPeriod','metaAuthor','metaDate','metaSite'].forEach(function(id){
+  var el = document.getElementById(id);
+  if(!el) return;
+  el.addEventListener('focus', function(){ el._focused = true; });
+  el.addEventListener('blur', function(){
+    el._focused = false;
+    var field = el.dataset.field;
+    if(field) state.meta[field] = el.textContent;
+    scheduleSave();
+  });
+});
+
+// ── Init ──────────────────────────────────────────────────────
+renderAll();
+
+})();
+</script>
+</body>
+</html>

@@ -1,28 +1,33 @@
 {{!-- trend-monthly.hbs — Monthly mini-bar trend chart (annual reports)
   Uses root context: monthlyTrend[], monthlyTrendFirst, monthlyTrendLast,
-                     monthlyTrendPeak, monthlyTrendLatest, monthlyTrendSummary
+                     monthlyTrendPeak, monthlyTrendLatest, monthlyTrendSummary,
+                     trendMonthlyMaxCount, labels.casesUnit
 --}}
 {{#if monthlyTrend.length}}
-<div class="trend-wrap">
-  <div class="trend-counts">
-    {{#each monthlyTrend}}
-    <span class="trend-count{{#if isPeak}} is-peak{{/if}}">{{count}}</span>
-    {{/each}}
+<div class="trend-with-yaxis">
+  {{!-- Y-axis ──────────────────────────────── --}}
+  <div class="trend-yaxis">
+    <span class="trend-yaxis-max">{{trendMonthlyMaxCount}}</span>
+    <span class="trend-yaxis-unit">{{labels.casesUnit}}</span>
+    <span class="trend-yaxis-zero">0</span>
   </div>
-  <div class="trend-bars" style="position:relative">
-    {{#each monthlyTrend}}
-    <div class="trend-bar{{#if isPeak}} is-peak{{/if}}{{#if isAboveAvg}} is-above-avg{{/if}}{{#if isLatest}} is-latest{{/if}}" style="height:{{barH}}%"></div>
-    {{/each}}
+  {{!-- Chart area ──────────────────────────── --}}
+  <div class="trend-wrap">
+    <div class="trend-bars" style="position:relative">
+      {{#each monthlyTrend}}
+      <div class="trend-bar{{#if isPeak}} is-peak{{/if}}{{#if isAboveAvg}} is-above-avg{{/if}}{{#if isLatest}} is-latest{{/if}}" style="height:{{barH}}%"></div>
+      {{/each}}
+    </div>
+    <div class="trend-footer">
+      <span class="trend-xlbl">{{monthlyTrendFirst}}</span>
+      <span class="trend-xlbl trend-xlbl--last">{{monthlyTrendLast}}</span>
+    </div>
+    <div class="trend-peak-row">
+      <span>{{@root.labels.peakLabel}}: {{monthlyTrendPeak}}</span>
+      <span>{{@root.labels.latestLabel}}: {{monthlyTrendLatest}}</span>
+    </div>
+    {{#if monthlyTrendSummary}}<p class="chart-summary">{{monthlyTrendSummary}}</p>{{/if}}
   </div>
-  <div class="trend-footer">
-    <span>{{monthlyTrendFirst}}</span>
-    <span>{{monthlyTrendLast}}</span>
-  </div>
-  <div class="trend-peak-row">
-    <span>{{@root.labels.peakLabel}}: {{monthlyTrendPeak}}</span>
-    <span>{{@root.labels.latestLabel}}: {{monthlyTrendLatest}}</span>
-  </div>
-  {{#if monthlyTrendSummary}}<p class="chart-summary">{{monthlyTrendSummary}}</p>{{/if}}
 </div>
 {{else}}
 <p class="hbar__empty">—</p>

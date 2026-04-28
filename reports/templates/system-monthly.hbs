@@ -1,0 +1,70 @@
+{{!-- ═══════════════════════════════════════════════════════════════
+  system-monthly.hbs — System Team Monthly Closing Report (v2)
+
+  Rendered from manual form data (system-report.html editor).
+  Layout matches Error Report visual style.
+  Groups/Blocks/Items from the form are rendered as structured sections.
+═══════════════════════════════════════════════════════════════ --}}
+
+{{!-- ── PAGE 1 ─────────────────────────────────────────────────── --}}
+<section class="page sys-page">
+  <header class="page-chrome">
+    <span class="brand-mark">d'strict · GTO</span>
+    <span class="meta">
+      <span>{{labels.reportTypeTitle}}</span>
+      <span>·</span>
+      <span>{{period}}</span>
+      <span>·</span>
+      <span>{{scope}}</span>
+    </span>
+    <span class="meta"><span>{{labels.page}} 1</span></span>
+  </header>
+
+  {{!-- Title Block --}}
+  <div class="sys-title-block">
+    <div class="sys-title-inner">
+      <div class="sys-report-label">{{labels.systemReportBadge}}</div>
+      <h1 class="sys-main-title">{{title}}</h1>
+      <div class="sys-meta-row">
+        {{#if meta.period}}<div class="sys-meta-item"><span class="sys-meta-lbl">{{labels.metaPeriod}}</span><span class="sys-meta-val">{{meta.period}}</span></div>{{/if}}
+        {{#if meta.author}}<div class="sys-meta-item"><span class="sys-meta-lbl">{{labels.metaAuthor}}</span><span class="sys-meta-val">{{meta.author}}</span></div>{{/if}}
+        {{#if meta.date}}<div class="sys-meta-item"><span class="sys-meta-lbl">{{labels.metaDate}}</span><span class="sys-meta-val">{{meta.date}}</span></div>{{/if}}
+        {{#if meta.site}}<div class="sys-meta-item"><span class="sys-meta-lbl">{{labels.metaSite}}</span><span class="sys-meta-val">{{meta.site}}</span></div>{{/if}}
+      </div>
+    </div>
+  </div>
+
+  {{!-- Groups / Sections --}}
+  {{#each groups}}
+  <div class="sys-group">
+    <div class="sys-group-head">
+      <span class="sys-group-num">{{groupNum}}.</span>
+      <span class="sys-group-title">{{title}}</span>
+    </div>
+    {{#if blocks.length}}
+    <div class="sys-group-body">
+      {{#each blocks}}
+      <div class="sys-block">
+        <div class="sys-block-head">
+          <span class="sys-block-num">{{blockNum}}</span>
+          <span class="sys-block-title">{{title}}</span>
+        </div>
+        {{#if items.length}}
+        <ul class="sys-items">
+          {{#each items}}
+          <li class="sys-item">{{this}}</li>
+          {{/each}}
+        </ul>
+        {{/if}}
+      </div>
+      {{/each}}
+    </div>
+    {{else}}
+    <div class="sys-group-body sys-group-empty">
+      <span class="sys-empty-hint">—</span>
+    </div>
+    {{/if}}
+  </div>
+  {{/each}}
+
+</section>

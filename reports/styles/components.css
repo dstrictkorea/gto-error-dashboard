@@ -555,7 +555,40 @@ html[lang="ko"] .card__action {
  *  Trend Chart (mini vertical bars)
  * ══════════════════════════════════════════════ */
 
-.trend-wrap { display: flex; flex-direction: column; gap: 4px; }
+/* Y-axis wrapper */
+.trend-with-yaxis {
+  display: flex;
+  align-items: stretch;
+  gap: 5px;
+}
+/* Y-axis column */
+.trend-yaxis {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: flex-end;
+  flex-shrink: 0;
+  width: 20px;
+  /* align with bars area: bars=72px, then footer+peak-row below */
+  padding-bottom: 36px; /* footer(14px) + peak-row(18px) + gap(4px) */
+}
+.trend-yaxis-max,
+.trend-yaxis-zero {
+  font-size: 7.5px;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+.trend-yaxis-unit {
+  font-size: 7px;
+  color: var(--hint);
+  writing-mode: vertical-lr;
+  transform: rotate(180deg);
+  letter-spacing: 0.03em;
+  margin: auto 0;
+}
+/* Chart column */
+.trend-wrap { display: flex; flex-direction: column; gap: 4px; flex: 1; min-width: 0; }
 .trend-bars {
   display: flex;
   align-items: flex-end;
@@ -579,6 +612,7 @@ html[lang="ko"] .card__action {
   color: var(--muted);
   letter-spacing: -0.1px;
   margin-top: 1px;
+  overflow: hidden;   /* prevent rightmost label from bleeding past card */
 }
 .trend-xlbl {
   flex: 1;
@@ -588,6 +622,7 @@ html[lang="ko"] .card__action {
   font-size: 8px;
 }
 .trend-xlbl--hidden { visibility: hidden; }
+.trend-xlbl--last   { text-align: right; overflow: hidden; }
 .trend-peak-row {
   display: flex;
   justify-content: space-between;
@@ -1082,38 +1117,8 @@ html[lang="ko"] .chart-summary {
 
 /* ══════════════════════════════════════════════
  *  Trend chart enhancements
- *  Count labels row, average baseline line,
- *  above-avg bar highlight.
+ *  Average baseline line, above-avg bar highlight.
  * ══════════════════════════════════════════════ */
-
-/* Count labels row above bars */
-.trend-counts {
-  display: flex;
-  align-items: flex-end;
-  gap: 2px;
-  margin-bottom: 1px;
-}
-.trend-count {
-  flex: 1;
-  text-align: center;
-  font-size: 7px;
-  color: var(--muted);
-  font-variant-numeric: tabular-nums;
-  line-height: 1;
-  overflow: hidden;
-  text-overflow: clip;
-  white-space: nowrap;
-}
-.trend-count.is-peak {
-  color: var(--purple);
-  font-weight: 700;
-  font-size: 7.5px;
-}
-.trend-count.is-latest {
-  color: var(--teal);
-  font-weight: 700;
-  font-size: 7.5px;
-}
 
 /* Bars that exceed the daily average */
 .trend-bar.is-above-avg {
@@ -1394,5 +1399,157 @@ html[lang="ko"] .chart-summary {
   word-break: break-word;
   overflow-wrap: anywhere;
   letter-spacing: -0.15px;
+}
+
+/* ══════════════════════════════════════════════
+ *  System Monthly Closing Report
+ *  Rendered from form data via system-monthly.hbs
+ * ══════════════════════════════════════════════ */
+
+.sys-page {
+  padding-top: 8mm;
+}
+
+/* ── Title block ── */
+.sys-title-block {
+  padding: 10px 0 12px;
+  margin-bottom: 10px;
+  border-bottom: 2px solid var(--purple);
+}
+.sys-report-label {
+  font-size: 9px;
+  font-weight: 700;
+  color: var(--purple);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 3px;
+}
+.sys-main-title {
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+  line-height: 1.25;
+  color: var(--text);
+  margin-bottom: 8px;
+}
+.sys-meta-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 22px;
+}
+.sys-meta-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.sys-meta-lbl {
+  font-size: 9px;
+  font-weight: 700;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.sys-meta-val {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text);
+  letter-spacing: -0.1px;
+}
+
+/* ── Groups ── */
+.sys-group {
+  margin-bottom: 10px;
+  break-inside: avoid;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+.sys-group-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 14px;
+  background: var(--text);
+  color: #fff;
+}
+.sys-group-num {
+  font-size: 12px;
+  font-weight: 700;
+  color: #FFC000;
+  min-width: 18px;
+  flex-shrink: 0;
+}
+.sys-group-title {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: -0.3px;
+}
+.sys-group-body {
+  padding: 0;
+  background: var(--card);
+}
+.sys-group-empty {
+  padding: 8px 14px;
+  color: var(--hint);
+  font-size: 12px;
+}
+
+/* ── Blocks ── */
+.sys-block {
+  padding: 8px 14px 9px;
+  border-bottom: 1px solid var(--border);
+}
+.sys-block:last-child {
+  border-bottom: none;
+}
+.sys-block-head {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+.sys-block-num {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--purple);
+  flex-shrink: 0;
+  min-width: 28px;
+}
+.sys-block-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text);
+  letter-spacing: -0.2px;
+}
+
+/* ── Items ── */
+.sys-items {
+  list-style: none;
+  padding: 0;
+  margin: 3px 0 0 36px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.sys-item {
+  font-size: 11.5px;
+  line-height: 1.55;
+  color: var(--text);
+  letter-spacing: -0.15px;
+  padding-left: 14px;
+  position: relative;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+.sys-item::before {
+  content: '•';
+  position: absolute;
+  left: 0;
+  color: var(--purple);
+  font-weight: 700;
+}
+.sys-empty-hint {
+  color: var(--hint);
+  font-size: 12px;
 }
 

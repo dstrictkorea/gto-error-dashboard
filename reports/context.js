@@ -710,11 +710,13 @@ function buildVisualContext(prepared, opts) {
     dailyTrendLatest,
     avgBarH,
     dailyAvgNum,
+    trendMaxCount: dayMaxCount,
     monthlyTrend,
     monthlyTrendFirst,
     monthlyTrendLast,
     monthlyTrendPeak,
     monthlyTrendLatest,
+    trendMonthlyMaxCount: monMaxCount,
     // Resolve time analytics
     fastRate,
     slowRate,
@@ -936,6 +938,7 @@ function buildExtLabels(lang, variant) {
     // Trend labels
     peakLabel:   ko ? '최고' : 'Peak',
     latestLabel: ko ? '최근' : 'Latest',
+    casesUnit:   ko ? '건수' : 'cases',
     // Misc
     monthsLabel: ko ? '개월' : 'mo',
     casesLabel:  ko ? '건'   : 'cases',
@@ -1076,11 +1079,60 @@ function buildSmokeContext({ lang = 'en', now = new Date() } = {}) {
   };
 }
 
+// ── System Monthly Closing Report context ────────────────────────
+// Converts raw form JSON (from system-report.html editor) into template context.
+function buildSystemMonthlyContext(formState, opts) {
+  const lang      = opts.lang      || 'en';
+  const scope     = opts.scope     || opts.branch || '';
+  const generated = opts.generated || '';
+  const ko = lang === 'ko';
+  const meta = (formState && formState.meta) || {};
+  const period = opts.period || meta.period || '';
+
+  const MONTHS_EN = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  const title = opts.title || (scope
+    ? scope + ' ' + period + ' System Team Monthly Closing Report'
+    : period + ' System Team Monthly Closing Report');
+
+  const labels = {
+    reportTypeTitle:   ko ? '시스템 월간 마감 리포트' : 'System Monthly Closing Report',
+    systemReportBadge: ko ? 'd\'strict · GTO — 시스템 팀 월간 마감 리포트' : 'd\'strict · GTO — System Team Monthly Closing Report',
+    page:              ko ? '페이지' : 'Page',
+    metaPeriod:        ko ? '보고 기간' : 'Reporting Period',
+    metaAuthor:        ko ? '작성자'   : 'Author',
+    metaDate:          ko ? '제출일'   : 'Submission Date',
+    metaSite:          ko ? '현장'     : 'Site',
+  };
+
+  // Normalize groups — add numbering, strip empty item strings
+  const groups = ((formState && formState.groups) || []).map(function(g, gi) {
+    return {
+      groupNum: gi + 1,
+      title: g.title || '',
+      blocks: (g.blocks || []).map(function(b, bi) {
+        const items = (b.items || [])
+          .map(function(s) { return typeof s === 'string' ? s.trim() : ((s && s.text) ? s.text.trim() : ''); })
+          .filter(Boolean);
+        return { blockNum: (gi + 1) + '.' + (bi + 1), title: b.title || '', items };
+      }),
+    };
+  });
+
+  return {
+    lang, title, period, scope, generated,
+    meta: { period: meta.period || period, author: meta.author || '', date: meta.date || '', site: meta.site || scope },
+    groups,
+    labels,
+    docTitle: title,
+  };
+}
+
 module.exports = {
   buildSmokeContext,
   buildMonthlyBranchContext,
   buildMonthlyGlobalContext,
   buildAnnualContext,
+  buildSystemMonthlyContext,
   buildV2Context,
   // exposed for scripts
   _helpers: { periodLabel, fmtDate },
