@@ -94,6 +94,10 @@ async function adminReport(region,action){
   // v2 GET endpoint — raw PDF bytes, no base64
   var params=new URLSearchParams({lang:lang,year:year,region:region,download:'1'});
   if(!isAnnual) params.set('month',String(monthVal));
+  var cmtId=region==='global'?'adm-g-comment':'adm-k-comment';
+  var cmtEl=document.getElementById(cmtId);
+  var cmt=cmtEl?cmtEl.value.trim():'';
+  if(cmt) params.set('comment',cmt);
   var endpoint=(isAnnual?'/api/v2/annual':'/api/v2/monthly-global')+'?'+params.toString();
   statusEl.className='rpt-status is-pending';
   statusEl.innerHTML='<span class="rpt-spinner"></span>PDF 생성 중...';

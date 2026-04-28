@@ -195,10 +195,12 @@ router.get('/monthly-global', async (req, res) => {
       ? `${year}년 ${MONTHS_KO[month]}`
       : `${MONTHS_EN[month]} ${year}`;
 
+    const comment = req.query.comment ? String(req.query.comment).slice(0, 2000) : null;
+
     const generated = new Date().toLocaleDateString(lang === 'ko' ? 'ko-KR' : 'en-GB');
     const rows = await fetchRows(month, year, null, regionBranches);
     const ctx  = buildMonthlyGlobalContext(rows, {
-      lang, period: periodLabel, scope, generated,
+      lang, period: periodLabel, scope, comment, generated,
     });
 
     const MONTH_ABBR = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
@@ -234,11 +236,13 @@ router.get('/annual', async (req, res) => {
 
     const periodLabel = lang === 'ko' ? `${year}년` : String(year);
 
+    const comment = req.query.comment ? String(req.query.comment).slice(0, 2000) : null;
+
     // Annual: fetch all months (month=null skips month filter)
     const generated = new Date().toLocaleDateString(lang === 'ko' ? 'ko-KR' : 'en-GB');
     const rows = await fetchRows(null, year, branch, regionBranches);
     const ctx  = buildAnnualContext(rows, {
-      lang, period: periodLabel, scope, generated,
+      lang, period: periodLabel, scope, comment, generated,
     });
 
     const fileName = `DSKR-GTO-Annual Error Report_${String(year).slice(2)}.pdf`;
