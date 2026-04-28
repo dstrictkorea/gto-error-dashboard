@@ -293,7 +293,16 @@ router.post('/system-monthly', async (req, res) => {
     const mAbbr = (isFinite(monthIdx) && monthIdx >= 0 && monthIdx <= 11) ? MONTH_ABBR[monthIdx] : String(year);
     const fileName = `${branch || 'GTO'}-System_Team_Monthly_Closing_Report_${mAbbr}${String(year).slice(2)}.pdf`;
 
-    const pdf = await renderPdf({ template: 'system-monthly', data: ctx, pdf: buildPdfOpts(generated) });
+    // Custom PDF opts for system-monthly: proper chrome header on every page
+    const _esc = (s) => String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    const siteDisp = _esc(ctx.meta && ctx.meta.site ? ctx.meta.site : ctx.scope);
+    const reportLabel = ko ? '시스템팀 월말 마감 보고서' : 'System Team Monthly Closing Report';
+    const sysHeader = `<div style="display:flex;justify-content:space-between;align-items:flex-end;width:100%;padding:4px 12mm 5px;border-bottom:2px solid #534AB7;font-family:-apple-system,Helvetica,Arial,sans-serif;font-size:8.5pt;color:#73726c;box-sizing:border-box"><span style="font-weight:700;color:#534AB7;letter-spacing:0.04em;text-transform:uppercase">D'STRICT &middot; GTO</span><span>${_esc(ctx.scope)} &middot; ${_esc(ctx.period)} &middot; ${reportLabel}</span><span>${siteDisp}</span></div>`;
+    const sysPdfOpts = Object.assign({}, buildPdfOpts(generated), {
+      headerTemplate: sysHeader,
+      margin: { top: '34px', right: '0', bottom: '22px', left: '0' },
+    });
+    const pdf = await renderPdf({ template: 'system-monthly', data: ctx, pdf: sysPdfOpts });
     console.log(`[v2/system-monthly] ${fileName} groups=${ctx.groups.length} ${Date.now()-t0}ms`);
     sendPdf(res, pdf, fileName, true, Date.now() - t0);
   } catch (e) {

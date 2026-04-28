@@ -1407,7 +1407,8 @@ html[lang="ko"] .chart-summary {
  * ══════════════════════════════════════════════ */
 
 .sys-page {
-  padding-top: 8mm;
+  /* top padding handled by Puppeteer margin (headerTemplate) */
+  padding-top: 2mm;
 }
 
 /* ── Title block ── */
@@ -1459,10 +1460,11 @@ html[lang="ko"] .chart-summary {
 /* ── Groups ── */
 .sys-group {
   margin-bottom: 10px;
-  break-inside: avoid;
   border: 1px solid var(--border);
   border-radius: var(--radius);
   overflow: hidden;
+  /* break-inside on the full group is intentionally removed:
+     groups can be longer than one page, so we control breaks at block level */
 }
 .sys-group-head {
   display: flex;
@@ -1471,6 +1473,9 @@ html[lang="ko"] .chart-summary {
   padding: 7px 14px;
   background: var(--text);
   color: #fff;
+  /* prevent orphan section header alone at bottom of a page */
+  break-after: avoid;
+  page-break-after: avoid;
 }
 .sys-group-num {
   font-size: 12px;
@@ -1498,6 +1503,9 @@ html[lang="ko"] .chart-summary {
 .sys-block {
   padding: 8px 14px 9px;
   border-bottom: 1px solid var(--border);
+  /* each block (1.1, 1.2 …) is atomic — moves as a whole to the next page */
+  break-inside: avoid;
+  page-break-inside: avoid;
 }
 .sys-block:last-child {
   border-bottom: none;

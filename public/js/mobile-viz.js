@@ -133,7 +133,7 @@ function renderP1MobileViz(){
       var gradColors = ['#534AB7','#2563eb','#7c3aed','#ea580c','#0891b2','#059669','#ca8a04','#dc2626'];
       var barColor = gradColors[i % gradColors.length];
       html += '<div class="mviz-zone-bar">';
-      html += '<div class="mviz-zone-name">'+(z[0].length > 16 ? z[0].slice(0,15)+'…' : z[0])+'</div>';
+      html += '<div class="mviz-zone-name">'+z[0]+'</div>';
       html += '<div class="mviz-zone-track"><div class="mviz-zone-fill" style="width:'+pct+'%;background:'+barColor+'"></div></div>';
       html += '<div class="mviz-zone-count">'+z[1]+' <span style="color:var(--t4);font-weight:400">('+sharePct+'%)</span></div>';
       html += '</div>';

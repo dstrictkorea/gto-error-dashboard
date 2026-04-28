@@ -136,15 +136,34 @@ body.mode-view [contenteditable]{pointer-events:none}
 body.mode-view .item:hover .item-del{display:none!important}
 body.mode-view .rh-meta-val{border-bottom-color:transparent!important}
 
+/* ── Fixed running header — visible only in print, repeats every page ── */
+.print-run-head{display:none}
+
 /* ── Print — A4 landscape, zero margins (matches Error Report output) ── */
 @media print{
-  @page{size:A4 landscape;margin:0}
+  @page{size:A4 landscape;margin:32px 0 22px}
   body{background:#fff!important}
   .appbar,.add-section-wrap,.add-block,.add-item,.group-actions,.block-actions,.item-del,.dropzone,.toast,.lightbox,.footer{display:none!important}
-  .page{max-width:none;margin:0;padding:8mm 12mm 4mm;box-shadow:none!important;border-radius:0!important;break-after:page;min-height:calc(210mm - 22px)}
-  .paper-chrome{display:flex!important}
-  .group{break-inside:avoid;margin-bottom:10px}
-  .block{break-inside:avoid}
+  /* Hide the in-flow paper-chrome; the fixed print-run-head covers all pages */
+  .paper-chrome{display:none!important}
+  /* Running header — fixed to top of every printed page */
+  .print-run-head{
+    display:flex!important;position:fixed;top:0;left:0;right:0;
+    justify-content:space-between;align-items:flex-end;
+    padding:4px 12mm 5px;
+    border-bottom:2px solid var(--purple);
+    background:#fff;z-index:999;
+    font-size:9pt;
+  }
+  .print-run-head .prc-brand{font-weight:700;color:var(--purple);letter-spacing:0.04em;text-transform:uppercase;font-size:8pt}
+  .print-run-head .prc-center{color:var(--muted);font-size:8pt}
+  .print-run-head .prc-right{color:var(--muted);font-size:8pt}
+  .page{max-width:none;margin:0;padding:6mm 12mm 4mm;box-shadow:none!important;border-radius:0!important}
+  /* Section header never orphaned at page bottom */
+  .group-head{break-after:avoid;page-break-after:avoid}
+  /* Each block (1.1, 1.2…) stays intact on same page */
+  .block{break-inside:avoid;page-break-inside:avoid}
+  .group{margin-bottom:10px}
 }
 </style>
 </head>
@@ -168,6 +187,13 @@ body.mode-view .rh-meta-val{border-bottom-color:transparent!important}
     <button class="btn" onclick="window.print()">🖨 <span data-i18n="printBtn">Print</span></button>
     <input type="file" id="fileLoad" accept=".html,application/xhtml+xml" style="display:none" onchange="handleFileLoad(this)">
   </div>
+</div>
+
+<!-- Fixed running header for browser print — hidden on screen, repeats on every printed page -->
+<div class="print-run-head">
+  <span class="prc-brand">d'strict · GTO</span>
+  <span class="prc-center" id="prcCenter"></span>
+  <span class="prc-right" id="prcRight"></span>
 </div>
 
 <div class="page">
@@ -406,13 +432,21 @@ function renderAll(){
   document.title = TITLE;
   document.getElementById('rhTitle').textContent = TITLE;
 
-  // Paper chrome
+  // Paper chrome (screen) + print running header
+  var brDisp  = BRANCH !== 'AMXX' ? BRANCH : 'd\'strict GTO';
+  var perDisp = lang === 'ko' ? PERIOD_KO : PERIOD_EN;
+  var siteDisp = SITE_NAMES[BRANCH] || BRANCH;
+  var centerDisp = brDisp + ' · ' + perDisp + ' · ' + (lang === 'ko' ? '시스템팀 월말 마감 보고서' : 'System Team Monthly Closing Report');
   var pcBranch = document.getElementById('pcBranch');
-  if(pcBranch) pcBranch.textContent = BRANCH !== 'AMXX' ? BRANCH : 'd\'strict GTO';
+  if(pcBranch) pcBranch.textContent = brDisp;
   var pcPeriod = document.getElementById('pcPeriod');
-  if(pcPeriod) pcPeriod.textContent = lang === 'ko' ? PERIOD_KO : PERIOD_EN;
+  if(pcPeriod) pcPeriod.textContent = perDisp;
   var pcSite = document.getElementById('pcSite');
-  if(pcSite) pcSite.textContent = SITE_NAMES[BRANCH] || BRANCH;
+  if(pcSite) pcSite.textContent = siteDisp;
+  var prcCenter = document.getElementById('prcCenter');
+  if(prcCenter) prcCenter.textContent = centerDisp;
+  var prcRight = document.getElementById('prcRight');
+  if(prcRight) prcRight.textContent = siteDisp;
 
   // Meta values (only update if not focused)
   _setMeta('metaPeriod',   'period');
