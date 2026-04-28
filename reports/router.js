@@ -279,9 +279,13 @@ router.post('/system-monthly', async (req, res) => {
       : String(year);
 
     const generated = new Date().toLocaleDateString(ko ? 'ko-KR' : 'en-GB');
-    const title = branch
-      ? `${branch} ${ko ? period : period} System Team Monthly Closing Report`
-      : `${period} System Team Monthly Closing Report`;
+    const KO_SITE_NAMES = { AMGN:'아르떼뮤지엄 강릉', AMYS:'아르떼뮤지엄 여수', AMBS:'아르떼뮤지엄 부산', AMJJ:'아르떼뮤지엄 제주' };
+    const koSiteName = KO_SITE_NAMES[branch];
+    const title = ko && koSiteName
+      ? `${koSiteName} ${isFinite(monthIdx) && monthIdx >= 0 && monthIdx <= 11 ? MONTHS_KO[monthIdx] : ''} ${year}년 시스템팀 월말 마감 보고서`
+      : (branch
+          ? `${branch} ${period} System Team Monthly Closing Report`
+          : `${period} System Team Monthly Closing Report`);
 
     const ctx = buildSystemMonthlyContext(formState, { lang, period, scope: branch, title, generated });
 
