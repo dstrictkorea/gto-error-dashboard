@@ -1099,7 +1099,7 @@ function buildSystemMonthlyContext(formState, opts) {
     systemReportBadge: ko ? 'd\'strict · GTO — 시스템 팀 월간 마감 리포트' : 'd\'strict · GTO — System Team Monthly Closing Report',
     page:              ko ? '페이지' : 'Page',
     metaPeriod:        ko ? '보고 기간' : 'Reporting Period',
-    metaAuthor:        ko ? '작성자'   : 'Author',
+    metaInCharge:      ko ? '담당자'   : 'In-Charge',
     metaDate:          ko ? '제출일'   : 'Submission Date',
     metaSite:          ko ? '현장'     : 'Site',
   };
@@ -1120,7 +1120,7 @@ function buildSystemMonthlyContext(formState, opts) {
 
   return {
     lang, title, period, scope, generated,
-    meta: { period: meta.period || period, author: meta.author || '', date: meta.date || '', site: meta.site || scope },
+    meta: { period: meta.period || period, inCharge: meta.inCharge || meta.author || '', date: meta.date || '', site: meta.site || scope },
     groups,
     labels,
     docTitle: title,

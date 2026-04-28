@@ -19,7 +19,7 @@
   --font:'Pretendard Variable','Pretendard',-apple-system,BlinkMacSystemFont,'Malgun Gothic','맑은 고딕',Arial,sans-serif;
 }
 *{margin:0;padding:0;box-sizing:border-box}
-html,body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:15px;font-weight:300;line-height:1.6;letter-spacing:-0.2px}
+html,body{font-family:var(--font);background:#b2b1ac;color:var(--text);font-size:15px;font-weight:300;line-height:1.6;letter-spacing:-0.2px}
 button,input,textarea,select,[contenteditable]{font-family:inherit;color:inherit}
 button{cursor:pointer;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
 
@@ -38,24 +38,31 @@ button{cursor:pointer;-webkit-tap-highlight-color:transparent;touch-action:manip
 .mode-toggle button{padding:7px 14px;font-size:12px;font-weight:600;background:transparent;color:#aaa;border:0;min-height:34px}
 .mode-toggle button.on{background:#FFC000;color:#1a1a18}
 
-/* ── Page ── */
-.page{max-width:1100px;margin:0 auto;padding:24px 24px 60px}
+/* ── Page (landscape A4 paper appearance) ── */
+.page{max-width:1160px;margin:24px auto;padding:20px 32px 44px;background:#fff;border-radius:6px;box-shadow:0 4px 28px rgba(0,0,0,0.22)}
+
+/* ── Paper chrome — matches Error Report purple header ── */
+.paper-chrome{display:flex;justify-content:space-between;align-items:flex-end;padding-bottom:7px;margin-bottom:20px;border-bottom:2px solid var(--purple)}
+.paper-chrome .pc-brand{font-size:11px;font-weight:700;color:var(--purple);letter-spacing:0.04em;text-transform:uppercase}
+.paper-chrome .pc-center{font-size:10px;color:var(--muted);display:flex;gap:5px;align-items:center}
+.paper-chrome .pc-right{font-size:10px;color:var(--muted)}
 
 /* ── Report header ── */
 .report-head{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:24px 28px;margin-bottom:18px}
-.rh-title{font-size:24px;font-weight:700;letter-spacing:-0.6px;line-height:1.3;color:var(--text)}
-.rh-meta{display:flex;flex-wrap:wrap;gap:18px;margin-top:14px;padding-top:14px;border-top:1px solid var(--border)}
-.rh-meta-item{display:flex;flex-direction:column;gap:3px;min-width:130px}
-.rh-meta-lbl{font-size:12px;font-weight:600;color:var(--muted);letter-spacing:0.5px;text-transform:uppercase}
-.rh-meta-val{font-size:15px;font-weight:500;color:var(--text);letter-spacing:-0.2px;outline:none;min-width:60px;min-height:20px}
-.rh-meta-val[contenteditable=true]:hover{background:rgba(83,74,183,0.05);border-radius:4px}
-.rh-meta-val[contenteditable=true]:focus{background:var(--purple-bg);border-radius:4px;padding:2px 6px;margin:-2px -6px}
+.rh-title{font-size:22px;font-weight:700;letter-spacing:-0.6px;line-height:1.3;color:var(--text);margin-bottom:2px}
+.rh-subtitle{font-size:11px;font-weight:500;color:var(--purple);letter-spacing:0.04em;text-transform:uppercase;margin-bottom:0}
+.rh-meta{display:flex;flex-wrap:wrap;gap:22px;margin-top:16px;padding-top:16px;border-top:1px solid var(--border)}
+.rh-meta-item{display:flex;flex-direction:column;gap:4px;min-width:130px}
+.rh-meta-lbl{font-size:11px;font-weight:700;color:var(--muted);letter-spacing:0.5px;text-transform:uppercase}
+.rh-meta-val{font-size:15px;font-weight:500;color:var(--text);letter-spacing:-0.2px;outline:none;min-width:80px;min-height:22px;border-bottom:1px solid transparent;transition:border-color .15s}
+.rh-meta-val[contenteditable=true]:hover{border-bottom-color:var(--border)}
+.rh-meta-val[contenteditable=true]:focus{border-bottom-color:var(--purple);background:var(--purple-bg);border-radius:4px 4px 0 0;padding:2px 6px;margin:-2px -6px 0}
 
 /* ── Groups ── */
 .group{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:14px;overflow:hidden}
 .group-head{display:flex;align-items:center;gap:10px;padding:14px 22px;background:#1a1a18;color:#fff;border-bottom:1px solid #000;position:relative}
 .group-num{font-size:15px;font-weight:700;color:#FFC000;min-width:24px}
-.group-title{font-size:18px;font-weight:600;letter-spacing:-0.4px;flex:1;outline:none}
+.group-title{font-size:17px;font-weight:600;letter-spacing:-0.4px;flex:1;outline:none}
 .group-title[contenteditable=true]:focus{background:rgba(255,255,255,0.1);border-radius:4px;padding:2px 6px;margin:-2px -6px}
 .group-body{padding:8px 0}
 .group-actions{display:flex;gap:5px;flex-shrink:0}
@@ -100,7 +107,7 @@ button{cursor:pointer;-webkit-tap-highlight-color:transparent;touch-action:manip
 .dropzone .dz-ic{font-size:28px;opacity:0.7}
 
 /* ── Add section ── */
-.add-section-wrap{max-width:1100px;margin:0 auto 20px;padding:0 24px}
+.add-section-wrap{max-width:1160px;margin:0 auto 20px;padding:0}
 .add-section-btn{width:100%;padding:14px;font-size:14px;font-weight:500;color:var(--muted);background:transparent;border:1px dashed var(--border);border-radius:var(--radius);display:flex;align-items:center;justify-content:center;gap:8px}
 .add-section-btn:hover{background:var(--purple-bg);color:var(--purple);border-color:var(--purple);border-style:solid}
 
@@ -123,14 +130,19 @@ body.mode-view .block-actions,
 body.mode-view .item-del,
 body.mode-view .add-item,
 body.mode-view .add-block,
-body.mode-view .dropzone{display:none!important}
-body.mode-view [contenteditable]{contenteditable:false;pointer-events:none}
+body.mode-view .dropzone,
+body.mode-view .add-section-wrap{display:none!important}
+body.mode-view [contenteditable]{pointer-events:none}
 body.mode-view .item:hover .item-del{display:none!important}
+body.mode-view .rh-meta-val{border-bottom-color:transparent!important}
 
-/* ── Print ── */
+/* ── Print — A4 landscape, zero margins (matches Error Report output) ── */
 @media print{
+  @page{size:A4 landscape;margin:0}
+  body{background:#fff!important}
   .appbar,.add-section-wrap,.add-block,.add-item,.group-actions,.block-actions,.item-del,.dropzone,.toast,.lightbox,.footer{display:none!important}
-  .page{max-width:none;padding:0}
+  .page{max-width:none;margin:0;padding:8mm 12mm 4mm;box-shadow:none!important;border-radius:0!important;break-after:page;min-height:calc(210mm - 22px)}
+  .paper-chrome{display:flex!important}
   .group{break-inside:avoid;margin-bottom:10px}
   .block{break-inside:avoid}
 }
@@ -145,9 +157,9 @@ body.mode-view .item:hover .item-del{display:none!important}
       <span class="brand-sub" id="barTitle">System Team Monthly Report</span>
     </div>
     <div class="bar-spacer"></div>
-    <div class="mode-toggle" id="modeToggle">
-      <button data-mode="edit" class="on" onclick="setMode('edit')" id="btnModeEdit">✏️ Edit</button>
-      <button data-mode="view" onclick="setMode('view')" id="btnModeView">👁 View</button>
+    <div class="mode-toggle">
+      <button class="on" onclick="setMode('edit')" id="btnModeEdit">✏️ Edit</button>
+      <button onclick="setMode('view')" id="btnModeView">👁 View</button>
     </div>
     <button class="btn" id="btnLang" onclick="toggleLang()">🌐 <span id="btnLangLbl">한국어</span></button>
     <button class="btn" onclick="loadFromFile()">📂 <span data-i18n="loadBtn">Load</span></button>
@@ -159,7 +171,13 @@ body.mode-view .item:hover .item-del{display:none!important}
 </div>
 
 <div class="page">
+  <div class="paper-chrome">
+    <span class="pc-brand">d'strict · GTO</span>
+    <span class="pc-center"><span id="pcBranch"></span><span>·</span><span id="pcPeriod"></span><span>·</span><span>System Team Monthly Closing Report</span></span>
+    <span class="pc-right" id="pcSite"></span>
+  </div>
   <div class="report-head">
+    <div class="rh-subtitle">d'strict · GTO</div>
     <div class="rh-title" id="rhTitle"></div>
     <div class="rh-meta">
       <div class="rh-meta-item">
@@ -167,8 +185,8 @@ body.mode-view .item:hover .item-del{display:none!important}
         <span class="rh-meta-val" contenteditable="true" id="metaPeriod" data-field="period"></span>
       </div>
       <div class="rh-meta-item">
-        <span class="rh-meta-lbl" data-i18n="metaAuthor">Author</span>
-        <span class="rh-meta-val" contenteditable="true" id="metaAuthor" data-field="author"></span>
+        <span class="rh-meta-lbl" data-i18n="metaInCharge">In-Charge</span>
+        <span class="rh-meta-val" contenteditable="true" id="metaInCharge" data-field="inCharge"></span>
       </div>
       <div class="rh-meta-item">
         <span class="rh-meta-lbl" data-i18n="metaDate">Submission Date</span>
@@ -206,148 +224,221 @@ body.mode-view .item:hover .item-del{display:none!important}
 // ── URL params ────────────────────────────────────────────────
 var params = new URLSearchParams(location.search);
 var BRANCH = (params.get('branch')||'').toUpperCase() || 'AMXX';
-var MONTH_IDX = parseInt(params.get('month') || '') ;
+var MONTH_IDX = parseInt(params.get('month') || '');
 if(isNaN(MONTH_IDX) || MONTH_IDX < 0 || MONTH_IDX > 11) MONTH_IDX = new Date().getMonth();
 var YEAR = parseInt(params.get('year') || '') || new Date().getFullYear();
-var INIT_LANG = params.get('lang') === 'ko' ? 'ko' : 'en';
+var INIT_LANG   = params.get('lang')   === 'ko' ? 'ko' : 'en';
+var INIT_MODE   = params.get('mode')   === 'view' ? 'view' : 'edit';
+var INIT_ACTION = params.get('action') || '';
 
-var MONTHS_EN = ['January','February','March','April','May','June','July','August','September','October','November','December'];
-var MONTHS_KO = ['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
-var SITES = {AMGN:'Arte Museum Gangneung',AMYS:'Arte Museum Yeosu',AMBS:'Arte Museum Busan',AMJJ:'Arte Museum Jeju',AMNY:'Arte Museum New York',AMLV:'Arte Museum Las Vegas',AMDB:'Arte Museum Dubai'};
+var MONTHS_EN  = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+var MONTHS_KO  = ['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
+
+// Site names — EN branches use EN, KO branches use Korean
+var SITE_NAMES = {
+  AMNY:'Arte Museum New York',
+  AMLV:'Arte Museum Las Vegas',
+  AMDB:'Arte Museum Dubai',
+  AMGN:'아르떼뮤지엄 강릉',
+  AMYS:'아르떼뮤지엄 여수',
+  AMBS:'아르떼뮤지엄 부산',
+  AMJJ:'아르떼뮤지엄 제주',
+};
+var KO_BRANCHES = ['AMGN','AMYS','AMBS','AMJJ'];
+var IS_KO_BRANCH = KO_BRANCHES.indexOf(BRANCH) >= 0;
 
 var TITLE = BRANCH + ' ' + MONTHS_EN[MONTH_IDX] + ' ' + YEAR + ' System Team Monthly Closing Report';
 var PERIOD_EN = MONTHS_EN[MONTH_IDX] + ' ' + YEAR;
 var PERIOD_KO = YEAR + '년 ' + MONTHS_KO[MONTH_IDX];
+
+// Auto-suggest submission date: 1st of next month
+var _nextMonthDate = new Date(YEAR, MONTH_IDX + 1, 1);
+var AUTO_DATE_EN = MONTHS_EN[_nextMonthDate.getMonth()] + ' 1, ' + _nextMonthDate.getFullYear();
+var AUTO_DATE_KO = _nextMonthDate.getFullYear() + '년 ' + (_nextMonthDate.getMonth()+1) + '월 1일';
+
+var SITE_FULL = BRANCH + (SITE_NAMES[BRANCH] ? ' (' + SITE_NAMES[BRANCH] + ')' : '');
 var STORAGE_KEY = 'sysrpt_' + BRANCH + '_' + YEAR + '_' + MONTH_IDX;
 
 // ── i18n ─────────────────────────────────────────────────────
 var T = {
   en:{
-    loadBtn:'Load',htmlBtn:'Save HTML',printBtn:'Print',genPdf:'Download PDF',pdfGenerating:'Generating PDF…',
-    metaPeriod:'Reporting Period',metaAuthor:'Author',metaDate:'Submission Date',metaSite:'Site',
-    addSection:'＋ Add new section',addBlock:'＋ Add subsection',addNote:'＋ Add note',
-    newSection:'New Section',newBlock:'New Subsection',newNote:'New note — click to edit',
-    moveUp:'↑',moveDown:'↓',del:'✕',
+    loadBtn:'Load', htmlBtn:'Save HTML', printBtn:'Print',
+    genPdf:'Download PDF', pdfGenerating:'Generating PDF…',
+    metaPeriod:'Reporting Period', metaInCharge:'In-Charge',
+    metaDate:'Submission Date', metaSite:'Site',
+    addSection:'＋ Add new section', addBlock:'＋ Add subsection', addNote:'＋ Add note',
+    newSectionEn:'New Section', newSectionKo:'새 섹션',
+    newBlockEn:'New Subsection',  newBlockKo:'새 소목차',
+    moveUp:'↑', moveDown:'↓', del:'✕',
     footer:"Generated with d'strict System Report Template · Save HTML for a shareable single-file document",
-    langBtn:'한국어',saved:'Saved',htmlSaved:'Saved as HTML',loaded:'Loaded',
-    confirmDel:'Delete this section?',confirmDelBlock:'Delete this subsection?',
-    dropImages:'Drop images here',orClick:'or click to browse',
+    langBtn:'한국어', htmlSaved:'Saved as HTML', loaded:'Loaded',
+    confirmDel:'Delete this section?', confirmDelBlock:'Delete this subsection?',
+    dropImages:'Drop images here', orClick:'or click to browse',
   },
   ko:{
-    loadBtn:'불러오기',htmlBtn:'HTML 저장',printBtn:'인쇄',genPdf:'PDF 다운로드',pdfGenerating:'PDF 생성 중…',
-    metaPeriod:'보고 기간',metaAuthor:'작성자',metaDate:'제출일',metaSite:'현장',
-    addSection:'＋ 섹션 추가',addBlock:'＋ 소목차 추가',addNote:'＋ 항목 추가',
-    newSection:'새 섹션',newBlock:'새 소목차',newNote:'새 항목 — 클릭하여 편집',
-    moveUp:'↑',moveDown:'↓',del:'✕',
+    loadBtn:'불러오기', htmlBtn:'HTML 저장', printBtn:'인쇄',
+    genPdf:'PDF 다운로드', pdfGenerating:'PDF 생성 중…',
+    metaPeriod:'보고 기간', metaInCharge:'담당자',
+    metaDate:'제출일', metaSite:'현장',
+    addSection:'＋ 섹션 추가', addBlock:'＋ 소목차 추가', addNote:'＋ 항목 추가',
+    newSectionEn:'New Section', newSectionKo:'새 섹션',
+    newBlockEn:'New Subsection',  newBlockKo:'새 소목차',
+    moveUp:'↑', moveDown:'↓', del:'✕',
     footer:"d'strict 시스템 리포트 템플릿으로 생성 · HTML 저장으로 단일 파일 공유",
-    langBtn:'English',saved:'저장됨',htmlSaved:'HTML로 저장되었습니다',loaded:'불러오기 완료',
-    confirmDel:'이 섹션을 삭제하시겠습니까?',confirmDelBlock:'이 소목차를 삭제하시겠습니까?',
-    dropImages:'이미지를 여기에 드래그하세요',orClick:'또는 클릭하여 선택',
+    langBtn:'English', htmlSaved:'HTML로 저장되었습니다', loaded:'불러오기 완료',
+    confirmDel:'이 섹션을 삭제하시겠습니까?', confirmDelBlock:'이 소목차를 삭제하시겠습니까?',
+    dropImages:'이미지를 여기에 드래그하세요', orClick:'또는 클릭하여 선택',
   }
 };
-var lang = INIT_LANG;
+var lang = IS_KO_BRANCH ? 'ko' : INIT_LANG;
 function t(k){ return (T[lang]||T.en)[k] || k; }
 
-// ── Default groups ────────────────────────────────────────────
+// ── Bilingual title helpers ───────────────────────────────────
+function getGroupTitle(g){
+  return lang === 'ko' ? (g.titleKo || g.titleEn || '') : (g.titleEn || g.titleKo || '');
+}
+function getBlockTitle(b){
+  return lang === 'ko' ? (b.titleKo || b.titleEn || '') : (b.titleEn || b.titleKo || '');
+}
+
+// ── Default groups (bilingual, user-editable) ─────────────────
 var DEFAULT_GROUPS = [
-  {title:'System',blocks:[
-    {title:'Projectors',items:[],images:[]},
-    {title:'Software',items:[],images:[]},
-    {title:'Hardware',items:[],images:[]},
-    {title:'Network',items:[],images:[]},
+  { titleEn:'Tech Op',   titleKo:'시스템', blocks:[
+    { titleEn:'Projectors',    titleKo:'프로젝터',   items:[], images:[] },
+    { titleEn:'Software',      titleKo:'소프트웨어', items:[], images:[] },
+    { titleEn:'Hardware',      titleKo:'하드웨어',   items:[], images:[] },
+    { titleEn:'Network',       titleKo:'네트워크',   items:[], images:[] },
   ]},
-  {title:'Facility',blocks:[
-    {title:'Electricity',items:[],images:[]},
-    {title:'Fire / Safety',items:[],images:[]},
-    {title:'Lighting / Signage',items:[],images:[]},
-    {title:'Interior',items:[],images:[]},
+  { titleEn:'Facility',  titleKo:'시설', blocks:[
+    { titleEn:'Electricity',        titleKo:'전기',         items:[], images:[] },
+    { titleEn:'Fire, Safety',       titleKo:'소방 안전',    items:[], images:[] },
+    { titleEn:'Lighting, Signage',  titleKo:'조명, 사이니지', items:[], images:[] },
+    { titleEn:'Interior',           titleKo:'인테리어',     items:[], images:[] },
   ]},
-  {title:'Presentation of Museum Projects',blocks:[]},
-  {title:'HVAC / Plumbing / Elevator / Escalator',blocks:[]},
-  {title:'Contractor Invoices / Amazon Invoices',blocks:[
-    {title:'Vendor Worksheet',items:[],images:[]},
-    {title:MONTHS_EN[MONTH_IDX]+' Invoices for Systems',items:[],images:[]},
-    {title:'Systems Team Amazon Purchases',items:[],images:[]},
+  { titleEn:'Presentation of Museum Projects', titleKo:'전시관 상태', blocks:[] },
+  { titleEn:'HVAC, Plumbing, Elevator, Escalator', titleKo:'공조, 배관', blocks:[] },
+  { titleEn:'Contractor Invoices, Amazon Invoices', titleKo:'업체 청구서 / 기타 구매 청구서', blocks:[
+    { titleEn:'Vendor List',              titleKo:'계약업체 정보',      items:[], images:[] },
+    { titleEn:'Vendor Invoices',          titleKo:'계약 인보이스',      items:[], images:[] },
+    { titleEn:'Amazon, Online Purchases', titleKo:'온라인, 기타 인보이스', items:[], images:[] },
   ]},
-  {title:'Internal System Team Announcements',blocks:[]},
-  {title:"Next Month's Game Plan",blocks:[]},
+  { titleEn:'Internal Announcements', titleKo:'기타 추가사항', blocks:[] },
+  { titleEn:"Next Month's Game Plan", titleKo:'다음달 계획',   blocks:[] },
 ];
 
 // ── State ─────────────────────────────────────────────────────
 var state = {
-  meta:{ period: PERIOD_EN, author:'', date:'', site: BRANCH+' ('+(SITES[BRANCH]||BRANCH)+')' },
+  meta:{ period: PERIOD_EN, inCharge:'', date: AUTO_DATE_EN, site: SITE_FULL },
   groups: JSON.parse(JSON.stringify(DEFAULT_GROUPS)),
 };
 
-// Try loading saved state (embedded or localStorage)
+// Migrate old single-lang `title` field to bilingual `titleEn`/`titleKo`
+function migrateGroups(groups){
+  return (groups||[]).map(function(g){
+    if(!g.titleEn && !g.titleKo){ g.titleEn = g.title || ''; g.titleKo = g.title || ''; }
+    delete g.title;
+    g.blocks = (g.blocks||[]).map(function(b){
+      if(!b.titleEn && !b.titleKo){ b.titleEn = b.title || ''; b.titleKo = b.title || ''; }
+      delete b.title;
+      return b;
+    });
+    return g;
+  });
+}
+// Migrate old `author` field → `inCharge`
+function migrateMeta(meta){
+  if(!meta.inCharge && meta.author){ meta.inCharge = meta.author; }
+  delete meta.author;
+  return meta;
+}
+
+// Try loading saved state (embedded HTML or localStorage)
 (function loadInitial(){
   try{
     var emb = JSON.parse(document.getElementById('savedState').textContent||'{}');
-    if(emb && emb.groups && emb.groups.length){ state = emb; return; }
+    if(emb && emb.groups && emb.groups.length){
+      emb.groups = migrateGroups(emb.groups);
+      if(emb.meta) emb.meta = migrateMeta(emb.meta);
+      state = emb; return;
+    }
   }catch(e){}
   try{
     var stored = localStorage.getItem(STORAGE_KEY);
-    if(stored){ var parsed = JSON.parse(stored); if(parsed && parsed.groups) state = parsed; }
+    if(stored){
+      var parsed = JSON.parse(stored);
+      if(parsed && parsed.groups){
+        parsed.groups = migrateGroups(parsed.groups);
+        if(parsed.meta) parsed.meta = migrateMeta(parsed.meta);
+        state = parsed;
+      }
+    }
   }catch(e){}
 })();
 
 // ── Utils ─────────────────────────────────────────────────────
-function uid(){ return Math.random().toString(36).slice(2,9); }
 var _toastTimer;
 function toast(msg){
   var el=document.getElementById('toast'); el.textContent=msg; el.classList.add('on');
-  clearTimeout(_toastTimer); _toastTimer=setTimeout(function(){el.classList.remove('on');},1800);
+  clearTimeout(_toastTimer); _toastTimer=setTimeout(function(){el.classList.remove('on');},2000);
 }
 
 // ── Persist ───────────────────────────────────────────────────
 var _saveTimer;
 function scheduleSave(){
   clearTimeout(_saveTimer);
-  _saveTimer = setTimeout(function(){
-    syncMetaFromDom();
-    try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }catch(e){}
-  }, 600);
+  _saveTimer = setTimeout(function(){ syncMetaFromDom(); _doSave(); }, 600);
 }
-
+function _doSave(){
+  try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }catch(e){}
+}
 function syncMetaFromDom(){
-  var fields = ['period','author','date','site'];
-  fields.forEach(function(f){
-    var el = document.getElementById('meta'+f.charAt(0).toUpperCase()+f.slice(1));
+  ['period','inCharge','date','site'].forEach(function(f){
+    var id = 'meta' + f.charAt(0).toUpperCase() + f.slice(1);
+    var el = document.getElementById(id);
     if(el) state.meta[f] = el.textContent;
   });
 }
 
 // ── Render ────────────────────────────────────────────────────
 function renderAll(){
-  // Update title
   document.title = TITLE;
   document.getElementById('rhTitle').textContent = TITLE;
-  // Update meta fields
-  var mP = document.getElementById('metaPeriod');
-  var mA = document.getElementById('metaAuthor');
-  var mD = document.getElementById('metaDate');
-  var mS = document.getElementById('metaSite');
-  if(mP && !mP._focused) mP.textContent = state.meta.period || '';
-  if(mA && !mA._focused) mA.textContent = state.meta.author || '';
-  if(mD && !mD._focused) mD.textContent = state.meta.date || '';
-  if(mS && !mS._focused) mS.textContent = state.meta.site || '';
 
-  // Update i18n labels
+  // Paper chrome
+  var pcBranch = document.getElementById('pcBranch');
+  if(pcBranch) pcBranch.textContent = BRANCH !== 'AMXX' ? BRANCH : 'd\'strict GTO';
+  var pcPeriod = document.getElementById('pcPeriod');
+  if(pcPeriod) pcPeriod.textContent = lang === 'ko' ? PERIOD_KO : PERIOD_EN;
+  var pcSite = document.getElementById('pcSite');
+  if(pcSite) pcSite.textContent = SITE_NAMES[BRANCH] || BRANCH;
+
+  // Meta values (only update if not focused)
+  _setMeta('metaPeriod',   'period');
+  _setMeta('metaInCharge', 'inCharge');
+  _setMeta('metaDate',     'date');
+  _setMeta('metaSite',     'site');
+
+  // i18n labels
   document.querySelectorAll('[data-i18n]').forEach(function(el){
     el.textContent = t(el.dataset.i18n);
   });
   document.getElementById('btnLangLbl').textContent = t('langBtn');
+  document.documentElement.lang = lang;
 
-  // Render groups
+  // Groups
   var container = document.getElementById('groups');
   container.innerHTML = '';
   state.groups.forEach(function(g, gi){ container.appendChild(renderGroup(g, gi)); });
 }
 
+function _setMeta(id, field){
+  var el = document.getElementById(id);
+  if(el && !el._focused) el.textContent = state.meta[field] || '';
+}
+
 function renderGroup(g, gi){
   var div = document.createElement('div');
-  div.className = 'group';
-  div.id = 'g'+gi;
+  div.className = 'group'; div.id = 'g'+gi;
 
   var head = document.createElement('div');
   head.className = 'group-head';
@@ -356,8 +447,12 @@ function renderGroup(g, gi){
   var titleEl = document.createElement('span');
   titleEl.className = 'group-title';
   titleEl.contentEditable = 'true';
-  titleEl.textContent = g.title;
-  titleEl.oninput = function(){ g.title = this.textContent; scheduleSave(); };
+  titleEl.textContent = getGroupTitle(g);
+  titleEl.oninput = function(){
+    if(lang === 'ko') g.titleKo = this.textContent;
+    else              g.titleEn = this.textContent;
+    scheduleSave();
+  };
   head.appendChild(titleEl);
 
   var acts = document.createElement('div');
@@ -372,7 +467,6 @@ function renderGroup(g, gi){
   body.className = 'group-body';
   g.blocks.forEach(function(b, bi){ body.appendChild(renderBlock(b, g, gi, bi)); });
 
-  // Add block button
   var addBlockBtn = document.createElement('button');
   addBlockBtn.className = 'add-block';
   addBlockBtn.textContent = t('addBlock');
@@ -394,8 +488,12 @@ function renderBlock(b, g, gi, bi){
   var titleEl = document.createElement('span');
   titleEl.className = 'block-title';
   titleEl.contentEditable = 'true';
-  titleEl.textContent = b.title;
-  titleEl.oninput = function(){ b.title = this.textContent; scheduleSave(); };
+  titleEl.textContent = getBlockTitle(b);
+  titleEl.oninput = function(){
+    if(lang === 'ko') b.titleKo = this.textContent;
+    else              b.titleEn = this.textContent;
+    scheduleSave();
+  };
   head.appendChild(titleEl);
 
   var acts = document.createElement('div');
@@ -406,24 +504,20 @@ function renderBlock(b, g, gi, bi){
   head.appendChild(acts);
   div.appendChild(head);
 
-  // Items
   if(!b.items) b.items = [];
   var itemsEl = document.createElement('div');
   itemsEl.className = 'items';
   b.items.forEach(function(item, ii){ itemsEl.appendChild(renderItem(item, b, gi, bi, ii)); });
   div.appendChild(itemsEl);
 
-  // Add item
   var addBtn = document.createElement('button');
   addBtn.className = 'add-item';
   addBtn.textContent = t('addNote');
   addBtn.onclick = function(){ addItem(gi, bi); };
   div.appendChild(addBtn);
 
-  // Gallery
   if(!b.images) b.images = [];
   div.appendChild(renderGallery(b, gi, bi));
-
   return div;
 }
 
@@ -441,59 +535,50 @@ function renderItem(item, b, gi, bi, ii){
   textEl.contentEditable = 'true';
   textEl.textContent = typeof item === 'string' ? item : (item.text || '');
   textEl.oninput = function(){ b.items[ii] = this.textContent; scheduleSave(); };
-  textEl.onblur = function(){ if(!this.textContent.trim()){ deleteItem(gi,bi,ii); } };
+  textEl.onblur  = function(){ if(!this.textContent.trim()){ deleteItem(gi,bi,ii); } };
   row.appendChild(textEl);
 
   var del = document.createElement('button');
-  del.className = 'item-del';
-  del.textContent = '✕';
-  del.title = t('del');
+  del.className = 'item-del'; del.textContent = '✕'; del.title = t('del');
   del.onclick = function(){ deleteItem(gi,bi,ii); };
   row.appendChild(del);
-
   return row;
 }
 
 function renderGallery(b, gi, bi){
   var wrap = document.createElement('div');
   if(!b.images) b.images = [];
+  var grid = document.createElement('div');
+  grid.className = 'gallery';
 
-  if(b.images.length || true){ // always show gallery in edit mode
-    var grid = document.createElement('div');
-    grid.className = 'gallery';
+  b.images.forEach(function(img, idx){
+    var cell = document.createElement('div');
+    cell.className = 'gallery-item';
+    var image = document.createElement('img');
+    image.src = img.data; image.alt = img.name || '';
+    image.onclick = function(){ openLightbox(img.data); };
+    cell.appendChild(image);
+    var del = document.createElement('button');
+    del.className = 'img-del'; del.textContent = '✕';
+    del.onclick = function(){ b.images.splice(idx,1); scheduleSave(); renderAll(); };
+    cell.appendChild(del);
+    grid.appendChild(cell);
+  });
 
-    b.images.forEach(function(img, idx){
-      var cell = document.createElement('div');
-      cell.className = 'gallery-item';
-      var image = document.createElement('img');
-      image.src = img.data;
-      image.alt = img.name || '';
-      image.onclick = function(){ openLightbox(img.data); };
-      cell.appendChild(image);
-      var del = document.createElement('button');
-      del.className = 'img-del';
-      del.textContent = '✕';
-      del.onclick = function(){ b.images.splice(idx,1); scheduleSave(); renderAll(); };
-      cell.appendChild(del);
-      grid.appendChild(cell);
-    });
-
-    // Drop zone
-    var dz = document.createElement('div');
-    dz.className = 'dropzone';
-    dz.innerHTML = '<span class="dz-ic">🖼</span><span>'+t('dropImages')+'</span><span style="font-size:11px;color:var(--hint)">'+t('orClick')+'</span>';
-    dz.onclick = function(){
-      var inp = document.createElement('input');
-      inp.type='file'; inp.accept='image/*'; inp.multiple=true;
-      inp.onchange = function(){ handleImages(this.files, b, gi, bi); };
-      inp.click();
-    };
-    dz.addEventListener('dragover', function(e){ e.preventDefault(); dz.classList.add('over'); });
-    dz.addEventListener('dragleave', function(){ dz.classList.remove('over'); });
-    dz.addEventListener('drop', function(e){ e.preventDefault(); dz.classList.remove('over'); handleImages(e.dataTransfer.files, b, gi, bi); });
-    grid.appendChild(dz);
-    wrap.appendChild(grid);
-  }
+  var dz = document.createElement('div');
+  dz.className = 'dropzone';
+  dz.innerHTML = '<span class="dz-ic">🖼</span><span>'+t('dropImages')+'</span><span style="font-size:11px;color:var(--hint)">'+t('orClick')+'</span>';
+  dz.onclick = function(){
+    var inp = document.createElement('input');
+    inp.type='file'; inp.accept='image/*'; inp.multiple=true;
+    inp.onchange = function(){ handleImages(this.files, b, gi, bi); };
+    inp.click();
+  };
+  dz.addEventListener('dragover',  function(e){ e.preventDefault(); dz.classList.add('over'); });
+  dz.addEventListener('dragleave', function(){ dz.classList.remove('over'); });
+  dz.addEventListener('drop', function(e){ e.preventDefault(); dz.classList.remove('over'); handleImages(e.dataTransfer.files, b, gi, bi); });
+  grid.appendChild(dz);
+  wrap.appendChild(grid);
   return wrap;
 }
 
@@ -504,9 +589,8 @@ function handleImages(files, b, gi, bi){
     var reader = new FileReader();
     reader.onload = function(e){
       if(!b.images) b.images = [];
-      b.images.push({ name: file.name, data: e.target.result });
-      scheduleSave();
-      renderAll();
+      b.images.push({name:file.name, data:e.target.result});
+      scheduleSave(); renderAll();
     };
     reader.readAsDataURL(file);
   });
@@ -525,9 +609,9 @@ window.closeLightbox = closeLightbox;
 
 // ── Mutation helpers ──────────────────────────────────────────
 function moveGroup(gi, dir){
-  var a = state.groups, j = gi + dir;
-  if(j < 0 || j >= a.length) return;
-  var tmp = a[gi]; a[gi] = a[j]; a[j] = tmp;
+  var a=state.groups, j=gi+dir;
+  if(j<0||j>=a.length) return;
+  var tmp=a[gi]; a[gi]=a[j]; a[j]=tmp;
   scheduleSave(); renderAll();
 }
 function deleteGroup(gi){
@@ -535,23 +619,23 @@ function deleteGroup(gi){
   state.groups.splice(gi,1); scheduleSave(); renderAll();
 }
 function addGroup(){
-  state.groups.push({title:t('newSection'),blocks:[]});
+  state.groups.push({titleEn:t('newSectionEn'), titleKo:t('newSectionKo'), blocks:[]});
   scheduleSave(); renderAll();
-  // Focus newly created title
   setTimeout(function(){
-    var g = document.getElementById('g'+(state.groups.length-1));
-    if(g){ var el = g.querySelector('.group-title'); if(el){ el.focus(); selectAll(el); } }
+    var g=document.getElementById('g'+(state.groups.length-1));
+    if(g){ var el=g.querySelector('.group-title'); if(el){ el.focus(); _selectAll(el); } }
   }, 50);
 }
+window.addGroup = addGroup;
+
 function addBlock(gi){
-  var g = state.groups[gi];
-  g.blocks.push({title:t('newBlock'),items:[],images:[]});
+  state.groups[gi].blocks.push({titleEn:t('newBlockEn'), titleKo:t('newBlockKo'), items:[], images:[]});
   scheduleSave(); renderAll();
 }
 function moveBlock(gi, bi, dir){
-  var a = state.groups[gi].blocks, j = bi + dir;
-  if(j < 0 || j >= a.length) return;
-  var tmp = a[bi]; a[bi] = a[j]; a[j] = tmp;
+  var a=state.groups[gi].blocks, j=bi+dir;
+  if(j<0||j>=a.length) return;
+  var tmp=a[bi]; a[bi]=a[j]; a[j]=tmp;
   scheduleSave(); renderAll();
 }
 function deleteBlock(gi, bi){
@@ -559,19 +643,14 @@ function deleteBlock(gi, bi){
   state.groups[gi].blocks.splice(bi,1); scheduleSave(); renderAll();
 }
 function addItem(gi, bi){
-  var b = state.groups[gi].blocks[bi];
-  if(!b.items) b.items = [];
+  var b=state.groups[gi].blocks[bi];
+  if(!b.items) b.items=[];
   b.items.push('');
   scheduleSave(); renderAll();
   setTimeout(function(){
-    var g = document.getElementById('g'+gi);
-    if(!g) return;
-    var blocks = g.querySelectorAll('.block');
-    if(blocks[bi]){
-      var items = blocks[bi].querySelectorAll('.item-text');
-      var last = items[items.length-1];
-      if(last){ last.focus(); }
-    }
+    var g=document.getElementById('g'+gi); if(!g) return;
+    var blocks=g.querySelectorAll('.block');
+    if(blocks[bi]){ var items=blocks[bi].querySelectorAll('.item-text'); var last=items[items.length-1]; if(last) last.focus(); }
   }, 50);
 }
 function deleteItem(gi, bi, ii){
@@ -579,79 +658,68 @@ function deleteItem(gi, bi, ii){
   scheduleSave(); renderAll();
 }
 
-// ── Utility button builders ───────────────────────────────────
+// ── Utilities ─────────────────────────────────────────────────
 function mkBtn(label, onclick){
-  var b = document.createElement('button');
-  b.textContent = label; b.type = 'button';
-  b.onclick = onclick;
-  return b;
+  var b=document.createElement('button'); b.textContent=label; b.type='button'; b.onclick=onclick; return b;
 }
 function mkDangerBtn(label, onclick, parent){
-  var b = mkBtn(label, onclick);
-  b.classList.add('danger');
-  if(parent) parent.appendChild(b);
-  return b;
+  var b=mkBtn(label,onclick); b.classList.add('danger'); if(parent) parent.appendChild(b); return b;
 }
-function selectAll(el){
-  var range = document.createRange();
-  range.selectNodeContents(el);
-  var sel = window.getSelection();
-  sel.removeAllRanges(); sel.addRange(range);
+function _selectAll(el){
+  var r=document.createRange(); r.selectNodeContents(el);
+  var s=window.getSelection(); s.removeAllRanges(); s.addRange(r);
 }
 
 // ── Mode ──────────────────────────────────────────────────────
 function setMode(mode){
-  document.body.className = 'mode-'+mode;
+  document.body.className='mode-'+mode;
   document.getElementById('btnModeEdit').classList.toggle('on', mode==='edit');
   document.getElementById('btnModeView').classList.toggle('on', mode==='view');
-  // toggle contenteditable
   document.querySelectorAll('[contenteditable]').forEach(function(el){
-    el.contentEditable = mode === 'edit' ? 'true' : 'false';
+    el.contentEditable = mode==='edit'?'true':'false';
   });
 }
 window.setMode = setMode;
 
 // ── Language toggle ───────────────────────────────────────────
 function toggleLang(){
-  lang = lang === 'en' ? 'ko' : 'en';
-  // Update period if it hasn't been manually edited
-  var mP = document.getElementById('metaPeriod');
-  var defaultEn = PERIOD_EN, defaultKo = PERIOD_KO;
-  if(mP){
-    var cur = mP.textContent.trim();
-    if(cur === defaultEn || cur === defaultKo){
-      state.meta.period = lang === 'ko' ? defaultKo : defaultEn;
-    }
-  }
+  syncMetaFromDom();
+  lang = lang==='en'?'ko':'en';
+  // Auto-update period and date if they match the default values
+  var mP = state.meta.period;
+  if(mP===PERIOD_EN||mP===PERIOD_KO) state.meta.period = lang==='ko'?PERIOD_KO:PERIOD_EN;
+  var mD = state.meta.date;
+  if(mD===AUTO_DATE_EN||mD===AUTO_DATE_KO) state.meta.date = lang==='ko'?AUTO_DATE_KO:AUTO_DATE_EN;
+  _doSave();
   renderAll();
 }
 window.toggleLang = toggleLang;
 
-// ── Generate PDF via server ───────────────────────────────────
+// ── Generate PDF ──────────────────────────────────────────────
 async function generatePdf(){
   syncMetaFromDom();
-  var btn = document.getElementById('btnGenPdf');
-  if(btn){ btn.disabled = true; btn.querySelector('span').textContent = t('pdfGenerating'); }
+  var btn=document.getElementById('btnGenPdf');
+  if(btn){ btn.disabled=true; btn.querySelector('span').textContent=t('pdfGenerating'); }
   try{
-    var resp = await fetch('/api/v2/system-monthly', {
-      method: 'POST',
-      headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({ state: state, lang: lang, branch: BRANCH, month: MONTH_IDX, year: YEAR }),
+    var resp=await fetch('/api/v2/system-monthly',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({state:state, lang:lang, branch:BRANCH, month:MONTH_IDX, year:YEAR}),
     });
-    if(!resp.ok){ var err = await resp.json().catch(function(){return{error:'HTTP '+resp.status};}); throw new Error(err.error||'HTTP '+resp.status); }
-    var blob = await resp.blob();
-    var cd = resp.headers.get('Content-Disposition') || '';
-    var fnMatch = cd.match(/filename="([^"]+)"/);
-    var fname = fnMatch ? fnMatch[1] : (BRANCH+'_System_Monthly_Report.pdf');
-    var url = URL.createObjectURL(blob);
-    var a = document.createElement('a'); a.href = url; a.download = fname;
+    if(!resp.ok){ var err=await resp.json().catch(function(){return{error:'HTTP '+resp.status};}); throw new Error(err.error||'HTTP '+resp.status); }
+    var blob=await resp.blob();
+    var cd=resp.headers.get('Content-Disposition')||'';
+    var fnMatch=cd.match(/filename="([^"]+)"/);
+    var fname=fnMatch?fnMatch[1]:(BRANCH+'_System_Monthly_Report.pdf');
+    var url=URL.createObjectURL(blob);
+    var a=document.createElement('a'); a.href=url; a.download=fname;
     document.body.appendChild(a); a.click(); document.body.removeChild(a);
-    setTimeout(function(){ URL.revokeObjectURL(url); }, 3000);
-    toast(fname + (lang === 'ko' ? ' 다운로드 완료' : ' downloaded'));
+    setTimeout(function(){ URL.revokeObjectURL(url); },3000);
+    toast(fname+(lang==='ko'?' 다운로드 완료':' downloaded'));
   }catch(e){
-    toast((lang === 'ko' ? 'PDF 생성 실패: ' : 'PDF failed: ') + e.message);
+    toast((lang==='ko'?'PDF 생성 실패: ':'PDF failed: ')+e.message);
   }finally{
-    if(btn){ btn.disabled = false; btn.querySelector('span').textContent = t('genPdf'); }
+    if(btn){ btn.disabled=false; btn.querySelector('span').textContent=t('genPdf'); }
   }
 }
 window.generatePdf = generatePdf;
@@ -659,21 +727,18 @@ window.generatePdf = generatePdf;
 // ── Save as HTML ──────────────────────────────────────────────
 function saveAsHtml(){
   syncMetaFromDom();
-  var html = document.documentElement.outerHTML;
-  // Replace savedState content with current state JSON
-  html = html.replace(
+  var html=document.documentElement.outerHTML;
+  html=html.replace(
     /(<script[^>]*id="savedState"[^>]*>)([\s\S]*?)(<\/script>)/,
-    function(m, open, _content, close){
-      return open + JSON.stringify(state) + close;
-    }
+    function(m,open,_c,close){ return open+JSON.stringify(state)+close; }
   );
-  var blob = new Blob([html], {type:'text/html'});
-  var url = URL.createObjectURL(blob);
-  var a = document.createElement('a');
-  var fname = BRANCH+'_'+MONTHS_EN[MONTH_IDX]+'_'+YEAR+'_System_Team_Monthly_Closing_Report.html';
-  a.href = url; a.download = fname;
+  var blob=new Blob([html],{type:'text/html'});
+  var url=URL.createObjectURL(blob);
+  var a=document.createElement('a');
+  var fname=BRANCH+'_'+MONTHS_EN[MONTH_IDX]+'_'+YEAR+'_System_Team_Monthly_Closing_Report.html';
+  a.href=url; a.download=fname;
   document.body.appendChild(a); a.click(); document.body.removeChild(a);
-  setTimeout(function(){ URL.revokeObjectURL(url); }, 3000);
+  setTimeout(function(){ URL.revokeObjectURL(url); },3000);
   toast(t('htmlSaved'));
 }
 window.saveAsHtml = saveAsHtml;
@@ -683,40 +748,49 @@ function loadFromFile(){ document.getElementById('fileLoad').click(); }
 window.loadFromFile = loadFromFile;
 
 function handleFileLoad(input){
-  var file = input.files[0]; if(!file) return;
-  var reader = new FileReader();
-  reader.onload = function(e){
+  var file=input.files[0]; if(!file) return;
+  var reader=new FileReader();
+  reader.onload=function(e){
     try{
-      var html = e.target.result;
-      // Extract savedState JSON from loaded HTML
-      var match = html.match(/<script[^>]*id="savedState"[^>]*>([\s\S]*?)<\/script>/);
-      if(match && match[1].trim() && match[1].trim() !== '{}'){
-        var loaded = JSON.parse(match[1]);
-        if(loaded && loaded.groups){ state = loaded; scheduleSave(); renderAll(); toast(t('loaded')); return; }
+      var html=e.target.result;
+      var match=html.match(/<script[^>]*id="savedState"[^>]*>([\s\S]*?)<\/script>/);
+      if(match&&match[1].trim()&&match[1].trim()!=='{}'){
+        var loaded=JSON.parse(match[1]);
+        if(loaded&&loaded.groups){
+          loaded.groups=migrateGroups(loaded.groups);
+          if(loaded.meta) loaded.meta=migrateMeta(loaded.meta);
+          state=loaded; _doSave(); renderAll(); toast(t('loaded')); return;
+        }
       }
       toast('No saved data found in file.');
     }catch(err){ toast('Failed to load: '+err.message); }
   };
   reader.readAsText(file);
-  input.value = '';
+  input.value='';
 }
 window.handleFileLoad = handleFileLoad;
 
 // ── Meta field focus tracking ─────────────────────────────────
-['metaPeriod','metaAuthor','metaDate','metaSite'].forEach(function(id){
-  var el = document.getElementById(id);
-  if(!el) return;
-  el.addEventListener('focus', function(){ el._focused = true; });
-  el.addEventListener('blur', function(){
-    el._focused = false;
-    var field = el.dataset.field;
-    if(field) state.meta[field] = el.textContent;
+['metaPeriod','metaInCharge','metaDate','metaSite'].forEach(function(id){
+  var el=document.getElementById(id); if(!el) return;
+  el.addEventListener('focus', function(){ el._focused=true; });
+  el.addEventListener('blur',  function(){
+    el._focused=false;
+    var field=el.dataset.field;
+    if(field) state.meta[field]=el.textContent;
     scheduleSave();
   });
 });
 
 // ── Init ──────────────────────────────────────────────────────
 renderAll();
+if(INIT_MODE === 'view') setMode('view');
+// Auto-download: opened from admin panel with action=download
+if(INIT_ACTION === 'download'){
+  setTimeout(function(){
+    generatePdf();
+  }, 1200);
+}
 
 })();
 </script>
