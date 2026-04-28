@@ -851,7 +851,7 @@ function initBranchReport(){
     '<div><div style="font-size:15px;font-weight:800;color:var(--t0)">'+(isKorea?brName:'AMXX'.replace('XX',br.slice(2))+' '+brName)+'</div>',
     '<div style="font-size:11px;color:var(--t2);margin-top:1px">'+(isKorea?'월간 리포트':'Monthly reports')+'</div></div></div>',
     // Two-card row: Error Report (left) + Closing Report (right)
-    '<div style="display:flex;gap:10px;margin-bottom:12px;flex-wrap:wrap">',
+    '<div style="display:flex;gap:10px;margin-bottom:12px;flex-wrap:wrap;align-items:stretch">',
     // ── Left: Error Report card ──
     '<div class="card" style="flex:1;min-width:220px;border-left:4px solid '+brCol+'">',
     '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">',
@@ -891,12 +891,12 @@ function initBranchReport(){
     '<div><div style="font-size:12px;font-weight:800;color:var(--t0)">'+(isKorea?brName+' 마감 리포트':br+' Closing Report')+'</div>',
     '<div style="font-size:10px;color:var(--t3);margin-top:1px">'+(isKorea?'월간 마감 · 직접 작성':'Monthly closing · manual entry')+'</div></div></div>',
     '<span style="font-size:10px;font-weight:700;color:var(--t3);background:var(--sub);padding:2px 8px;border-radius:20px;border:1px solid var(--border);white-space:nowrap">📋</span></div>',
-    // Buttons: 2×2 grid (작성하기 / 미리보기 / 다운로드 / 메일보내기)
-    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">',
-    '<button class="btn btn-sm" style="background:#1a1a18;color:#fff;font-weight:700;border-radius:8px;padding:9px 6px;min-height:40px;font-size:12px" onclick="openSysReport(\'fill\')">'+(isKorea?'📝 작성하기':'📝 Open / Fill')+'</button>',
-    '<button class="btn btn-sm" style="background:var(--card);color:var(--t1);border:1.5px solid var(--border);font-weight:700;border-radius:8px;padding:9px 6px;min-height:40px;font-size:12px" onclick="openSysReport(\'view\')">'+(isKorea?'👁 미리보기':'👁 Preview')+'</button>',
-    '<button class="btn btn-sm" style="background:var(--card);color:var(--t1);border:1.5px solid var(--border);font-weight:700;border-radius:8px;padding:9px 6px;min-height:40px;font-size:12px" onclick="openSysReport(\'download\')">'+(isKorea?'⬇ 다운로드':'⬇ Download')+'</button>',
-    '<button class="btn btn-sm" style="background:var(--card);color:var(--t1);border:1.5px solid var(--border);font-weight:700;border-radius:8px;padding:9px 6px;min-height:40px;font-size:12px" onclick="openSysReport(\'email\')">'+(isKorea?'📧 메일보내기':'📧 Send Email')+'</button>',
+    // Buttons: 4 rows, each full-width
+    '<div style="display:flex;flex-direction:column;gap:6px">',
+    '<button class="btn btn-sm" style="width:100%;background:#1a1a18;color:#fff;font-weight:700;border-radius:8px;padding:9px 6px;min-height:40px;font-size:12px" onclick="openSysReport(\'fill\')">'+(isKorea?'📝 작성하기':'📝 Open / Fill')+'</button>',
+    '<button class="btn btn-sm" style="width:100%;background:var(--card);color:var(--t1);border:1.5px solid var(--border);font-weight:700;border-radius:8px;padding:9px 6px;min-height:40px;font-size:12px" onclick="openSysReport(\'view\')">'+(isKorea?'👁 미리보기':'👁 Preview')+'</button>',
+    '<button class="btn btn-sm" style="width:100%;background:var(--card);color:var(--t1);border:1.5px solid var(--border);font-weight:700;border-radius:8px;padding:9px 6px;min-height:40px;font-size:12px" onclick="openSysReport(\'download\')">'+(isKorea?'⬇ 다운로드':'⬇ Download')+'</button>',
+    '<button class="btn btn-sm" style="width:100%;background:var(--card);color:var(--t1);border:1.5px solid var(--border);font-weight:700;border-radius:8px;padding:9px 6px;min-height:40px;font-size:12px" onclick="openSysReport(\'email\')">'+(isKorea?'📧 메일보내기':'📧 Send Email')+'</button>',
     '</div>',
     '<div id="br-sys-status" style="margin-top:6px"></div>',
     '</div>',
