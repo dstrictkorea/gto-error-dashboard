@@ -382,9 +382,15 @@ function buildVisualContext(prepared, opts) {
     segW: Math.round(diffTotal ? count / diffTotal * 100 : 0),
   }));
   const highDiffCount = diffCnt[3] + diffCnt[4];
-  const diffSummary = lang === 'ko'
-    ? `고난이도 보고: ${highDiffCount}건.`
-    : `High-difficulty reports: ${highDiffCount}.`;
+  const diffSum = diffCnt.reduce((s, v, i) => s + v * (i + 1), 0);
+  const diffCountForAvg = diffCnt.reduce((s, v) => s + v, 0);
+  const avgDifficulty = diffCountForAvg > 0 ? Math.round(diffSum / diffCountForAvg * 10) / 10 : null;
+  const topDiffIdx = diffCnt.indexOf(Math.max(...diffCnt, 1));
+  const diffSummary = avgDifficulty != null
+    ? (lang === 'ko'
+      ? `평균 난이도 ${avgDifficulty}, 주요 분포 Lv.${topDiffIdx + 1}.`
+      : `Average difficulty ${avgDifficulty}; most frequent: Lv.${topDiffIdx + 1}.`)
+    : (lang === 'ko' ? '난이도 데이터 없음.' : 'No difficulty data.');
   const showDifficulty = total >= EMPTY_CHART_THRESHOLD;
 
   // ── Daily trend ──────────────────────────────────────────────
@@ -617,7 +623,10 @@ function buildVisualContext(prepared, opts) {
       if (v) bCatMap.set(v, (bCatMap.get(v) || 0) + 1);
     }
     const bCat = topNameFromMap(bCatMap) || '—';
-    const bHighDiff = bRows.filter(r => getDifficulty(r) >= 4).length;
+    const bDiffVals = bRows.map(r => Math.round(getDifficulty(r))).filter(d => isFinite(d) && d >= 1 && d <= 5);
+    const bAvgDiff = bDiffVals.length > 0
+      ? Math.round(bDiffVals.reduce((s, d) => s + d, 0) / bDiffVals.length * 10) / 10
+      : null;
     return {
       branch,
       color: BRANCH_COLOR[branch] || '#8A8A84',
@@ -626,7 +635,7 @@ function buildVisualContext(prepared, opts) {
       share: pctStr(total ? count / total : 0),
       topZone: bZone,
       topCategory: bCat,
-      highDifficulty: bHighDiff,
+      avgDifficulty: bAvgDiff != null ? String(bAvgDiff) : '—',
       medianResolve: isFinite(med) ? fmtMin(med, lang) : '—',
     };
   });
@@ -690,6 +699,7 @@ function buildVisualContext(prepared, opts) {
     actionTotal,
     timeTakenBuckets,
     difficultyDistribution,
+    avgDifficulty,
     // Segment data (stacked bar / pill)
     catDominant,
     // Trend arrays
@@ -816,12 +826,13 @@ function buildSpecKpis(derived, visual, opts) {
     accent: 'brand',
   };
 
+  const avgDiff = visual.avgDifficulty;
   const k5 = {
     id: 'K5',
-    label: lang === 'ko' ? '처리 난이도 높음' : 'High-Difficulty',
-    hint: lang === 'ko' ? '보고 기준 Lv.4+' : 'Reported Lv.4+',
-    value: highDifficultyCount,
-    formatted: `${(highDifficultyCount || 0).toLocaleString('en-US')} (${pctStr(highDifficultyShare)})`,
+    label: lang === 'ko' ? '평균 난이도' : 'Avg. Difficulty',
+    hint: lang === 'ko' ? '보고 기준 평균' : 'Reported avg.',
+    value: avgDiff,
+    formatted: avgDiff != null ? String(avgDiff) : '—',
     accent: 'brand',
   };
 
@@ -911,7 +922,7 @@ function buildExtLabels(lang, variant) {
     colShare:         ko ? '비율'     : 'Share',
     colTopZone:       ko ? '주요 존'   : 'Top Zone',
     colTopCategory:   ko ? '주요 유형' : 'Top Category',
-    colHighDiff:      ko ? '난이도↑'   : 'Hi-Diff',
+    colAvgDiff:       ko ? '평균 난이도' : 'Avg. Difficulty',
     colMedianResolve: ko ? '중앙 처리' : 'Med.Resolve',
     colDifficulty:    ko ? '난이도'    : 'Difficulty',
     // Comment block
@@ -921,7 +932,7 @@ function buildExtLabels(lang, variant) {
       ? '해당 기간 발생한 오류가 없습니다.'
       : 'No incidents recorded during this period.',
     // Scope fallback
-    allBranches: ko ? '전체 지사' : 'All Branches',
+    allBranches: ko ? '전체 지점' : 'All Branches',
     // Trend labels
     peakLabel:   ko ? '최고' : 'Peak',
     latestLabel: ko ? '최근' : 'Latest',
@@ -1051,7 +1062,7 @@ function buildSmokeContext({ lang = 'en', now = new Date() } = {}) {
     narrative: T.narrative,
     meta: {
       period:    fmtDate(now, lang),
-      scope:     lang === 'ko' ? '전체 지사' : 'All branches',
+      scope:     lang === 'ko' ? '전체 지점' : 'All Branches',
       generated: fmtDate(now, lang),
       version:   'v2.0',
     },

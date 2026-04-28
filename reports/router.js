@@ -187,7 +187,9 @@ router.get('/monthly-global', async (req, res) => {
 
     const regionBranches = region === 'korea' ? KOREA_BRANCHES : GLOBAL_BRANCHES;
     const scope = req.query.scope
-      || (lang === 'ko' ? '전체 지사' : 'All Branches');
+      || (region === 'korea'
+        ? (lang === 'ko' ? '국내 지점' : 'KR Branches')
+        : (lang === 'ko' ? '전체 지점' : 'All Branches'));
 
     const periodLabel = lang === 'ko'
       ? `${year}년 ${MONTHS_KO[month]}`
@@ -226,7 +228,9 @@ router.get('/annual', async (req, res) => {
     const regionBranches = region === 'korea' ? KOREA_BRANCHES : GLOBAL_BRANCHES;
     const scope = req.query.scope
       || branch
-      || (lang === 'ko' ? '전체 지사' : 'All Branches');
+      || (region === 'korea'
+        ? (lang === 'ko' ? '국내 지점' : 'KR Branches')
+        : (lang === 'ko' ? '전체 지점' : 'All Branches'));
 
     const periodLabel = lang === 'ko' ? `${year}년` : String(year);
 

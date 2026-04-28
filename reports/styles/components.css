@@ -453,11 +453,12 @@ html[lang="ko"] .card__action {
   background: var(--card);
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  padding: 10px 12px;
+  padding: 10px 12px 30px;
   box-sizing: border-box;
   height: 100%;
   break-inside: avoid;
   page-break-inside: avoid;
+  position: relative;
 }
 .chart-title {
   font-size: 11px;
@@ -582,8 +583,9 @@ html[lang="ko"] .card__action {
 .trend-xlbl {
   flex: 1;
   text-align: center;
-  overflow: hidden;
+  overflow: visible;
   white-space: nowrap;
+  font-size: 8px;
 }
 .trend-xlbl--hidden { visibility: hidden; }
 .trend-peak-row {
@@ -600,6 +602,12 @@ html[lang="ko"] .card__action {
  * ══════════════════════════════════════════════ */
 
 .matrix-wrap { overflow-x: auto; }
+.matrix-caption {
+  font-size: 9px;
+  font-style: italic;
+  color: var(--muted);
+  margin-top: 4px;
+}
 .matrix-table {
   width: 100%;
   border-collapse: collapse;
@@ -887,9 +895,14 @@ html[lang="ko"] .narrative-compact {
  * ══════════════════════════════════════════════ */
 
 .chart-summary {
+  position: absolute;
+  left: 12px;
+  bottom: 10px;
+  right: 12px;
   font-size: 11px;
-  color: var(--text);
+  color: #1a1a18;
   line-height: 1.4;
+  margin: 0;
   margin: 5px 0 0;
   letter-spacing: -0.15px;
   font-style: normal;
@@ -1259,14 +1272,14 @@ html[lang="ko"] .chart-summary {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 8px;
+  align-items: stretch;
 }
 .cluster-card {
   background: var(--card);
   border: 1px solid var(--border);
+  border-left: 4px solid var(--cluster-color, var(--purple));
   border-radius: var(--radius);
-  padding: 9px 12px;
-  box-shadow: inset 4px 0 0 0 var(--cluster-color, var(--purple));
-  padding-left: 14px;
+  padding: 9px 12px 9px 12px;
   break-inside: avoid;
   display: flex;
   flex-direction: column;

@@ -148,7 +148,7 @@ const JOBS = [
     name: 'monthly-global-ko',
     template: 'monthly-global',
     ctxFn: () => buildMonthlyGlobalContext(globalRows(), {
-      lang: 'ko', period: '2026년 3월', scope: '전체 지사',
+      lang: 'ko', period: '2026년 3월', scope: '전체 지점',
       generated: '2026년 4월 24일',
     }),
   },
@@ -164,7 +164,7 @@ const JOBS = [
     name: 'annual-ko',
     template: 'annual',
     ctxFn: () => buildAnnualContext(annualRows(), {
-      lang: 'ko', period: '2025년', scope: '전체 지사',
+      lang: 'ko', period: '2025년', scope: '전체 지점',
       generated: '2026년 4월 24일',
     }),
   },
