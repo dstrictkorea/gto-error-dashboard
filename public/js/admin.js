@@ -641,7 +641,7 @@ function renderAdminMonthly(){
       +sortedZ.map(function(z){var v=zc2[z]||0,op=.05+v/maxZ*.85;
         return '<div style="background:rgba(37,99,235,'+op+');color:'+(v>maxZ*.5?'#fff':'#1d4ed8')+';border-radius:10px;padding:8px;cursor:pointer;transition:all 0.3s;text-align:center">'
           +'<div style="font-size:15px;font-weight:800">'+v+'</div>'
-          +'<div style="font-size:9px;margin-top:2px;font-weight:600;word-break:break-word">'+(z.length>10?z.slice(0,9)+'…':z)+'</div></div>';
+          +'<div style="font-size:9px;margin-top:2px;font-weight:600;word-break:keep-all;overflow-wrap:anywhere;white-space:normal;line-height:1.2">'+z+'</div></div>';
       }).join('')+'</div>';
   }
 

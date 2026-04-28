@@ -969,6 +969,13 @@ html.dark-mode .mc-val {
   min-height: 48px;
 }
 .hm-cell:hover { transform: scale(1.06); box-shadow: var(--shadow-md); }
+.hm-val { font-size: 15px; font-weight: 800; line-height: 1; }
+.hm-label {
+  font-size: 9px; font-weight: 600; margin-top: 3px;
+  text-align: center; line-height: 1.25;
+  word-break: keep-all; overflow-wrap: anywhere; white-space: normal;
+  width: 100%;
+}
 
 /* ══════════════════════════════════════
    TABLE — Datadog/Stripe-grade data table
