@@ -1105,15 +1105,23 @@ function buildSystemMonthlyContext(formState, opts) {
   };
 
   // Normalize groups — add numbering, strip empty item strings
+  // Groups use bilingual titleEn/titleKo (migrated from old single `title` field)
   const groups = ((formState && formState.groups) || []).map(function(g, gi) {
+    const gTitle = ko
+      ? (g.titleKo || g.titleEn || g.title || '')
+      : (g.titleEn || g.titleKo || g.title || '');
     return {
       groupNum: gi + 1,
-      title: g.title || '',
+      title: gTitle,
       blocks: (g.blocks || []).map(function(b, bi) {
+        const bTitle = ko
+          ? (b.titleKo || b.titleEn || b.title || '')
+          : (b.titleEn || b.titleKo || b.title || '');
         const items = (b.items || [])
-          .map(function(s) { return typeof s === 'string' ? s.trim() : ((s && s.text) ? s.text.trim() : ''); })
+          .map(function(s) { return typeof s === 'string' ? s : ((s && s.text) ? s.text : ''); })
+          .map(function(s) { return s.replace(/^\n+|\n+$/g, ''); }) // trim leading/trailing newlines only
           .filter(Boolean);
-        return { blockNum: (gi + 1) + '.' + (bi + 1), title: b.title || '', items };
+        return { blockNum: (gi + 1) + '.' + (bi + 1), title: bTitle, items };
       }),
     };
   });

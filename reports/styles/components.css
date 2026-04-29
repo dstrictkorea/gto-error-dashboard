@@ -1548,6 +1548,7 @@ html[lang="ko"] .chart-summary {
   position: relative;
   word-break: keep-all;
   overflow-wrap: anywhere;
+  white-space: pre-wrap;
 }
 .sys-item::before {
   content: '•';

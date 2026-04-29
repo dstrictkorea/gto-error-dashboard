@@ -354,8 +354,20 @@ var DEFAULT_GROUPS = [
   { titleEn:"Next Month's Game Plan", titleKo:'다음달 계획',   blocks:[] },
 ];
 
+// ── Branch re-deriver (called when BRANCH is recovered from saved state) ──
+function _rederiveBranchVars(){
+  IS_KO_BRANCH = KO_BRANCHES.indexOf(BRANCH) >= 0;
+  TITLE = IS_KO_BRANCH
+    ? (SITE_NAMES[BRANCH]||BRANCH) + ' ' + MONTHS_KO[MONTH_IDX] + ' ' + YEAR + '년 시스템팀 월말 마감 보고서'
+    : BRANCH + ' ' + MONTHS_EN[MONTH_IDX] + ' ' + YEAR + ' System Team Monthly Closing Report';
+  SITE_FULL = BRANCH + (SITE_NAMES[BRANCH] ? ' (' + SITE_NAMES[BRANCH] + ')' : '');
+  STORAGE_KEY = 'sysrpt_' + BRANCH + '_' + YEAR + '_' + MONTH_IDX;
+  lang = IS_KO_BRANCH ? 'ko' : INIT_LANG;
+}
+
 // ── State ─────────────────────────────────────────────────────
 var state = {
+  branch: BRANCH,
   meta:{ period: PERIOD_EN, inCharge:'', date: AUTO_DATE_EN, site: SITE_FULL },
   groups: JSON.parse(JSON.stringify(DEFAULT_GROUPS)),
 };
@@ -380,6 +392,14 @@ function migrateMeta(meta){
   return meta;
 }
 
+// Recover branch from state if URL had no branch param (e.g. saved HTML opened locally)
+function _tryRecoverBranch(s){
+  if((BRANCH === 'AMXX' || !BRANCH) && s.branch && s.branch !== 'AMXX'){
+    BRANCH = s.branch.toUpperCase();
+    _rederiveBranchVars();
+  }
+}
+
 // Try loading saved state (embedded HTML or localStorage)
 (function loadInitial(){
   try{
@@ -387,7 +407,9 @@ function migrateMeta(meta){
     if(emb && emb.groups && emb.groups.length){
       emb.groups = migrateGroups(emb.groups);
       if(emb.meta) emb.meta = migrateMeta(emb.meta);
-      state = emb; return;
+      state = emb;
+      _tryRecoverBranch(emb);
+      return;
     }
   }catch(e){}
   try{
@@ -398,6 +420,17 @@ function migrateMeta(meta){
         parsed.groups = migrateGroups(parsed.groups);
         if(parsed.meta) parsed.meta = migrateMeta(parsed.meta);
         state = parsed;
+        _tryRecoverBranch(parsed);
+        // If branch changed, STORAGE_KEY changed — try re-reading with correct key
+        if(parsed.branch && parsed.branch !== 'AMXX' && STORAGE_KEY !== 'sysrpt_AMXX_'+YEAR+'_'+MONTH_IDX){
+          try{
+            var stored2 = localStorage.getItem(STORAGE_KEY);
+            if(stored2){
+              var p2 = JSON.parse(stored2);
+              if(p2 && p2.groups){ p2.groups=migrateGroups(p2.groups); if(p2.meta) p2.meta=migrateMeta(p2.meta); state=p2; }
+            }
+          }catch(e2){}
+        }
       }
     }
   }catch(e){}
@@ -417,6 +450,7 @@ function scheduleSave(){
   _saveTimer = setTimeout(function(){ syncMetaFromDom(); _doSave(); }, 600);
 }
 function _doSave(){
+  state.branch = BRANCH; // always keep branch in sync
   try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }catch(e){}
 }
 function syncMetaFromDom(){
@@ -569,9 +603,17 @@ function renderItem(item, b, gi, bi, ii){
   var textEl = document.createElement('span');
   textEl.className = 'item-text';
   textEl.contentEditable = 'true';
-  textEl.textContent = typeof item === 'string' ? item : (item.text || '');
-  textEl.oninput = function(){ b.items[ii] = this.textContent; scheduleSave(); };
-  textEl.onblur  = function(){ if(!this.textContent.trim()){ deleteItem(gi,bi,ii); } };
+  // Use innerHTML so \n chars are rendered as visible line breaks
+  var _itemTxt = typeof item === 'string' ? item : (item.text || '');
+  textEl.innerHTML = _itemTxt
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/\n/g,'<br>');
+  // innerText correctly captures <br> as \n when reading back
+  textEl.oninput = function(){
+    b.items[ii] = this.innerText.replace(/\n$/, '');
+    scheduleSave();
+  };
+  textEl.onblur  = function(){ if(!this.innerText.trim()){ deleteItem(gi,bi,ii); } };
   row.appendChild(textEl);
 
   var del = document.createElement('button');
@@ -731,6 +773,18 @@ function toggleLang(){
 }
 window.toggleLang = toggleLang;
 
+// ── State snapshot without base64 images (for PDF POST) ──────
+// Images are stored as data: URLs — too large for the JSON body and
+// not needed by the server-side PDF template.
+function stateForPdf(){
+  var s = JSON.parse(JSON.stringify(state));
+  s.groups = (s.groups || []).map(function(g){
+    g.blocks = (g.blocks || []).map(function(b){ b.images = []; return b; });
+    return g;
+  });
+  return s;
+}
+
 // ── Generate PDF ──────────────────────────────────────────────
 async function generatePdf(){
   syncMetaFromDom();
@@ -740,7 +794,7 @@ async function generatePdf(){
     var resp=await fetch('/api/v2/system-monthly',{
       method:'POST',
       headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({state:state, lang:lang, branch:BRANCH, month:MONTH_IDX, year:YEAR}),
+      body:JSON.stringify({state:stateForPdf(), lang:lang, branch:BRANCH, month:MONTH_IDX, year:YEAR}),
     });
     if(!resp.ok){ var err=await resp.json().catch(function(){return{error:'HTTP '+resp.status};}); throw new Error(err.error||'HTTP '+resp.status); }
     var blob=await resp.blob();
@@ -769,7 +823,7 @@ async function generatePdfAndEmail(){
     var resp=await fetch('/api/v2/system-monthly',{
       method:'POST',
       headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({state:state,lang:lang,branch:BRANCH,month:MONTH_IDX,year:YEAR}),
+      body:JSON.stringify({state:stateForPdf(),lang:lang,branch:BRANCH,month:MONTH_IDX,year:YEAR}),
     });
     if(!resp.ok){ var err=await resp.json().catch(function(){return{error:'HTTP '+resp.status};}); throw new Error(err.error||'HTTP '+resp.status); }
     var blob=await resp.blob();
