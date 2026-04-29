@@ -887,6 +887,15 @@
   border-radius: 14px !important;
   margin-bottom: 16px !important;
 }
+.mobile-app .daily-checklist-row {
+  margin-bottom: 16px !important;
+}
+.mobile-app .daily-checklist-btn {
+  padding: 13px 8px !important;
+  border-radius: 14px !important;
+}
+.mobile-app .daily-checklist-main { font-size: 12px !important; }
+.mobile-app .daily-checklist-sub  { font-size: 10px !important; }
 .mobile-app .daily-err-card {
   padding: 12px !important;
   margin-bottom: 8px !important;

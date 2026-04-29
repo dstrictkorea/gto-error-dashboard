@@ -3166,6 +3166,37 @@ html.dark-mode .section-divider {
 .daily-submit-btn:active { transform: scale(0.98); }
 .daily-submit-icon { font-size: 20px; }
 
+/* Checklist buttons row (below submit error) */
+.daily-checklist-row {
+  display: none; gap: 10px; margin-bottom: 20px;
+}
+.daily-checklist-row.visible { display: flex; }
+.daily-checklist-btn {
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+  flex: 1; padding: 14px 10px;
+  color: #fff; border: none; border-radius: 14px;
+  font-size: 13px; font-weight: 700; cursor: pointer;
+  font-family: var(--f); letter-spacing: -0.01em;
+  transition: transform .15s, box-shadow .15s;
+}
+.daily-checklist-btn:hover { transform: translateY(-2px); }
+.daily-checklist-btn:active { transform: scale(0.98); }
+.daily-checklist-btn.is-open {
+  background: linear-gradient(135deg, #0d9488 0%, #059669 100%);
+  box-shadow: 0 4px 14px rgba(13,148,136,.28);
+}
+.daily-checklist-btn.is-open:hover { box-shadow: 0 6px 22px rgba(13,148,136,.42); }
+.daily-checklist-btn.is-close {
+  background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
+  box-shadow: 0 4px 14px rgba(217,119,6,.28);
+}
+.daily-checklist-btn.is-close:hover { box-shadow: 0 6px 22px rgba(217,119,6,.42); }
+.daily-checklist-label {
+  display: flex; flex-direction: column; gap: 1px; text-align: left;
+}
+.daily-checklist-main { font-size: 13px; font-weight: 700; line-height: 1.3; }
+.daily-checklist-sub  { font-size: 10.5px; font-weight: 500; opacity: 0.85; }
+
 .daily-err-card {
   padding: 14px; margin-bottom: 10px;
   background: var(--card); border: 1px solid var(--border);

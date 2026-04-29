@@ -128,6 +128,24 @@
     <span class="daily-submit-text">에러 제출하기 · Submit Error</span>
   </button>
 
+  <!-- Checklist buttons — branch accounts only, shown via JS -->
+  <div class="daily-checklist-row" id="dailyChecklistRow">
+    <button class="daily-checklist-btn is-open" onclick="openChecklist('open')">
+      <span class="daily-submit-icon">☀️</span>
+      <span class="daily-checklist-label">
+        <span class="daily-checklist-main">오픈 체크리스트</span>
+        <span class="daily-checklist-sub">Opening Checklist</span>
+      </span>
+    </button>
+    <button class="daily-checklist-btn is-close" onclick="openChecklist('close')">
+      <span class="daily-submit-icon">🌙</span>
+      <span class="daily-checklist-label">
+        <span class="daily-checklist-main">마감 체크리스트</span>
+        <span class="daily-checklist-sub">Closing Checklist</span>
+      </span>
+    </button>
+  </div>
+
   <!-- Daily World Clocks (same style as Monthly) -->
   <div id="daily-world-clocks"></div>
 
@@ -743,6 +761,32 @@ function openFormModal(){
   window.open(url,'_blank');
 }
 function closeFormModal(){}
+
+/* ── Opening / Closing Checklist (branch accounts only) ── */
+var OPEN_CHECKLIST_URLS={
+  AMJJ:'https://forms.office.com/Pages/ResponsePage.aspx?id=Fux_6MqrLEq_640Ktdw0wCBEaDMiqdxBsQp4GE5st3tUOUQwUFdLVzFRNk9JRjhWUTVSOEtGN083UCQlQCN0PWcu&r477901e39e4b4aebbe41acf6e3405101=%22AMJJ%22',
+  AMYS:'https://forms.office.com/Pages/ResponsePage.aspx?id=Fux_6MqrLEq_640Ktdw0wCBEaDMiqdxBsQp4GE5st3tUOUQwUFdLVzFRNk9JRjhWUTVSOEtGN083UCQlQCN0PWcu&r477901e39e4b4aebbe41acf6e3405101=%22AMYS%22',
+  AMGN:'https://forms.office.com/Pages/ResponsePage.aspx?id=Fux_6MqrLEq_640Ktdw0wCBEaDMiqdxBsQp4GE5st3tUOUQwUFdLVzFRNk9JRjhWUTVSOEtGN083UCQlQCN0PWcu&r477901e39e4b4aebbe41acf6e3405101=%22AMGN%22',
+  AMBS:'https://forms.office.com/Pages/ResponsePage.aspx?id=Fux_6MqrLEq_640Ktdw0wCBEaDMiqdxBsQp4GE5st3tUOUQwUFdLVzFRNk9JRjhWUTVSOEtGN083UCQlQCN0PWcu&r477901e39e4b4aebbe41acf6e3405101=%22AMBS%22',
+  AMLV:'https://forms.office.com/Pages/ResponsePage.aspx?id=Fux_6MqrLEq_640Ktdw0wCBEaDMiqdxBsQp4GE5st3tUNkpaMk85OUdCNVlRVVhWU0VVWEg0TDBFOSQlQCN0PWcu&r477901e39e4b4aebbe41acf6e3405101=%22AMLV%22',
+  AMDB:'https://forms.office.com/Pages/ResponsePage.aspx?id=Fux_6MqrLEq_640Ktdw0wCBEaDMiqdxBsQp4GE5st3tUNkpaMk85OUdCNVlRVVhWU0VVWEg0TDBFOSQlQCN0PWcu&r477901e39e4b4aebbe41acf6e3405101=%22AMDB%22',
+  AMNY:'https://forms.office.com/Pages/ResponsePage.aspx?id=Fux_6MqrLEq_640Ktdw0wCBEaDMiqdxBsQp4GE5st3tUNkpaMk85OUdCNVlRVVhWU0VVWEg0TDBFOSQlQCN0PWcu&r477901e39e4b4aebbe41acf6e3405101=%22AMNY%22'
+};
+var CLOSE_CHECKLIST_URLS={
+  AMJJ:'https://forms.office.com/Pages/ResponsePage.aspx?id=Fux_6MqrLEq_640Ktdw0wCBEaDMiqdxBsQp4GE5st3tUN0U2Q05PTlYyQU9IQVEwN1A3UDdQMlRYWSQlQCN0PWcu&r477901e39e4b4aebbe41acf6e3405101=%22AMJJ%22',
+  AMYS:'https://forms.office.com/Pages/ResponsePage.aspx?id=Fux_6MqrLEq_640Ktdw0wCBEaDMiqdxBsQp4GE5st3tUN0U2Q05PTlYyQU9IQVEwN1A3UDdQMlRYWSQlQCN0PWcu&r477901e39e4b4aebbe41acf6e3405101=%22AMYS%22',
+  AMGN:'https://forms.office.com/Pages/ResponsePage.aspx?id=Fux_6MqrLEq_640Ktdw0wCBEaDMiqdxBsQp4GE5st3tUN0U2Q05PTlYyQU9IQVEwN1A3UDdQMlRYWSQlQCN0PWcu&r477901e39e4b4aebbe41acf6e3405101=%22AMGN%22',
+  AMBS:'https://forms.office.com/Pages/ResponsePage.aspx?id=Fux_6MqrLEq_640Ktdw0wCBEaDMiqdxBsQp4GE5st3tUN0U2Q05PTlYyQU9IQVEwN1A3UDdQMlRYWSQlQCN0PWcu&r477901e39e4b4aebbe41acf6e3405101=%22AMBS%22',
+  AMLV:'https://forms.office.com/Pages/ResponsePage.aspx?id=Fux_6MqrLEq_640Ktdw0wCBEaDMiqdxBsQp4GE5st3tUMVdQVEg5MEoyMDRTWFgxSUZBTksyVjYyMyQlQCN0PWcu&r477901e39e4b4aebbe41acf6e3405101=%22AMLV%22',
+  AMDB:'https://forms.office.com/Pages/ResponsePage.aspx?id=Fux_6MqrLEq_640Ktdw0wCBEaDMiqdxBsQp4GE5st3tUMVdQVEg5MEoyMDRTWFgxSUZBTksyVjYyMyQlQCN0PWcu&r477901e39e4b4aebbe41acf6e3405101=%22AMDB%22',
+  AMNY:'https://forms.office.com/Pages/ResponsePage.aspx?id=Fux_6MqrLEq_640Ktdw0wCBEaDMiqdxBsQp4GE5st3tUMVdQVEg5MEoyMDRTWFgxSUZBTksyVjYyMyQlQCN0PWcu&r477901e39e4b4aebbe41acf6e3405101=%22AMNY%22'
+};
+function openChecklist(type){
+  if(typeof _loggedBranch==='undefined'||!_loggedBranch) return;
+  var map=type==='open'?OPEN_CHECKLIST_URLS:CLOSE_CHECKLIST_URLS;
+  var url=map[_loggedBranch];
+  if(url) window.open(url,'_blank');
+}
 </script>
 <script>
 function toggleTheme() {

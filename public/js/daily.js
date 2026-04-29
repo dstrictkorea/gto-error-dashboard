@@ -95,7 +95,11 @@ function _updateSubmitBtnState(){
   // HQ (gto) account: always enabled
   if(typeof _loggedBranch==='undefined'||!_loggedBranch){
     btn.disabled=false;btn.style.opacity='1';btn.style.pointerEvents='auto';
-    btn.title='';return;
+    btn.title='';
+    // Hide checklist row — HQ has no branch-specific checklist
+    var chkRow=document.getElementById('dailyChecklistRow');
+    if(chkRow) chkRow.classList.remove('visible');
+    return;
   }
   // Site account: only enabled when viewing own branch (or ALL)
   var viewing=_dailyBranch||'ALL';
@@ -105,6 +109,12 @@ function _updateSubmitBtnState(){
   }else{
     btn.disabled=true;btn.style.opacity='0.35';btn.style.pointerEvents='none';
     btn.title='타 지점 에러 제출 불가 (Only your branch)';
+  }
+  // Show checklist row for branch accounts that have a checklist URL
+  var chkRow=document.getElementById('dailyChecklistRow');
+  if(chkRow){
+    var hasUrl=typeof OPEN_CHECKLIST_URLS!=='undefined'&&!!OPEN_CHECKLIST_URLS[_loggedBranch];
+    chkRow.classList.toggle('visible',hasUrl);
   }
 }
 
