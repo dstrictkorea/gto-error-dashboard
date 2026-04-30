@@ -14,8 +14,8 @@
   --card:       #fff;          /* card / panel surface */
   --border:     #e8e6df;       /* border / hairline */
   --text:       #1a1a18;       /* primary text */
-  --muted:      #73726c;       /* secondary / label text */
-  --hint:       #a3a29c;       /* hint / inactive text */
+  --muted:      #4a4947;       /* secondary / label text — WCAG AA vs cream bg */
+  --hint:       #6b6b65;       /* hint / inactive text  — min readability in PDF */
 
   --blue:       #185FA5;       --blue-bg:    #E6F1FB;
   --red:        #A32D2D;       --red-bg:     #FCEBEB;

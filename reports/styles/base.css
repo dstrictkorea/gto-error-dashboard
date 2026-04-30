@@ -44,9 +44,9 @@ h2 {
 }
 h3 {
   font-size: var(--fs-h3);        /* 14px */
-  font-weight: 500;
+  font-weight: 600;               /* bumped from 500 for readability */
   line-height: var(--lh-snug);
-  color: var(--muted);
+  color: var(--text);             /* was var(--muted) — section labels must be dark */
   letter-spacing: -0.2px;
 }
 

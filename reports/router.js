@@ -160,9 +160,9 @@ router.get('/monthly-branch', async (req, res) => {
       lang, period: periodLabel, scope, comment, generated,
     });
 
-    const MONTH_ABBR = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
-    const tag = (branch || 'DSKR-GTO');
-    const fileName = `${tag}-Monthly Error Report_${MONTH_ABBR[month]}${String(year).slice(2)}.pdf`;
+    const langTag = lang === 'ko' ? 'KR' : 'EN';
+    const periodTag = `${year}-${String(month + 1).padStart(2, '0')}`;
+    const fileName = `${branch || 'DSKR'}-GTO-Monthly-Error-Report_${langTag}_${periodTag}.pdf`;
 
     const pdf = await renderPdf({ template: 'monthly-branch', data: ctx, pdf: buildPdfOpts(generated) });
     console.log(`[v2/monthly-branch] ${fileName} rows=${rows.length} recs=${ctx.recommendations.length} obs=${ctx.observations.length} ${Date.now()-t0}ms`);
@@ -204,8 +204,9 @@ router.get('/monthly-global', async (req, res) => {
       lang, period: periodLabel, scope, comment, generated,
     });
 
-    const MONTH_ABBR = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
-    const fileName = `DSKR-GTO-Monthly Error Report_${MONTH_ABBR[month]}${String(year).slice(2)}.pdf`;
+    const langTag = lang === 'ko' ? 'KR' : 'EN';
+    const periodTag = `${year}-${String(month + 1).padStart(2, '0')}`;
+    const fileName = `DSKR-GTO-Monthly-Error-Report_${langTag}_${periodTag}.pdf`;
 
     const pdf = await renderPdf({ template: 'monthly-global', data: ctx, pdf: buildPdfOpts(generated) });
     console.log(`[v2/monthly-global] ${fileName} rows=${rows.length} recs=${ctx.recommendations.length} obs=${ctx.observations.length} ${Date.now()-t0}ms`);
@@ -246,7 +247,8 @@ router.get('/annual', async (req, res) => {
       lang, period: periodLabel, scope, comment, generated,
     });
 
-    const fileName = `DSKR-GTO-Annual Error Report_${String(year).slice(2)}.pdf`;
+    const langTag = lang === 'ko' ? 'KR' : 'EN';
+    const fileName = `DSKR-GTO-Annual-Error-Report_${langTag}_${year}.pdf`;
 
     const pdf = await renderPdf({ template: 'annual', data: ctx, pdf: buildPdfOpts(generated) });
     console.log(`[v2/annual] ${fileName} rows=${rows.length} recs=${ctx.recommendations.length} obs=${ctx.observations.length} ${Date.now()-t0}ms`);
@@ -279,19 +281,17 @@ router.post('/system-monthly', async (req, res) => {
       : String(year);
 
     const generated = new Date().toLocaleDateString(ko ? 'ko-KR' : 'en-GB');
-    const KO_SITE_NAMES = { AMGN:'아르떼뮤지엄 강릉', AMYS:'아르떼뮤지엄 여수', AMBS:'아르떼뮤지엄 부산', AMJJ:'아르떼뮤지엄 제주' };
-    const koSiteName = KO_SITE_NAMES[branch];
-    const title = ko && koSiteName
-      ? `${koSiteName} ${isFinite(monthIdx) && monthIdx >= 0 && monthIdx <= 11 ? MONTHS_KO[monthIdx] : ''} ${year}년 시스템팀 월말 마감 보고서`
-      : (branch
-          ? `${branch} ${period} System Team Monthly Closing Report`
-          : `${period} System Team Monthly Closing Report`);
+    // Branch codes (AMXX) are the canonical display name — no city/site names in PDF titles
+    const title = ko
+      ? `${branch || 'GTO'} ${period} 시스템팀 월말 마감 보고서`
+      : `${branch || 'GTO'} ${period} System Team Monthly Closing Report`;
 
     const ctx = buildSystemMonthlyContext(formState, { lang, period, scope: branch, title, generated });
 
-    const MONTH_ABBR = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
-    const mAbbr = (isFinite(monthIdx) && monthIdx >= 0 && monthIdx <= 11) ? MONTH_ABBR[monthIdx] : String(year);
-    const fileName = `${branch || 'GTO'}-System_Team_Monthly_Closing_Report_${mAbbr}${String(year).slice(2)}.pdf`;
+    const langTag = ko ? 'KR' : 'EN';
+    const periodTag = (isFinite(monthIdx) && monthIdx >= 0 && monthIdx <= 11)
+      ? `${year}-${String(monthIdx + 1).padStart(2, '0')}` : String(year);
+    const fileName = `${branch || 'GTO'}-GTO-Monthly-Closing-Report_${langTag}_${periodTag}.pdf`;
 
     // Custom PDF opts for system-monthly: proper chrome header on every page
     const _esc = (s) => String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
@@ -353,19 +353,16 @@ router.post('/system-monthly-img', async (req, res) => {
       : String(year);
 
     const generated = new Date().toLocaleDateString(ko ? 'ko-KR' : 'en-GB');
-    const KO_SITE_NAMES = { AMGN:'아르떼뮤지엄 강릉', AMYS:'아르떼뮤지엄 여수', AMBS:'아르떼뮤지엄 부산', AMJJ:'아르떼뮤지엄 제주' };
-    const koSiteName = KO_SITE_NAMES[branch];
-    const title = ko && koSiteName
-      ? `${koSiteName} ${isFinite(monthIdx) && monthIdx >= 0 && monthIdx <= 11 ? _MONTHS_KO[monthIdx] : ''} ${year}년 시스템팀 월말 마감 보고서`
-      : (branch
-          ? `${branch} ${period} System Team Monthly Closing Report`
-          : `${period} System Team Monthly Closing Report`);
+    const title = ko
+      ? `${branch || 'GTO'} ${period} 시스템팀 월말 마감 보고서`
+      : `${branch || 'GTO'} ${period} System Team Monthly Closing Report`;
 
     const ctx = buildSystemMonthlyContext(formState, { lang, period, scope: branch, title, generated });
 
-    const MONTH_ABBR = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
-    const mAbbr = (isFinite(monthIdx) && monthIdx >= 0 && monthIdx <= 11) ? MONTH_ABBR[monthIdx] : String(year);
-    const fileName = `${branch || 'GTO'}-System_Team_Monthly_Closing_Report_${mAbbr}${String(year).slice(2)}.jpg`;
+    const langTag = ko ? 'KR' : 'EN';
+    const periodTag = (isFinite(monthIdx) && monthIdx >= 0 && monthIdx <= 11)
+      ? `${year}-${String(monthIdx + 1).padStart(2, '0')}` : String(year);
+    const fileName = `${branch || 'GTO'}-GTO-Monthly-Closing-Report_${langTag}_${periodTag}.jpg`;
 
     const img = await renderImg({ template: 'system-monthly', data: ctx });
     console.log(`[v2/system-monthly-img] ${fileName} groups=${ctx.groups.length} ${Date.now()-t0}ms`);
