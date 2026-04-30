@@ -300,13 +300,27 @@ router.post('/system-monthly', async (req, res) => {
     // Use Noto Sans CJK KR (now installed on server) so Korean renders in header/footer.
     // D&#x27;STRICT uses the safe ASCII apostrophe (U+0027) to avoid glyph-mapping bugs
     // with the curved right-single-quote in fallback fonts on Linux.
-    const sysHeader = `<div style="display:flex;justify-content:space-between;align-items:flex-end;width:100%;padding:4px 12mm 5px;border-bottom:2px solid #534AB7;font-family:'Noto Sans CJK KR','Noto Sans KR','Malgun Gothic',Arial,sans-serif;font-size:8.5pt;color:#73726c;box-sizing:border-box;line-height:1.2"><span style="font-weight:700;color:#534AB7;letter-spacing:0.04em;text-transform:uppercase;white-space:nowrap">D&#x27;STRICT &middot; GTO</span><span style="text-align:center;flex:1;padding:0 8px">${_esc(ctx.scope)} &middot; ${_esc(ctx.period)} &middot; ${reportLabel}</span><span style="white-space:nowrap">${siteDisp}</span></div>`;
-    const sysFooter = `<div style="font-size:7.5pt;font-family:'Noto Sans CJK KR',Arial,sans-serif;color:#9ca3af;display:flex;justify-content:space-between;width:100%;padding:2px 12mm;box-sizing:border-box"><span>${_esc(generated)}</span><span>Page <span class="pageNumber"></span></span></div>`;
+    // ── Header / Footer templates ──────────────────────────────────────────
+    // Puppeteer stretches the top-level element to fill the full margin area
+    // (height = margin.top).  A single-div approach with border-bottom causes
+    // the border to land exactly at the content boundary → strikethrough effect.
+    //
+    // Fix: two-div wrapper pattern
+    //  • outer div  — fills 100% of the margin height, flex-column
+    //  • inner div  — the visible header bar, pinned to the TOP (justify-content:flex-start)
+    //                 Its border-bottom is therefore at ~27px, well above the 55px content start.
+    // Same pattern for the footer, but inner div pinned to BOTTOM with border-top.
+    //
+    // font-size:0 on the outer div prevents inherited font-size from creating phantom height.
+    const sysHeader = `<div style="width:100%;height:100%;display:flex;flex-direction:column;justify-content:flex-start;box-sizing:border-box;font-size:0"><div style="display:flex;justify-content:space-between;align-items:center;width:100%;padding:5px 12mm;border-bottom:2px solid #534AB7;font-family:'Noto Sans CJK KR','Noto Sans KR','Malgun Gothic',Arial,sans-serif;font-size:8.5pt;color:#73726c;box-sizing:border-box;line-height:1.3"><span style="font-weight:700;color:#534AB7;letter-spacing:0.04em;text-transform:uppercase;white-space:nowrap">D&#x27;STRICT &middot; GTO</span><span style="flex:1;text-align:center;padding:0 8px">${_esc(ctx.scope)} &middot; ${_esc(ctx.period)} &middot; ${reportLabel}</span><span style="white-space:nowrap">${siteDisp}</span></div></div>`;
+    const sysFooter = `<div style="width:100%;height:100%;display:flex;flex-direction:column;justify-content:flex-end;box-sizing:border-box;font-size:0"><div style="display:flex;justify-content:space-between;align-items:center;width:100%;padding:4px 12mm;border-top:1px solid #d1d5db;font-size:7.5pt;font-family:'Noto Sans CJK KR',Arial,sans-serif;color:#9ca3af;box-sizing:border-box">${_esc(generated)}<span>Page <span class="pageNumber"></span></span></div></div>`;
     const sysPdfOpts = {
       displayHeaderFooter: true,
       headerTemplate: sysHeader,
       footerTemplate: sysFooter,
-      margin: { top: '34px', right: '0', bottom: '20px', left: '0' },
+      // margin.top must be > rendered header height (~27px).  55px gives ~28px breathing room.
+      // margin.bottom must be > rendered footer height (~22px).  30px is sufficient.
+      margin: { top: '55px', right: '0', bottom: '30px', left: '0' },
     };
     const pdf = await renderPdf({ template: 'system-monthly', data: ctx, pdf: sysPdfOpts });
     console.log(`[v2/system-monthly] ${fileName} groups=${ctx.groups.length} ${Date.now()-t0}ms`);

@@ -189,7 +189,7 @@ app.use((req, res, next) => {
 
 const IS_PROD = process.env.NODE_ENV === 'production';
 const USE_HTTPS = process.env.USE_HTTPS === 'true';  // Only enable secure cookie when HTTPS is configured
-const COOKIE_OPTS = { httpOnly: true, sameSite: 'lax', secure: USE_HTTPS, path: '/', maxAge: 60 * 60 * 1000 }; // 1-hour persistent cookie → survives PWA background/tab switch
+const COOKIE_OPTS = { httpOnly: true, sameSite: 'lax', secure: USE_HTTPS, path: '/', maxAge: 7 * 24 * 60 * 60 * 1000 }; // 7-day persistent cookie — no re-login after browser restart
 
 // Auth routes (no middleware applied)
 app.get('/login', (req, res) => {
@@ -269,9 +269,21 @@ app.use((req, res, next) => {
 app.get('/en/sw.js', (req, res, next) => { res.setHeader('Service-Worker-Allowed', '/en'); next(); });
 app.get('/kr/sw.js', (req, res, next) => { res.setHeader('Service-Worker-Allowed', '/kr'); next(); });
 
+// ── Auth-gated pages served BEFORE the open static middleware ──
+// system-report.html must be behind auth so the PDF API cookie is always present.
+// Without this, a user could open the page without being logged in, then fail on PDF generation.
+const PUBLIC_DIR = path.join(__dirname, 'public');
+function requireAuth(req, res) {
+  const authToken = req.cookies.dse_auth || '';
+  return Object.values(VALID_TOKENS).some(t => t === authToken);
+}
+app.get(['/system-report', '/system-report.html'], (req, res) => {
+  if (!requireAuth(req, res)) return res.redirect('/login');
+  res.sendFile(path.join(PUBLIC_DIR, 'system-report.html'));
+});
+
 // ── Static assets BEFORE auth — JS/CSS/images/fonts served without login ──
 // index: false prevents serving index.html for '/' — that stays behind auth
-const PUBLIC_DIR = path.join(__dirname, 'public');
 app.use(express.static(PUBLIC_DIR, { maxAge: IS_PROD ? '1d' : 0, etag: true, index: false, redirect: false }));
 
 // Auth middleware — protect pages and API (static assets already served above)

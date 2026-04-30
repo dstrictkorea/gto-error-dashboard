@@ -1407,8 +1407,13 @@ html[lang="ko"] .chart-summary {
  * ══════════════════════════════════════════════ */
 
 .sys-page {
-  /* top padding handled by Puppeteer margin (headerTemplate) */
-  padding-top: 2mm;
+  /* Breathing room below the running header line.
+     Puppeteer margin.top (55px) keeps content clear of the header bar (~27px tall).
+     This padding adds extra visual separation between the header border and content. */
+  padding-top: 8px;
+  /* Side padding ensures content never touches the page edge */
+  padding-left: 2mm;
+  padding-right: 2mm;
 }
 
 /* ── Title block ── */
