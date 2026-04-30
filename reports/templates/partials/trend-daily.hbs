@@ -1,6 +1,6 @@
-{{!-- trend-daily.hbs — Daily mini-bar trend chart
-  Uses root context: dailyTrend[], dailyTrendFirst, dailyTrendLast,
-                     dailyTrendPeak, dailyTrendLatest, avgBarH, trendSummary,
+{{!-- trend-daily.hbs — Daily line chart
+  Uses root context: dailyTrend[], svgPolylinePoints, svgAreaPoints, svgAvgY,
+                     dailyTrendFirst, dailyTrendLast, dailyTrendPeak, dailyTrendLatest,
                      trendMaxCount, labels.casesUnit
 --}}
 {{#if dailyTrend.length}}
@@ -13,13 +13,25 @@
   </div>
   {{!-- Chart area ──────────────────────────── --}}
   <div class="trend-wrap">
-    <div class="trend-bars" style="position:relative">
-      {{#each dailyTrend}}
-      <div class="trend-bar{{#if isPeak}} is-peak{{/if}}{{#if isAboveAvg}} is-above-avg{{/if}}{{#if isLatest}} is-latest{{/if}}" style="height:{{barH}}%"></div>
-      {{/each}}
-      {{#if @root.avgBarH}}
-      <div class="trend-avg-line" style="bottom:{{@root.avgBarH}}%"></div>
-      {{/if}}
+    <div class="trend-line-area">
+      <svg class="trend-line-svg" viewBox="0 0 100 44" preserveAspectRatio="none">
+        {{!-- Filled area under the line --}}
+        {{#if svgAreaPoints}}
+        <polygon class="trend-svg-area" points="{{svgAreaPoints}}" />
+        {{/if}}
+        {{!-- Average baseline --}}
+        {{#if svgAvgY}}
+        <line class="trend-svg-avg" x1="0" y1="{{svgAvgY}}" x2="100" y2="{{svgAvgY}}" />
+        {{/if}}
+        {{!-- Main line --}}
+        {{#if svgPolylinePoints}}
+        <polyline class="trend-svg-line" points="{{svgPolylinePoints}}" />
+        {{/if}}
+        {{!-- Data points --}}
+        {{#each dailyTrend}}
+        <circle class="trend-svg-dot{{#if isPeak}} is-peak{{/if}}{{#if isLatest}} is-latest{{/if}}" cx="{{svgX}}" cy="{{svgY}}" r="1.4" />
+        {{/each}}
+      </svg>
     </div>
     <div class="trend-footer">
       {{#each dailyTrend}}

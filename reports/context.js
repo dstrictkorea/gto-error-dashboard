@@ -409,17 +409,35 @@ function buildVisualContext(prepared, opts) {
   const dailyAvgNum = dayEntries.length ? total / dayEntries.length : 0;
   const avgBarH = Math.round(dailyAvgNum / dayMaxCount * 100);
 
-  const dailyTrend = dayEntries.map(([date, count], idx) => ({
-    date,
-    dateLabel: date.slice(5).replace('-', '/'),
-    count,
-    barH: Math.round(count / dayMaxCount * 100),
-    isPeak: peakDayEntry && date === peakDayEntry[0],
-    isLatest: false,
-    isAboveAvg: count > dailyAvgNum,
-    showDateLabel: idx === 0 || idx === dayEntries.length - 1 || (idx % 5 === 4),
-  }));
+  // SVG line chart constants: viewBox "0 0 100 44", chart area y=2..42
+  const _SVG_TOP = 2; const _SVG_CH = 40; const _svgBottom = _SVG_TOP + _SVG_CH;
+  const _n = dayEntries.length;
+  const dailyTrend = dayEntries.map(([date, count], idx) => {
+    const svgX = _n === 1 ? 50 : Math.round(idx / (_n - 1) * 1000) / 10;
+    const svgY = Math.round((_SVG_TOP + (1 - (dayMaxCount ? count / dayMaxCount : 0)) * _SVG_CH) * 10) / 10;
+    return {
+      date,
+      dateLabel: date.slice(5).replace('-', '/'),
+      count,
+      barH: Math.round(count / dayMaxCount * 100),
+      isPeak: peakDayEntry && date === peakDayEntry[0],
+      isLatest: false,
+      isAboveAvg: count > dailyAvgNum,
+      showDateLabel: idx === 0 || idx === _n - 1 || (idx % 5 === 4),
+      svgX,
+      svgY,
+    };
+  });
   if (dailyTrend.length > 0) dailyTrend[dailyTrend.length - 1].isLatest = true;
+
+  // Pre-built SVG attribute strings (Handlebars can't do math)
+  const svgPolylinePoints = dailyTrend.map(p => `${p.svgX},${p.svgY}`).join(' ');
+  const svgAreaPoints = dailyTrend.length >= 2
+    ? `${dailyTrend[0].svgX},${_svgBottom} ${svgPolylinePoints} ${dailyTrend[_n - 1].svgX},${_svgBottom}`
+    : '';
+  const svgAvgY = dayMaxCount && dailyAvgNum > 0
+    ? Math.round((_SVG_TOP + (1 - dailyAvgNum / dayMaxCount) * _SVG_CH) * 10) / 10
+    : null;
 
   const peakDateLabel = peakDayEntry ? peakDayEntry[0].slice(5).replace('-', '/') : '—';
   const peakCount = peakDayEntry ? peakDayEntry[1] : 0;
@@ -704,6 +722,9 @@ function buildVisualContext(prepared, opts) {
     catDominant,
     // Trend arrays
     dailyTrend,
+    svgPolylinePoints,
+    svgAreaPoints,
+    svgAvgY,
     dailyTrendFirst,
     dailyTrendLast,
     dailyTrendPeak,

@@ -589,23 +589,48 @@ html[lang="ko"] .card__action {
 }
 /* Chart column */
 .trend-wrap { display: flex; flex-direction: column; gap: 4px; flex: 1; min-width: 0; }
-.trend-bars {
-  display: flex;
-  align-items: flex-end;
-  gap: 2px;
-  height: 72px;
-  padding-bottom: 2px;
+
+/* ── SVG line chart (replaces bar chart) ───────── */
+.trend-line-area {
+  width: 100%;
+  height: 56px;
 }
-.trend-bar {
-  flex: 1;
-  background: var(--purple);
-  border-radius: 2px 2px 0 0;
-  opacity: 0.45;
-  min-height: 2px;
-  transition: opacity 0.1s;
+.trend-line-svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+  overflow: visible;
 }
-.trend-bar.is-peak   { opacity: 1; }
-.trend-bar.is-latest { opacity: 0.8; background: var(--teal); }
+/* Filled area */
+.trend-svg-area {
+  fill: var(--purple);
+  opacity: 0.12;
+}
+/* Main line */
+.trend-svg-line {
+  fill: none;
+  stroke: var(--purple);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+/* Average dashed baseline */
+.trend-svg-avg {
+  stroke: var(--muted);
+  stroke-width: 1;
+  stroke-dasharray: 3 2;
+  opacity: 0.5;
+  vector-effect: non-scaling-stroke;
+}
+/* Data point dots */
+.trend-svg-dot {
+  fill: var(--purple);
+  opacity: 0.55;
+  vector-effect: non-scaling-stroke;
+}
+.trend-svg-dot.is-peak   { fill: var(--purple); opacity: 1; r: 2px; }
+.trend-svg-dot.is-latest { fill: var(--teal);   opacity: 0.9; }
 .trend-footer {
   display: flex;
   font-size: 9px;
@@ -1116,17 +1141,8 @@ html[lang="ko"] .chart-summary {
 }
 
 /* ══════════════════════════════════════════════
- *  Trend chart enhancements
- *  Average baseline line, above-avg bar highlight.
+ *  Trend chart enhancements (legacy bar rules kept for monthly trend)
  * ══════════════════════════════════════════════ */
-
-/* Bars that exceed the daily average */
-.trend-bar.is-above-avg {
-  opacity: 0.75;
-}
-.trend-bar.is-peak {
-  opacity: 1;
-}
 
 /* Average baseline dashed line (position: absolute inside trend-bars) */
 .trend-avg-line {

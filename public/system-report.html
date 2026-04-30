@@ -871,7 +871,7 @@ async function generateImg(){
     var resp=await fetch('/api/v2/system-monthly-img',{
       method:'POST',
       headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({state:collectState(),lang:lang,branch:BRANCH,month:MONTH_IDX,year:YEAR}),
+      body:JSON.stringify({state:stateForPdf(),lang:lang,branch:BRANCH,month:MONTH_IDX,year:YEAR}),
     });
     if(!resp.ok){ var e=await resp.json().catch(function(){return{detail:'Unknown error'}}); throw new Error(e.detail||resp.statusText); }
     var blob=await resp.blob();
