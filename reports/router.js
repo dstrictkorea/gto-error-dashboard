@@ -162,7 +162,7 @@ router.get('/monthly-branch', async (req, res) => {
 
     const langTag = lang === 'ko' ? 'KR' : 'EN';
     const periodTag = `${year}-${String(month + 1).padStart(2, '0')}`;
-    const fileName = `${branch || 'DSKR'}-GTO-Monthly-Error-Report_${langTag}_${periodTag}.pdf`;
+    const fileName = `${branch || 'DSKR'}-Monthly-Error-Report_${langTag}_${periodTag}.pdf`;
 
     const pdf = await renderPdf({ template: 'monthly-branch', data: ctx, pdf: buildPdfOpts(generated) });
     console.log(`[v2/monthly-branch] ${fileName} rows=${rows.length} recs=${ctx.recommendations.length} obs=${ctx.observations.length} ${Date.now()-t0}ms`);
@@ -206,7 +206,7 @@ router.get('/monthly-global', async (req, res) => {
 
     const langTag = lang === 'ko' ? 'KR' : 'EN';
     const periodTag = `${year}-${String(month + 1).padStart(2, '0')}`;
-    const fileName = `DSKR-GTO-Monthly-Error-Report_${langTag}_${periodTag}.pdf`;
+    const fileName = `DSKR-Monthly-Error-Report_${langTag}_${periodTag}.pdf`;
 
     const pdf = await renderPdf({ template: 'monthly-global', data: ctx, pdf: buildPdfOpts(generated) });
     console.log(`[v2/monthly-global] ${fileName} rows=${rows.length} recs=${ctx.recommendations.length} obs=${ctx.observations.length} ${Date.now()-t0}ms`);
@@ -248,7 +248,7 @@ router.get('/annual', async (req, res) => {
     });
 
     const langTag = lang === 'ko' ? 'KR' : 'EN';
-    const fileName = `DSKR-GTO-Annual-Error-Report_${langTag}_${year}.pdf`;
+    const fileName = `DSKR-Annual-Error-Report_${langTag}_${year}.pdf`;
 
     const pdf = await renderPdf({ template: 'annual', data: ctx, pdf: buildPdfOpts(generated) });
     console.log(`[v2/annual] ${fileName} rows=${rows.length} recs=${ctx.recommendations.length} obs=${ctx.observations.length} ${Date.now()-t0}ms`);
@@ -291,7 +291,7 @@ router.post('/system-monthly', async (req, res) => {
     const langTag = ko ? 'KR' : 'EN';
     const periodTag = (isFinite(monthIdx) && monthIdx >= 0 && monthIdx <= 11)
       ? `${year}-${String(monthIdx + 1).padStart(2, '0')}` : String(year);
-    const fileName = `${branch || 'GTO'}-GTO-Monthly-Closing-Report_${langTag}_${periodTag}.pdf`;
+    const fileName = `${branch || 'GTO'}-Monthly-Closing-Report_${langTag}_${periodTag}.pdf`;
 
     // Custom PDF opts for system-monthly: proper chrome header on every page
     const _esc = (s) => String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
@@ -362,7 +362,7 @@ router.post('/system-monthly-img', async (req, res) => {
     const langTag = ko ? 'KR' : 'EN';
     const periodTag = (isFinite(monthIdx) && monthIdx >= 0 && monthIdx <= 11)
       ? `${year}-${String(monthIdx + 1).padStart(2, '0')}` : String(year);
-    const fileName = `${branch || 'GTO'}-GTO-Monthly-Closing-Report_${langTag}_${periodTag}.jpg`;
+    const fileName = `${branch || 'GTO'}-Monthly-Closing-Report_${langTag}_${periodTag}.jpg`;
 
     const img = await renderImg({ template: 'system-monthly', data: ctx });
     console.log(`[v2/system-monthly-img] ${fileName} groups=${ctx.groups.length} ${Date.now()-t0}ms`);
