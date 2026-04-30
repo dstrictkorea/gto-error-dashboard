@@ -1407,13 +1407,12 @@ html[lang="ko"] .chart-summary {
  * ══════════════════════════════════════════════ */
 
 .sys-page {
-  /* Breathing room below the running header line.
-     Puppeteer margin.top (55px) keeps content clear of the header bar (~27px tall).
-     This padding adds extra visual separation between the header border and content. */
-  padding-top: 8px;
-  /* Side padding ensures content never touches the page edge */
-  padding-left: 2mm;
-  padding-right: 2mm;
+  /* The .page class sets padding:8mm 12mm 4mm which is designed for reports
+     that have their OWN in-page chrome (page-chrome div).
+     System-monthly uses Puppeteer displayHeaderFooter instead, so we reset
+     top padding — the @page margin-top (55px) already gives the header gap.
+     Side/bottom padding from .page stays (12mm sides, 4mm bottom). */
+  padding-top: 6px;
 }
 
 /* ── Title block ── */

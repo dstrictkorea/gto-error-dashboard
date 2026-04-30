@@ -6,6 +6,22 @@
   Groups/Blocks/Items from the form are rendered as structured sections.
 ═══════════════════════════════════════════════════════════════ --}}
 
+{{!-- ── @page margin override ──────────────────────────────────────
+  print.css sets "@page { margin: 0 }" (the other reports handle their
+  own page chrome inline).  System-monthly uses Puppeteer's
+  displayHeaderFooter, which needs real @page margins so the header/
+  footer bands don't overlap the content.
+  This <style> is intentionally in <body>; Chromium accepts it fine.
+──────────────────────────────────────────────────────────────── --}}
+<style>
+  @page {
+    margin-top: 55px;    /* room for the running header bar (~27px) + gap */
+    margin-bottom: 30px; /* room for the running footer bar (~18px) + gap */
+    margin-left: 0;
+    margin-right: 0;
+  }
+</style>
+
 {{!-- ── PAGE 1 ─────────────────────────────────────────────────── --}}
 <section class="page sys-page">
 
