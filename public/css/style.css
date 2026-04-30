@@ -162,6 +162,10 @@ button, a, [role="button"] {
     --t2: #9C9B95;
     --t3: #6C6B66;
     --t4: #4A4948;
+    /* Remap semantic tokens used by shared components */
+    --text:  #D8D7D1;
+    --muted: #9C9B95;
+    --hint:  #6C6B66;
     --purple-bg: #1a1730;
     --purple-50: rgba(83,74,183,0.1);
     --purple-100: rgba(83,74,183,0.18);
@@ -191,6 +195,19 @@ button, a, [role="button"] {
   .detail-ctx { background: #0c1929; }
   .detail-hist { background: #0a1f12; border-color: #166534; }
   .card { background: rgba(28,28,26,0.72); border: 1px solid rgba(255,255,255,0.06); }
+  /* Table surface — prevent rgba(255,255,255,0.6) bg creating gray wash */
+  .tbl-wrap {
+    background: rgba(28,28,26,0.97);
+    border-color: rgba(255,255,255,0.06);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.3), 0 4px 16px rgba(0,0,0,0.2);
+    backdrop-filter: none;
+  }
+  thead th { background: #1a1a18; color: var(--t2); border-bottom-color: rgba(255,255,255,0.08); }
+  tbody td { color: var(--t1); border-bottom-color: rgba(255,255,255,0.04); }
+  tbody tr:nth-child(even) td { background: rgba(255,255,255,0.025); }
+  tbody tr:hover td { background: rgba(83,74,183,0.12); color: var(--t0); }
+  tbody tr.cp:hover td { background: rgba(83,74,183,0.15); }
+  .tbl-hdr { background: #1a1a18; border-bottom-color: rgba(255,255,255,0.06); }
 }
 
 /* ── DARK MODE — Class-based toggle ── */
@@ -206,6 +223,10 @@ html.dark-mode {
   --border-light: #252523;
   --border2: #404040;
   --divider: #2A2A28;
+  /* Remap semantic tokens used by shared components */
+  --text:  #D8D7D1;
+  --muted: #9C9B95;
+  --hint:  #6C6B66;
   --t0: #F0EFEA;
   --t1: #D8D7D1;
   --t2: #9C9B95;
@@ -226,6 +247,34 @@ html.dark-mode {
   --shadow-lg: 0 10px 15px rgba(0,0,0,0.35);
   --shadow-xl: 0 20px 25px rgba(0,0,0,0.4);
   color-scheme: dark;
+}
+/* ── Dark mode surface fixes — light bg values that create gray wash on dark ── */
+html.dark-mode .tbl-wrap {
+  background: rgba(28,28,26,0.97);
+  border-color: rgba(255,255,255,0.06);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.3), 0 4px 16px rgba(0,0,0,0.2);
+  backdrop-filter: none;
+}
+html.dark-mode thead th {
+  background: #1a1a18;
+  color: var(--t2);
+  border-bottom-color: rgba(255,255,255,0.08);
+}
+html.dark-mode tbody td {
+  color: var(--t1);
+  border-bottom-color: rgba(255,255,255,0.04);
+}
+html.dark-mode tbody tr:nth-child(even) td {
+  background: rgba(255,255,255,0.025);
+}
+html.dark-mode tbody tr:hover td {
+  background: rgba(83,74,183,0.12);
+  color: var(--t0);
+}
+html.dark-mode tbody tr.cp:hover td { background: rgba(83,74,183,0.15); }
+html.dark-mode .tbl-hdr {
+  background: #1a1a18;
+  border-bottom-color: rgba(255,255,255,0.06);
 }
 html.dark-mode .logo-ci { filter: invert(1) !important; }
 html.dark-mode .topbar { background: rgba(20,20,19,0.8); border-bottom: 1px solid rgba(255,255,255,0.05); }

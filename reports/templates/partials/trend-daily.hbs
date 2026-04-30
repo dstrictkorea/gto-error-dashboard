@@ -1,49 +1,39 @@
-{{!-- trend-daily.hbs — Daily line chart
-  Uses root context: dailyTrend[], svgPolylinePoints, svgAreaPoints, svgAvgY,
-                     dailyTrendFirst, dailyTrendLast, dailyTrendPeak, dailyTrendLatest,
-                     trendMaxCount, labels.casesUnit
+{{!-- trend-daily.hbs — Clean solid line chart
+  Uses root context: dailyTrend[], svgPolylinePoints,
+                     dailyTrendPeak, dailyTrendLatest, trendSummary
 --}}
 {{#if dailyTrend.length}}
-<div class="trend-with-yaxis">
-  {{!-- Y-axis ──────────────────────────────── --}}
-  <div class="trend-yaxis">
-    <span class="trend-yaxis-max">{{trendMaxCount}}</span>
-    <span class="trend-yaxis-unit">{{labels.casesUnit}}</span>
-    <span class="trend-yaxis-zero">0</span>
-  </div>
-  {{!-- Chart area ──────────────────────────── --}}
-  <div class="trend-wrap">
-    <div class="trend-line-area">
-      <svg class="trend-line-svg" viewBox="0 0 100 44" preserveAspectRatio="none">
-        {{!-- Filled area under the line --}}
-        {{#if svgAreaPoints}}
-        <polygon class="trend-svg-area" points="{{svgAreaPoints}}" />
-        {{/if}}
-        {{!-- Average baseline --}}
-        {{#if svgAvgY}}
-        <line class="trend-svg-avg" x1="0" y1="{{svgAvgY}}" x2="100" y2="{{svgAvgY}}" />
-        {{/if}}
-        {{!-- Main line --}}
-        {{#if svgPolylinePoints}}
-        <polyline class="trend-svg-line" points="{{svgPolylinePoints}}" />
-        {{/if}}
-        {{!-- Data points --}}
-        {{#each dailyTrend}}
-        <circle class="trend-svg-dot{{#if isPeak}} is-peak{{/if}}{{#if isLatest}} is-latest{{/if}}" cx="{{svgX}}" cy="{{svgY}}" r="1.4" />
-        {{/each}}
-      </svg>
-    </div>
-    <div class="trend-footer">
+<div class="trend-wrap">
+  <div class="trend-line-area">
+    <svg class="trend-line-svg" viewBox="0 0 100 44" preserveAspectRatio="none">
+      {{!-- Horizontal reference lines (top / mid / bottom) --}}
+      <line class="trend-svg-grid" x1="0" y1="2"  x2="100" y2="2"  />
+      <line class="trend-svg-grid" x1="0" y1="22" x2="100" y2="22" />
+      <line class="trend-svg-grid" x1="0" y1="42" x2="100" y2="42" />
+      {{!-- Main line --}}
+      {{#if svgPolylinePoints}}
+      <polyline class="trend-svg-line" points="{{svgPolylinePoints}}" />
+      {{/if}}
+      {{!-- Data point dots (tiny for all; larger dot only for peak) --}}
       {{#each dailyTrend}}
-      <span class="trend-xlbl{{#unless showDateLabel}} trend-xlbl--hidden{{/unless}}{{#if @last}} trend-xlbl--last{{/if}}">{{dateLabel}}</span>
+      <circle class="trend-svg-dot{{#if isPeak}} is-peak{{/if}}{{#if isLatest}} is-latest{{/if}}"
+              cx="{{svgX}}" cy="{{svgY}}"
+              r="{{#if isPeak}}1.8{{else}}0.9{{/if}}" />
       {{/each}}
-    </div>
-    <div class="trend-peak-row">
-      <span>{{@root.labels.peakLabel}}: {{dailyTrendPeak}}</span>
-      <span>{{@root.labels.latestLabel}}: {{dailyTrendLatest}}</span>
-    </div>
-    {{#if trendSummary}}<p class="chart-summary">{{trendSummary}}</p>{{/if}}
+    </svg>
   </div>
+  {{!-- X-axis day labels --}}
+  <div class="trend-footer">
+    {{#each dailyTrend}}
+    <span class="trend-xlbl{{#unless showDateLabel}} trend-xlbl--hidden{{/unless}}{{#if @last}} trend-xlbl--last{{/if}}">{{dateLabel}}</span>
+    {{/each}}
+  </div>
+  {{!-- Peak / Latest row --}}
+  <div class="trend-peak-row">
+    <span>{{@root.labels.peakLabel}}: {{dailyTrendPeak}}</span>
+    <span>{{@root.labels.latestLabel}}: {{dailyTrendLatest}}</span>
+  </div>
+  {{#if trendSummary}}<p class="chart-summary">{{trendSummary}}</p>{{/if}}
 </div>
 {{else}}
 <p class="hbar__empty">—</p>

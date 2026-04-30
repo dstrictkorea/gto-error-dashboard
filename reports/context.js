@@ -415,15 +415,19 @@ function buildVisualContext(prepared, opts) {
   const dailyTrend = dayEntries.map(([date, count], idx) => {
     const svgX = _n === 1 ? 50 : Math.round(idx / (_n - 1) * 1000) / 10;
     const svgY = Math.round((_SVG_TOP + (1 - (dayMaxCount ? count / dayMaxCount : 0)) * _SVG_CH) * 10) / 10;
+    // X-axis label: day-of-month only (e.g. "1", "15", "30")
+    const dayOfMonth = parseInt(date.slice(8), 10);
+    // Show label at: first day, last day, and multiples of 5 (5,10,15,20,25,30)
+    const showDateLabel = idx === 0 || idx === _n - 1 || dayOfMonth % 5 === 0;
     return {
       date,
-      dateLabel: date.slice(5).replace('-', '/'),
+      dateLabel: String(dayOfMonth),
       count,
       barH: Math.round(count / dayMaxCount * 100),
       isPeak: peakDayEntry && date === peakDayEntry[0],
       isLatest: false,
       isAboveAvg: count > dailyAvgNum,
-      showDateLabel: idx === 0 || idx === _n - 1 || (idx % 5 === 4),
+      showDateLabel,
       svgX,
       svgY,
     };
@@ -432,14 +436,16 @@ function buildVisualContext(prepared, opts) {
 
   // Pre-built SVG attribute strings (Handlebars can't do math)
   const svgPolylinePoints = dailyTrend.map(p => `${p.svgX},${p.svgY}`).join(' ');
-  const svgAreaPoints = dailyTrend.length >= 2
-    ? `${dailyTrend[0].svgX},${_svgBottom} ${svgPolylinePoints} ${dailyTrend[_n - 1].svgX},${_svgBottom}`
-    : '';
-  const svgAvgY = dayMaxCount && dailyAvgNum > 0
-    ? Math.round((_SVG_TOP + (1 - dailyAvgNum / dayMaxCount) * _SVG_CH) * 10) / 10
-    : null;
+  // area/avg kept for backward compat but no longer rendered
+  const svgAreaPoints = '';
+  const svgAvgY = null;
 
-  const peakDateLabel = peakDayEntry ? peakDayEntry[0].slice(5).replace('-', '/') : '—';
+  // Peak date as day-of-month only ("5일" / "day 5")
+  const peakDateLabel = peakDayEntry
+    ? (lang === 'ko'
+        ? `${parseInt(peakDayEntry[0].slice(8), 10)}일`
+        : `day ${parseInt(peakDayEntry[0].slice(8), 10)}`)
+    : '—';
   const peakCount = peakDayEntry ? peakDayEntry[1] : 0;
   const trendSummary = peakDayEntry
     ? (lang === 'ko'

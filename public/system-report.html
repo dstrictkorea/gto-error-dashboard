@@ -807,6 +807,7 @@ async function generatePdf(){
   try{
     var resp=await fetch('/api/v2/system-monthly',{
       method:'POST',
+      credentials:'same-origin',
       headers:{'Content-Type':'application/json'},
       body:JSON.stringify({state:stateForPdf(), lang:lang, branch:BRANCH, month:MONTH_IDX, year:YEAR}),
     });
@@ -836,6 +837,7 @@ async function generatePdfAndEmail(){
   try{
     var resp=await fetch('/api/v2/system-monthly',{
       method:'POST',
+      credentials:'same-origin',
       headers:{'Content-Type':'application/json'},
       body:JSON.stringify({state:stateForPdf(),lang:lang,branch:BRANCH,month:MONTH_IDX,year:YEAR}),
     });
@@ -870,6 +872,7 @@ async function generateImg(){
   try{
     var resp=await fetch('/api/v2/system-monthly-img',{
       method:'POST',
+      credentials:'same-origin',
       headers:{'Content-Type':'application/json'},
       body:JSON.stringify({state:stateForPdf(),lang:lang,branch:BRANCH,month:MONTH_IDX,year:YEAR}),
     });

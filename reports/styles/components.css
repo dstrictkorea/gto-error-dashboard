@@ -556,45 +556,13 @@ html[lang="ko"] .card__action {
  * ══════════════════════════════════════════════ */
 
 /* Y-axis wrapper */
-.trend-with-yaxis {
-  display: flex;
-  align-items: stretch;
-  gap: 5px;
-}
-/* Y-axis column */
-.trend-yaxis {
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  align-items: flex-end;
-  flex-shrink: 0;
-  width: 20px;
-  /* align with bars area: bars=72px, then footer+peak-row below */
-  padding-bottom: 36px; /* footer(14px) + peak-row(18px) + gap(4px) */
-}
-.trend-yaxis-max,
-.trend-yaxis-zero {
-  font-size: 7.5px;
-  color: var(--muted);
-  font-variant-numeric: tabular-nums;
-  line-height: 1;
-}
-.trend-yaxis-unit {
-  font-size: 7px;
-  color: var(--hint);
-  /* No vertical writing-mode: rotate(180deg) on vertical-lr flips CJK chars
-     upside-down. Display horizontally — fits within the 20px column. */
-  text-align: center;
-  margin: auto 0;
-  letter-spacing: 0.03em;
-}
-/* Chart column */
-.trend-wrap { display: flex; flex-direction: column; gap: 4px; flex: 1; min-width: 0; }
+/* Chart column — clean line chart, no y-axis column */
+.trend-wrap { display: flex; flex-direction: column; gap: 3px; }
 
-/* ── SVG line chart (replaces bar chart) ───────── */
+/* ── SVG line chart ──────────────────────────────── */
 .trend-line-area {
   width: 100%;
-  height: 56px;
+  height: 64px;
 }
 .trend-line-svg {
   width: 100%;
@@ -602,43 +570,38 @@ html[lang="ko"] .card__action {
   display: block;
   overflow: visible;
 }
-/* Filled area */
-.trend-svg-area {
-  fill: var(--purple);
-  opacity: 0.12;
+/* Horizontal reference gridlines */
+.trend-svg-grid {
+  stroke: var(--border);
+  stroke-width: 0.4;
+  opacity: 0.7;
+  vector-effect: non-scaling-stroke;
 }
-/* Main line */
+/* Main solid line — clean, no fill */
 .trend-svg-line {
   fill: none;
   stroke: var(--purple);
-  stroke-width: 2;
+  stroke-width: 1.5;
   stroke-linecap: round;
   stroke-linejoin: round;
   vector-effect: non-scaling-stroke;
 }
-/* Average dashed baseline */
-.trend-svg-avg {
-  stroke: var(--muted);
-  stroke-width: 1;
-  stroke-dasharray: 3 2;
-  opacity: 0.5;
-  vector-effect: non-scaling-stroke;
-}
-/* Data point dots */
+/* Data point dots — minimal; peak gets a filled circle */
 .trend-svg-dot {
   fill: var(--purple);
-  opacity: 0.55;
+  opacity: 0.25;
   vector-effect: non-scaling-stroke;
 }
-.trend-svg-dot.is-peak   { fill: var(--purple); opacity: 1; r: 2px; }
-.trend-svg-dot.is-latest { fill: var(--teal);   opacity: 0.9; }
+.trend-svg-dot.is-peak   { fill: var(--purple); opacity: 1; }
+.trend-svg-dot.is-latest { fill: var(--teal);   opacity: 0.85; }
+/* X-axis day labels */
 .trend-footer {
   display: flex;
-  font-size: 9px;
+  font-size: 8px;
   color: var(--muted);
-  letter-spacing: -0.1px;
-  margin-top: 1px;
-  overflow: hidden;   /* prevent rightmost label from bleeding past card */
+  letter-spacing: 0;
+  margin-top: 2px;
+  overflow: hidden;
 }
 .trend-xlbl {
   flex: 1;
@@ -646,15 +609,17 @@ html[lang="ko"] .card__action {
   overflow: visible;
   white-space: nowrap;
   font-size: 8px;
+  font-variant-numeric: tabular-nums;
 }
 .trend-xlbl--hidden { visibility: hidden; }
 .trend-xlbl--last   { text-align: right; overflow: hidden; }
+/* Peak / Latest row */
 .trend-peak-row {
   display: flex;
   justify-content: space-between;
-  font-size: 9.5px;
+  font-size: 9px;
   color: var(--muted);
-  margin-top: 2px;
+  margin-top: 1px;
 }
 .trend-peak-row span { font-variant-numeric: tabular-nums; }
 

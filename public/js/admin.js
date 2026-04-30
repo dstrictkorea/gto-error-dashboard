@@ -102,7 +102,7 @@ async function adminReport(region,action){
   statusEl.className='rpt-status is-pending';
   statusEl.innerHTML='<span class="rpt-spinner"></span>PDF 생성 중...';
   try{
-    var resp=await fetch(endpoint);
+    var resp=await fetch(endpoint,{credentials:'same-origin'});
     if(!resp.ok) throw new Error('HTTP '+resp.status+(resp.statusText?' '+resp.statusText:''));
     var blob=await resp.blob();
     var cd=resp.headers.get('Content-Disposition')||'';
@@ -925,7 +925,7 @@ async function branchReport(action,type){
   if(cmt) params.set('comment',cmt);
   var endpoint=(type==='annual'?'/api/v2/annual':'/api/v2/monthly-branch')+'?'+params.toString();
   try{
-    var resp=await fetch(endpoint);
+    var resp=await fetch(endpoint,{credentials:'same-origin'});
     if(!resp.ok) throw new Error('HTTP '+resp.status+(resp.statusText?' '+resp.statusText:''));
     var blob=await resp.blob();
     var cd=resp.headers.get('Content-Disposition')||'';
