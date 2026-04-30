@@ -400,31 +400,49 @@ function buildVisualContext(prepared, opts) {
     const k = r._date.toISOString().slice(0, 10);
     dayMap.set(k, (dayMap.get(k) || 0) + 1);
   }
-  const dayEntries = [...dayMap.entries()].sort((a, b) => a[0].localeCompare(b[0]));
-  const dayMaxCount = Math.max(...dayEntries.map(([, c]) => c), 1);
+
+  // Expand to ALL calendar days of the month so 0-error days plot at the
+  // bottom baseline — without this, a month with only 2 error days produces
+  // 2 points both at count=max (top of chart), making the line float.
+  let dayEntries = [];
+  if (dayMap.size > 0) {
+    const firstKey = [...dayMap.keys()].sort()[0];
+    const d0 = new Date(firstKey + 'T00:00:00Z');
+    const fy = d0.getUTCFullYear(), fm = d0.getUTCMonth(); // fm is 0-based
+    const daysInMonth = new Date(Date.UTC(fy, fm + 1, 0)).getUTCDate();
+    for (let d = 1; d <= daysInMonth; d++) {
+      const k = `${fy}-${String(fm + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+      dayEntries.push([k, dayMap.get(k) || 0]);
+    }
+  }
+
+  const dayMaxCount = dayEntries.length
+    ? Math.max(...dayEntries.map(([, c]) => c), 1)
+    : 1;
   const peakDayEntry = dayEntries.reduce(
     (best, e) => e[1] > (best ? best[1] : 0) ? e : best, null
   );
-  // Average per active day
+  // True daily average: total errors ÷ calendar days (not just active days)
   const dailyAvgNum = dayEntries.length ? total / dayEntries.length : 0;
   const avgBarH = Math.round(dailyAvgNum / dayMaxCount * 100);
 
   // SVG line chart constants: viewBox "0 0 100 44", chart area y=2..42
-  const _SVG_TOP = 2; const _SVG_CH = 40; const _svgBottom = _SVG_TOP + _SVG_CH;
+  const _SVG_TOP = 2; const _SVG_CH = 40;
   const _n = dayEntries.length;
   const dailyTrend = dayEntries.map(([date, count], idx) => {
-    const svgX = _n === 1 ? 50 : Math.round(idx / (_n - 1) * 1000) / 10;
-    const svgY = Math.round((_SVG_TOP + (1 - (dayMaxCount ? count / dayMaxCount : 0)) * _SVG_CH) * 10) / 10;
-    // X-axis label: day-of-month only (e.g. "1", "15", "30")
+    // Distribute points evenly across SVG width (0..100)
+    const svgX = _n <= 1 ? 50 : Math.round(idx / (_n - 1) * 1000) / 10;
+    // y=2 is top (max), y=42 is bottom (0) — count=0 always plots at baseline
+    const svgY = Math.round((_SVG_TOP + (1 - count / dayMaxCount) * _SVG_CH) * 10) / 10;
     const dayOfMonth = parseInt(date.slice(8), 10);
-    // Show label at: first day, last day, and multiples of 5 (5,10,15,20,25,30)
-    const showDateLabel = idx === 0 || idx === _n - 1 || dayOfMonth % 5 === 0;
+    // Labels: day 1, every 5th (5,10,15,20,25,30), and last day of month
+    const showDateLabel = dayOfMonth === 1 || dayOfMonth % 5 === 0 || idx === _n - 1;
     return {
       date,
       dateLabel: String(dayOfMonth),
       count,
       barH: Math.round(count / dayMaxCount * 100),
-      isPeak: peakDayEntry && date === peakDayEntry[0],
+      isPeak: !!(peakDayEntry && date === peakDayEntry[0] && peakDayEntry[1] > 0),
       isLatest: false,
       isAboveAvg: count > dailyAvgNum,
       showDateLabel,
@@ -436,18 +454,17 @@ function buildVisualContext(prepared, opts) {
 
   // Pre-built SVG attribute strings (Handlebars can't do math)
   const svgPolylinePoints = dailyTrend.map(p => `${p.svgX},${p.svgY}`).join(' ');
-  // area/avg kept for backward compat but no longer rendered
   const svgAreaPoints = '';
   const svgAvgY = null;
 
-  // Peak date as day-of-month only ("5일" / "day 5")
-  const peakDateLabel = peakDayEntry
+  // Peak label: day-of-month number only
+  const peakDateLabel = peakDayEntry && peakDayEntry[1] > 0
     ? (lang === 'ko'
         ? `${parseInt(peakDayEntry[0].slice(8), 10)}일`
         : `day ${parseInt(peakDayEntry[0].slice(8), 10)}`)
     : '—';
   const peakCount = peakDayEntry ? peakDayEntry[1] : 0;
-  const trendSummary = peakDayEntry
+  const trendSummary = peakDayEntry && peakCount > 0
     ? (lang === 'ko'
         ? `${peakDateLabel}에 ${peakCount}건으로 일 평균(${dailyAvgNum.toFixed(1)}건) 대비 최다 발생했습니다.`
         : `Incidents peaked on ${peakDateLabel} with ${formatCount(peakCount, 'errors', lang)}, above the daily average of ${dailyAvgNum.toFixed(1)}.`)
