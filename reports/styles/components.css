@@ -1460,6 +1460,7 @@ html[lang="ko"] .chart-summary {
 /* ── Groups ── */
 .sys-group {
   margin-bottom: 10px;
+  margin-top: 6px;  /* breathing room when a group starts on a new page */
   border: 1px solid var(--border);
   border-radius: var(--radius);
   overflow: hidden;
@@ -1560,5 +1561,23 @@ html[lang="ko"] .chart-summary {
 .sys-empty-hint {
   color: var(--hint);
   font-size: 12px;
+}
+
+/* ── Image gallery inside blocks ── */
+.sys-gallery {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+  break-inside: avoid;
+  page-break-inside: avoid;
+}
+.sys-img {
+  max-height: 180px;   /* prevent a single image from taking a full page */
+  width: auto;
+  max-width: 100%;
+  border-radius: 6px;
+  display: block;
+  object-fit: contain;
 }
 

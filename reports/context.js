@@ -1121,7 +1121,11 @@ function buildSystemMonthlyContext(formState, opts) {
           .map(function(s) { return typeof s === 'string' ? s : ((s && s.text) ? s.text : ''); })
           .map(function(s) { return s.replace(/^\n+|\n+$/g, ''); }) // trim leading/trailing newlines only
           .filter(Boolean);
-        return { blockNum: (gi + 1) + '.' + (bi + 1), title: bTitle, items };
+        // Include images (base64 data URLs) so Puppeteer can render them
+        const images = (b.images || [])
+          .filter(function(img) { return img && img.data && img.data.length > 0; })
+          .map(function(img) { return { data: img.data, name: img.name || '' }; });
+        return { blockNum: (gi + 1) + '.' + (bi + 1), title: bTitle, items, images };
       }),
     };
   });

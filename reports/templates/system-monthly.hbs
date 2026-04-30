@@ -45,6 +45,13 @@
           {{/each}}
         </ul>
         {{/if}}
+        {{#if images.length}}
+        <div class="sys-gallery">
+          {{#each images}}
+          <img class="sys-img" src="{{data}}" alt="{{name}}">
+          {{/each}}
+        </div>
+        {{/if}}
       </div>
       {{/each}}
     </div>

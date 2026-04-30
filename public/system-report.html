@@ -660,15 +660,30 @@ function renderGallery(b, gi, bi){
   return wrap;
 }
 
-// ── Image handling ────────────────────────────────────────────
+// ── Image handling — compress before storing to keep POST body small ──
 function handleImages(files, b, gi, bi){
   Array.from(files).forEach(function(file){
     if(!file.type.startsWith('image/')) return;
     var reader = new FileReader();
     reader.onload = function(e){
-      if(!b.images) b.images = [];
-      b.images.push({name:file.name, data:e.target.result});
-      scheduleSave(); renderAll();
+      var img = new Image();
+      img.onload = function(){
+        // Resize to max 1400px, encode as JPEG @82% — reduces size ~80%
+        var MAX = 1400;
+        var w = img.width, h = img.height;
+        if(w > MAX || h > MAX){
+          var r = Math.min(MAX/w, MAX/h);
+          w = Math.round(w*r); h = Math.round(h*r);
+        }
+        var cv = document.createElement('canvas');
+        cv.width = w; cv.height = h;
+        cv.getContext('2d').drawImage(img, 0, 0, w, h);
+        var data = cv.toDataURL('image/jpeg', 0.82);
+        if(!b.images) b.images = [];
+        b.images.push({name: file.name.replace(/\.\w+$/, '.jpg'), data: data});
+        scheduleSave(); renderAll();
+      };
+      img.src = e.target.result;
     };
     reader.readAsDataURL(file);
   });
@@ -773,16 +788,12 @@ function toggleLang(){
 }
 window.toggleLang = toggleLang;
 
-// ── State snapshot without base64 images (for PDF POST) ──────
-// Images are stored as data: URLs — too large for the JSON body and
-// not needed by the server-side PDF template.
+// ── State snapshot for PDF POST ───────────────────────────────
+// Images are now compressed client-side (max 1400px, JPEG 82%) before
+// storing, so they're small enough to send. The server template renders
+// them via base64 data URLs in Puppeteer.
 function stateForPdf(){
-  var s = JSON.parse(JSON.stringify(state));
-  s.groups = (s.groups || []).map(function(g){
-    g.blocks = (g.blocks || []).map(function(b){ b.images = []; return b; });
-    return g;
-  });
-  return s;
+  return JSON.parse(JSON.stringify(state));
 }
 
 // ── Generate PDF ──────────────────────────────────────────────
