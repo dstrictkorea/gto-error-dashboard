@@ -1411,8 +1411,11 @@ html[lang="ko"] .chart-summary {
      that have their OWN in-page chrome (page-chrome div).
      System-monthly uses Puppeteer displayHeaderFooter instead, so we reset
      top padding — the @page margin-top (55px) already gives the header gap.
-     Side/bottom padding from .page stays (12mm sides, 4mm bottom). */
+     Side/bottom padding from .page stays (12mm sides, 4mm bottom).
+     min-height overrides print.css calc(210mm - 22px) to match the actual
+     content area: A4 landscape 210mm minus margin-top(55px) + margin-bottom(30px). */
   padding-top: 6px;
+  min-height: calc(210mm - 55px - 30px);
 }
 
 /* ── Title block ── */

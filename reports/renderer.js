@@ -181,64 +181,137 @@ async function cleanupHtml(htmlPath) {
 }
 
 // ══════════════════════════════════════════════════════════════════
-//  Main render
-//
-//  opts.template  — handlebars template name under reports/templates
-//  opts.data      — view-model passed to template + layout
-//  opts.pdf       — optional overrides for page.pdf() options
+//  Connection-error detection
+//  Puppeteer throws "Connection closed" / "Target closed" when the
+//  Chromium process crashes or is restarted while the Node process
+//  still holds a stale browser promise.  Detect these so callers
+//  can reset _browserPromise and retry.
 // ══════════════════════════════════════════════════════════════════
-async function renderPdf({ template, data, pdf: pdfOpts = {} } = {}) {
-  if (!template) throw new Error('renderPdf: template is required');
-  if (!data || typeof data !== 'object') throw new Error('renderPdf: data object is required');
+function isConnectionError(err) {
+  if (!err || typeof err.message !== 'string') return false;
+  const msg = err.message;
+  return (
+    msg.includes('Connection closed') ||
+    msg.includes('Target closed')     ||
+    msg.includes('Session closed')    ||
+    msg.includes('Protocol error')    ||
+    msg.includes('detached')
+  );
+}
 
-  const assetsDir = await getAssetsDir();
-  const htmlPath = path.join(assetsDir, `r-${crypto.randomBytes(6).toString('hex')}.html`);
+// ══════════════════════════════════════════════════════════════════
+//  Core HTML build — shared by renderPdf and renderImg
+// ══════════════════════════════════════════════════════════════════
+async function buildHtml(template, data) {
+  registerPartialsOnce();
+  const bodyTpl   = loadTemplate(template);
+  const layoutTpl = loadLayout();
+  const body = bodyTpl(data);
+  return layoutTpl({ ...data, body });
+}
+
+// ══════════════════════════════════════════════════════════════════
+//  Internal render — opens a page, loads HTML, calls cb(page)
+//  Returns whatever cb returns.  Cleans up on success AND error.
+// ══════════════════════════════════════════════════════════════════
+async function _withPage(htmlPath, cb) {
   let page;
   try {
-    // Ensure partials are registered before first compile
-    registerPartialsOnce();
-
-    // Compose body → layout
-    const bodyTpl   = loadTemplate(template);
-    const layoutTpl = loadLayout();
-    const body = bodyTpl(data);
-    const html = layoutTpl({ ...data, body });
-
-    // Write per-render HTML inside the shared assets dir so relative
-    // ./styles/*.css and ./styles/fonts/*.otf resolve without rewriting.
-    await fsp.writeFile(htmlPath, html, 'utf8');
-
     const browser = await getBrowser();
     page = await browser.newPage();
-
     const url = 'file:///' + htmlPath.replace(/\\/g, '/');
-    // 'load' fires once the main HTML + linked CSS + @font-face sources
-    // have been fetched. Fonts are file:// local; there is no network
-    // activity to idle out, so networkidle0 only adds its 500ms window.
     await page.goto(url, { waitUntil: 'load', timeout: 30_000 });
-
-    // Authoritative font-ready signal — pairs with font-display:block.
     await page.evaluate(() => document.fonts && document.fonts.ready);
-
-    const buffer = await page.pdf({
-      format: 'A4',
-      landscape: true,
-      printBackground: true,
-      preferCSSPageSize: true,   // @page in CSS is authoritative
-      displayHeaderFooter: false,
-      margin: { top: 0, right: 0, bottom: 0, left: 0 }, // CSS owns margins
-      ...pdfOpts,
-    });
-
-    return buffer;
+    return await cb(page);
   } finally {
     if (page) { try { await page.close(); } catch (_) { /* ignore */ } }
     await cleanupHtml(htmlPath);
   }
 }
 
+// ══════════════════════════════════════════════════════════════════
+//  PDF render
+//
+//  opts.template  — handlebars template name under reports/templates
+//  opts.data      — view-model passed to template + layout
+//  opts.pdf       — optional overrides for page.pdf() options
+// ══════════════════════════════════════════════════════════════════
+async function _renderPdfOnce({ template, data, pdf: pdfOpts = {} }) {
+  const assetsDir = await getAssetsDir();
+  const htmlPath  = path.join(assetsDir, `r-${crypto.randomBytes(6).toString('hex')}.html`);
+  const html = await buildHtml(template, data);
+  await fsp.writeFile(htmlPath, html, 'utf8');
+  return _withPage(htmlPath, (page) => page.pdf({
+    format: 'A4',
+    landscape: true,
+    printBackground: true,
+    preferCSSPageSize: true,   // @page in CSS is authoritative for size
+    displayHeaderFooter: false,
+    margin: { top: 0, right: 0, bottom: 0, left: 0 }, // CSS owns margins
+    ...pdfOpts,
+  }));
+}
+
+async function renderPdf(opts = {}) {
+  if (!opts.template) throw new Error('renderPdf: template is required');
+  if (!opts.data || typeof opts.data !== 'object') throw new Error('renderPdf: data object is required');
+  try {
+    return await _renderPdfOnce(opts);
+  } catch (err) {
+    if (isConnectionError(err)) {
+      // Stale Chromium — reset promise so getBrowser() re-launches
+      _browserPromise = null;
+      console.warn('[renderer] Puppeteer connection lost, retrying…');
+      return await _renderPdfOnce(opts);
+    }
+    throw err;
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════
+//  Image render (JPEG screenshot, full-page)
+//
+//  Uses screen media (not print) so @page rules / page-breaks are
+//  ignored — content renders as a single continuous column.
+//  Viewport width = A4 landscape px width at 96dpi (1123px) × 2
+//  for crisp Retina-quality output.
+// ══════════════════════════════════════════════════════════════════
+async function _renderImgOnce({ template, data }) {
+  const assetsDir = await getAssetsDir();
+  const htmlPath  = path.join(assetsDir, `r-${crypto.randomBytes(6).toString('hex')}.html`);
+  const html = await buildHtml(template, data);
+  await fsp.writeFile(htmlPath, html, 'utf8');
+  return _withPage(htmlPath, async (page) => {
+    // Screen media: disables @page, page-break-after, etc.
+    await page.emulateMediaType('screen');
+    // A4 landscape width at 96 dpi = 1123px; ×2 scale for hi-res
+    await page.setViewport({ width: 1123, height: 794, deviceScaleFactor: 2 });
+    // Re-navigate so the viewport change takes effect on layout
+    const url = 'file:///' + htmlPath.replace(/\\/g, '/');
+    await page.goto(url, { waitUntil: 'load', timeout: 30_000 });
+    await page.evaluate(() => document.fonts && document.fonts.ready);
+    return page.screenshot({ type: 'jpeg', quality: 92, fullPage: true });
+  });
+}
+
+async function renderImg(opts = {}) {
+  if (!opts.template) throw new Error('renderImg: template is required');
+  if (!opts.data || typeof opts.data !== 'object') throw new Error('renderImg: data object is required');
+  try {
+    return await _renderImgOnce(opts);
+  } catch (err) {
+    if (isConnectionError(err)) {
+      _browserPromise = null;
+      console.warn('[renderer] Puppeteer connection lost, retrying (img)…');
+      return await _renderImgOnce(opts);
+    }
+    throw err;
+  }
+}
+
 module.exports = {
   renderPdf,
+  renderImg,
   warmup,
   closeRenderer,
   // exported for tests / introspection

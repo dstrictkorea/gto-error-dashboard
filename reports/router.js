@@ -26,7 +26,7 @@
 const express = require('express');
 const path    = require('path');
 
-const { renderPdf }  = require('./renderer');
+const { renderPdf, renderImg } = require('./renderer');
 const { buildSmokeContext, buildMonthlyBranchContext,
         buildMonthlyGlobalContext, buildAnnualContext,
         buildSystemMonthlyContext } = require('./context');
@@ -328,6 +328,55 @@ router.post('/system-monthly', async (req, res) => {
   } catch (e) {
     console.error('[v2/system-monthly] error:', e);
     res.status(500).json({ error: 'system-monthly render failed', detail: e.message });
+  }
+});
+
+// ── /api/v2/system-monthly-img (POST) ────────────────────────
+// Same body as system-monthly. Returns JPEG screenshot (screen media,
+// fullPage) instead of PDF — no page breaks, no header/footer bands.
+router.post('/system-monthly-img', async (req, res) => {
+  const t0 = Date.now();
+  try {
+    const { state: formState, lang: rawLang, branch: rawBranch, month: rawMonth, year: rawYear } = req.body || {};
+    if (!formState || !formState.groups) return res.status(400).json({ error: 'state.groups required' });
+
+    const lang   = rawLang === 'ko' ? 'ko' : 'en';
+    const branch = (typeof rawBranch === 'string') ? rawBranch.toUpperCase().slice(0, 10) : '';
+    const year   = parseInt(rawYear, 10) || new Date().getFullYear();
+    const monthIdx = parseInt(rawMonth, 10);
+    const ko = lang === 'ko';
+
+    const _MONTHS_EN = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+    const _MONTHS_KO = ['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
+    const period = (isFinite(monthIdx) && monthIdx >= 0 && monthIdx <= 11)
+      ? (ko ? `${year}년 ${_MONTHS_KO[monthIdx]}` : `${_MONTHS_EN[monthIdx]} ${year}`)
+      : String(year);
+
+    const generated = new Date().toLocaleDateString(ko ? 'ko-KR' : 'en-GB');
+    const KO_SITE_NAMES = { AMGN:'아르떼뮤지엄 강릉', AMYS:'아르떼뮤지엄 여수', AMBS:'아르떼뮤지엄 부산', AMJJ:'아르떼뮤지엄 제주' };
+    const koSiteName = KO_SITE_NAMES[branch];
+    const title = ko && koSiteName
+      ? `${koSiteName} ${isFinite(monthIdx) && monthIdx >= 0 && monthIdx <= 11 ? _MONTHS_KO[monthIdx] : ''} ${year}년 시스템팀 월말 마감 보고서`
+      : (branch
+          ? `${branch} ${period} System Team Monthly Closing Report`
+          : `${period} System Team Monthly Closing Report`);
+
+    const ctx = buildSystemMonthlyContext(formState, { lang, period, scope: branch, title, generated });
+
+    const MONTH_ABBR = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
+    const mAbbr = (isFinite(monthIdx) && monthIdx >= 0 && monthIdx <= 11) ? MONTH_ABBR[monthIdx] : String(year);
+    const fileName = `${branch || 'GTO'}-System_Team_Monthly_Closing_Report_${mAbbr}${String(year).slice(2)}.jpg`;
+
+    const img = await renderImg({ template: 'system-monthly', data: ctx });
+    console.log(`[v2/system-monthly-img] ${fileName} groups=${ctx.groups.length} ${Date.now()-t0}ms`);
+    res.setHeader('Content-Type', 'image/jpeg');
+    res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
+    res.setHeader('Content-Length', img.length);
+    res.setHeader('X-Render-ms', String(Date.now() - t0));
+    res.end(img);
+  } catch (e) {
+    console.error('[v2/system-monthly-img] error:', e);
+    res.status(500).json({ error: 'system-monthly-img render failed', detail: e.message });
   }
 });
 
