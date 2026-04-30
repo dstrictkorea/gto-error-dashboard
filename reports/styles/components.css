@@ -570,30 +570,35 @@ html[lang="ko"] .card__action {
   display: block;
   overflow: visible;
 }
-/* Horizontal reference gridlines */
+/* Horizontal reference gridlines — crispEdges = pixel-perfect horizontals */
 .trend-svg-grid {
   stroke: var(--border);
-  stroke-width: 0.4;
-  opacity: 0.7;
+  stroke-width: 1;
+  opacity: 0.5;
+  shape-rendering: crispEdges;
   vector-effect: non-scaling-stroke;
 }
-/* Main solid line — clean, no fill */
+/* Main solid line — geometricPrecision = smooth anti-aliased curve */
 .trend-svg-line {
   fill: none;
   stroke: var(--purple);
   stroke-width: 1.5;
   stroke-linecap: round;
   stroke-linejoin: round;
+  shape-rendering: geometricPrecision;
   vector-effect: non-scaling-stroke;
 }
-/* Data point dots — minimal; peak gets a filled circle */
+/* Dots: zero-length line + stroke-linecap:round = true pixel-circle.
+   Non-scaling-stroke keeps them the same apparent size even when SVG
+   is scaled non-uniformly (preserveAspectRatio="none"). No more ovals. */
 .trend-svg-dot {
-  fill: var(--purple);
-  opacity: 0.25;
+  fill: none;
+  stroke-linecap: round;
   vector-effect: non-scaling-stroke;
+  shape-rendering: geometricPrecision;
 }
-.trend-svg-dot.is-peak   { fill: var(--purple); opacity: 1; }
-.trend-svg-dot.is-latest { fill: var(--teal);   opacity: 0.85; }
+.trend-svg-dot.is-peak   { stroke: var(--purple); stroke-width: 5; opacity: 1; }
+.trend-svg-dot.is-latest { stroke: var(--teal);   stroke-width: 4; opacity: 0.9; }
 /* X-axis day labels */
 .trend-footer {
   display: flex;

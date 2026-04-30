@@ -6,7 +6,7 @@
 <div class="trend-wrap">
   <div class="trend-line-area">
     <svg class="trend-line-svg" viewBox="0 0 100 44" preserveAspectRatio="none">
-      {{!-- Horizontal reference lines (top / mid / bottom) --}}
+      {{!-- Horizontal reference lines — crispEdges keeps them pixel-sharp --}}
       <line class="trend-svg-grid" x1="0" y1="2"  x2="100" y2="2"  />
       <line class="trend-svg-grid" x1="0" y1="22" x2="100" y2="22" />
       <line class="trend-svg-grid" x1="0" y1="42" x2="100" y2="42" />
@@ -14,11 +14,17 @@
       {{#if svgPolylinePoints}}
       <polyline class="trend-svg-line" points="{{svgPolylinePoints}}" />
       {{/if}}
-      {{!-- Data point dots (tiny for all; larger dot only for peak) --}}
+      {{!-- Dots: zero-length line + round linecap = perfect pixel circle,
+           immune to non-uniform scaling (vector-effect: non-scaling-stroke) --}}
       {{#each dailyTrend}}
-      <circle class="trend-svg-dot{{#if isPeak}} is-peak{{/if}}{{#if isLatest}} is-latest{{/if}}"
-              cx="{{svgX}}" cy="{{svgY}}"
-              r="{{#if isPeak}}1.8{{else}}0.9{{/if}}" />
+      {{#if isPeak}}
+      <line class="trend-svg-dot is-peak"
+            x1="{{svgX}}" y1="{{svgY}}" x2="{{svgX}}" y2="{{svgY}}" />
+      {{/if}}
+      {{#if isLatest}}
+      <line class="trend-svg-dot is-latest"
+            x1="{{svgX}}" y1="{{svgY}}" x2="{{svgX}}" y2="{{svgY}}" />
+      {{/if}}
       {{/each}}
     </svg>
   </div>
